@@ -3,7 +3,7 @@ from rag.vector_store import VectorStore
 
 class Retriever:
     """
-    Retrieves the most relevant chunks from ChromaDB.
+    Retrieves candidate documents from the vector store.
     """
 
     def __init__(self):
@@ -12,13 +12,14 @@ class Retriever:
     def retrieve(
         self,
         query: str,
-        k: int = 5
+        k: int = 20,
     ):
         """
-        Retrieve the top-k most relevant documents.
+        Retrieve candidate documents.
+        These will later be reranked.
         """
 
         return self.vector_store.similarity_search(
             query=query,
-            k=k
+            k=k,
         )
