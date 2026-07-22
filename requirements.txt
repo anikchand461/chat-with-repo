@@ -6,3 +6,4 @@ langchain_huggingface
 langchain_chroma
 chromadb
 langchain_google_genai
+langchain-text-splitters
