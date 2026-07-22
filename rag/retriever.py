@@ -2,24 +2,14 @@ from rag.vector_store import VectorStore
 
 
 class Retriever:
-    """
-    Retrieves candidate documents from the vector store.
-    """
 
-    def __init__(self):
-        self.vector_store = VectorStore()
+    def __init__(self, repository_name):
+        self.vector_store = VectorStore(repository_name)
 
-    def retrieve(
-        self,
-        query: str,
-        k: int = 20,
-    ):
-        """
-        Retrieve candidate documents.
-        These will later be reranked.
-        """
-
-        return self.vector_store.similarity_search(
+    def retrieve(self, query: str, k: int = 20):
+        return self.vector_store.db.max_marginal_relevance_search(
             query=query,
             k=k,
+            fetch_k=50,
+            lambda_mult=0.5,
         )

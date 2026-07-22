@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Any
-
+from .repository_summary import RepositorySummary
 from langchain_core.documents import Document
+from bs4 import BeautifulSoup
 
 
 class DocumentConverter:
@@ -30,46 +31,9 @@ class DocumentConverter:
         else:
             raise ValueError("Unsupported JSON format.")
 
-        # --------------------------------------------------
-        # Find README
-        # --------------------------------------------------
-
-        readme_content = ""
-
-        for file in files:
-            filename = Path(file.get("path", "")).name.lower()
-
-            if filename.startswith("readme"):
-                readme_content = file.get("content", "").strip()
-                break
-
-        # --------------------------------------------------
-        # Repository Overview (NEW)
-        # --------------------------------------------------
-
-        overview = Document(
-            page_content=f"""
-Repository Overview
-
-Repository:
-{repository_name}
-
-This document provides a high-level overview of the repository.
-
-Repository README:
-
-{readme_content[:3000]}
-""",
-            metadata={
-                "repository": repository_name,
-                "document_type": "repository_overview",
-                "path": "__repository_overview__",
-                "filename": "__repository_overview__",
-                "extension": ".overview",
-            },
-        )
-
-        documents.append(overview)
+        summary = RepositorySummary()
+        
+        documents.extend(summary.generate(data))
 
         # --------------------------------------------------
         # Convert all files
@@ -120,19 +84,30 @@ README Content:
             # -----------------------------------------
 
             elif extension in {".md", ".html"}:
-
+            
+                # Convert HTML to plain text
+                if extension == ".html":
+                    soup = BeautifulSoup(content, "html.parser")
+            
+                    # Remove CSS and JavaScript
+                    for tag in soup(["style", "script"]):
+                        tag.decompose()
+            
+                    # Keep only visible text
+                    content = soup.get_text(separator="\n", strip=True)
+            
                 page_content = f"""
-Repository: {repository_name}
-
-Document Type: Documentation
-
-File: {path}
-
-Documentation Content:
-
-{content}
-"""
-
+            Repository: {repository_name}
+            
+            Document Type: Documentation
+            
+            File: {path}
+            
+            Documentation Content:
+            
+            {content}
+            """
+            
                 document_type = "documentation"
 
             # -----------------------------------------
