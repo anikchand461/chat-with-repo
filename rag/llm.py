@@ -9,7 +9,7 @@ load_dotenv()
 class LLM:
 
     def __init__(self):
-        self.llm = ChatGoogleGenerativeAI(
+        self.model = ChatGoogleGenerativeAI(
             model="gemini-3.1-flash-lite",
             google_api_key=os.getenv("GOOGLE_API_KEY"),
             temperature=0.2,
@@ -44,7 +44,7 @@ Instructions:
 6. Keep answers concise, accurate, and based only on the provided repository context.
 """
 
-        response = self.llm.invoke(prompt)
+        response = self.model.invoke(prompt)
 
         content = response.content
 

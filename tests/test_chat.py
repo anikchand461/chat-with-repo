@@ -53,6 +53,9 @@ def main():
 
     while True:
         question = input("You > ").strip()
+        if not question:
+            print("Please enter a question.")
+            continue
 
         if question.lower() in {"exit", "quit"}:
             print("\nGoodbye!")

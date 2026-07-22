@@ -16,6 +16,27 @@ class Reranker:
             api_key=os.getenv("COHERE_API_KEY")
         )
 
+    def _format_document(self, doc):
+        """
+        Create a richer representation of a document for reranking.
+        """
+
+        repository = doc.metadata.get("repository", "Unknown")
+        path = doc.metadata.get("path", "Unknown")
+        document_type = doc.metadata.get("document_type", "Unknown")
+
+        return f"""
+Repository: {repository}
+
+File: {path}
+
+Document Type: {document_type}
+
+Content:
+
+{doc.page_content}
+""".strip()
+
     def rerank(
         self,
         query: str,
@@ -25,21 +46,21 @@ class Reranker:
         if not documents:
             return []
 
+        formatted_documents = [
+            self._format_document(doc)
+            for doc in documents
+        ]
+
         response = self.client.rerank(
             model="rerank-v3.5",
             query=query,
-            documents=[
-                doc.page_content
-                for doc in documents
-            ],
-            top_n=top_k,
+            documents=formatted_documents,
+            top_n=min(top_k, len(formatted_documents)),
         )
 
-        reranked = []
+        reranked_documents = [
+            documents[result.index]
+            for result in response.results
+        ]
 
-        for result in response.results:
-            reranked.append(
-                documents[result.index]
-            )
-
-        return reranked
+        return reranked_documents
