@@ -3,6 +3,6 @@ uvicorn
 requests
 python-dotenv
 langchain_huggingface
-sentence_transformers
 langchain_chroma
 chromadb
+langchain_google_genai

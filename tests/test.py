@@ -9,6 +9,6 @@ llm = ChatGoogleGenerativeAI(
     google_api_key=os.getenv("GOOGLE_API_KEY")
 )
 
-response = llm.invoke("Say Hello")
+response = llm.invoke("Hello")
 
-print(response.content)
+print(response.text)
