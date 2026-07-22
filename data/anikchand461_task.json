@@ -1,0 +1,446 @@
+{
+    "repository": {
+        "id": 1118147823,
+        "node_id": "R_kgDOQqWU7w",
+        "name": "task",
+        "full_name": "anikchand461/task",
+        "private": false,
+        "owner": {
+            "login": "anikchand461",
+            "id": 161185149,
+            "node_id": "U_kgDOCZt9fQ",
+            "avatar_url": "https://avatars.githubusercontent.com/u/161185149?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/anikchand461",
+            "html_url": "https://github.com/anikchand461",
+            "followers_url": "https://api.github.com/users/anikchand461/followers",
+            "following_url": "https://api.github.com/users/anikchand461/following{/other_user}",
+            "gists_url": "https://api.github.com/users/anikchand461/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/anikchand461/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/anikchand461/subscriptions",
+            "organizations_url": "https://api.github.com/users/anikchand461/orgs",
+            "repos_url": "https://api.github.com/users/anikchand461/repos",
+            "events_url": "https://api.github.com/users/anikchand461/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/anikchand461/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+        },
+        "html_url": "https://github.com/anikchand461/task",
+        "description": "A simple, fast, cross-platform command-line todo app written in Go.",
+        "fork": false,
+        "url": "https://api.github.com/repos/anikchand461/task",
+        "forks_url": "https://api.github.com/repos/anikchand461/task/forks",
+        "keys_url": "https://api.github.com/repos/anikchand461/task/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/anikchand461/task/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/anikchand461/task/teams",
+        "hooks_url": "https://api.github.com/repos/anikchand461/task/hooks",
+        "issue_events_url": "https://api.github.com/repos/anikchand461/task/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/anikchand461/task/events",
+        "assignees_url": "https://api.github.com/repos/anikchand461/task/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/anikchand461/task/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/anikchand461/task/tags",
+        "blobs_url": "https://api.github.com/repos/anikchand461/task/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/anikchand461/task/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/anikchand461/task/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/anikchand461/task/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/anikchand461/task/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/anikchand461/task/languages",
+        "stargazers_url": "https://api.github.com/repos/anikchand461/task/stargazers",
+        "contributors_url": "https://api.github.com/repos/anikchand461/task/contributors",
+        "subscribers_url": "https://api.github.com/repos/anikchand461/task/subscribers",
+        "subscription_url": "https://api.github.com/repos/anikchand461/task/subscription",
+        "commits_url": "https://api.github.com/repos/anikchand461/task/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/anikchand461/task/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/anikchand461/task/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/anikchand461/task/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/anikchand461/task/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/anikchand461/task/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/anikchand461/task/merges",
+        "archive_url": "https://api.github.com/repos/anikchand461/task/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/anikchand461/task/downloads",
+        "issues_url": "https://api.github.com/repos/anikchand461/task/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/anikchand461/task/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/anikchand461/task/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/anikchand461/task/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/anikchand461/task/labels{/name}",
+        "releases_url": "https://api.github.com/repos/anikchand461/task/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/anikchand461/task/deployments",
+        "created_at": "2025-12-17T10:29:08Z",
+        "updated_at": "2026-06-12T12:15:10Z",
+        "pushed_at": "2026-06-12T12:15:11Z",
+        "git_url": "git://github.com/anikchand461/task.git",
+        "ssh_url": "git@github.com:anikchand461/task.git",
+        "clone_url": "https://github.com/anikchand461/task.git",
+        "svn_url": "https://github.com/anikchand461/task",
+        "homepage": "https://task-ten-gules.vercel.app",
+        "size": 62,
+        "stargazers_count": 4,
+        "watchers_count": 4,
+        "language": "HTML",
+        "has_issues": true,
+        "has_projects": true,
+        "has_downloads": false,
+        "has_wiki": true,
+        "has_pages": true,
+        "has_discussions": false,
+        "forks_count": 5,
+        "mirror_url": null,
+        "archived": false,
+        "disabled": false,
+        "open_issues_count": 16,
+        "license": null,
+        "allow_forking": true,
+        "is_template": false,
+        "web_commit_signoff_required": false,
+        "has_pull_requests": true,
+        "pull_request_creation_policy": "all",
+        "topics": [
+            "apertre3",
+            "cli",
+            "command-line",
+            "command-line-tool",
+            "commands",
+            "go",
+            "golang",
+            "task-manager",
+            "termial-based",
+            "terminal",
+            "todo",
+            "tui"
+        ],
+        "visibility": "public",
+        "forks": 5,
+        "open_issues": 16,
+        "watchers": 4,
+        "default_branch": "main",
+        "permissions": {
+            "admin": false,
+            "maintain": false,
+            "push": false,
+            "triage": false,
+            "pull": true
+        },
+        "network_count": 5,
+        "subscribers_count": 0
+    },
+    "branch": "main",
+    "tree": [
+        {
+            "path": ".github",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "0b3c3cd1ba707675fe4bd086cd41c805a50ce0e2",
+            "url": "https://api.github.com/repos/anikchand461/task/git/trees/0b3c3cd1ba707675fe4bd086cd41c805a50ce0e2"
+        },
+        {
+            "path": ".github/workflows",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "6cd987ac04a3ce54eca9b4e3faeb2d203fb09545",
+            "url": "https://api.github.com/repos/anikchand461/task/git/trees/6cd987ac04a3ce54eca9b4e3faeb2d203fb09545"
+        },
+        {
+            "path": ".github/workflows/living-docs.yml",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "044426b4643eefafc4b7f1af1d05c9f370e3591f",
+            "size": 1350,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/044426b4643eefafc4b7f1af1d05c9f370e3591f"
+        },
+        {
+            "path": ".gitignore",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "112a0148b679ec1c0d76114f4e2f30eb19d7b76a",
+            "size": 130,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/112a0148b679ec1c0d76114f4e2f30eb19d7b76a"
+        },
+        {
+            "path": "CONTRIBUTING.md",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "6abaf58e1f56faeb0f51b091b7f63146a67c3ca0",
+            "size": 1348,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/6abaf58e1f56faeb0f51b091b7f63146a67c3ca0"
+        },
+        {
+            "path": "README.md",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "745c5fb2de747b08ea0ed539f4295be9d98a068d",
+            "size": 4467,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/745c5fb2de747b08ea0ed539f4295be9d98a068d"
+        },
+        {
+            "path": "cmd",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "fb041d4610f4667fc3bdf815ba0d9399a0eff6eb",
+            "url": "https://api.github.com/repos/anikchand461/task/git/trees/fb041d4610f4667fc3bdf815ba0d9399a0eff6eb"
+        },
+        {
+            "path": "cmd/task",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "6c9e99be7316741b4e80dcc47142703b22e11e60",
+            "url": "https://api.github.com/repos/anikchand461/task/git/trees/6c9e99be7316741b4e80dcc47142703b22e11e60"
+        },
+        {
+            "path": "cmd/task/main.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "104c4ac36bd05adc85991d0aa06a06d88272bd24",
+            "size": 3152,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/104c4ac36bd05adc85991d0aa06a06d88272bd24"
+        },
+        {
+            "path": "data",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "9fbf106ec9d3226a34c4b16f140cd7588eb2d6b5",
+            "url": "https://api.github.com/repos/anikchand461/task/git/trees/9fbf106ec9d3226a34c4b16f140cd7588eb2d6b5"
+        },
+        {
+            "path": "data/tasks.txt",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "3f9d7d2f75f3634931ccb8d33359269487e31a2f",
+            "size": 21,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/3f9d7d2f75f3634931ccb8d33359269487e31a2f"
+        },
+        {
+            "path": "go.mod",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "e06e9dd5ba66767a390ba1cceed71d29705db37f",
+            "size": 47,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/e06e9dd5ba66767a390ba1cceed71d29705db37f"
+        },
+        {
+            "path": "index.html",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "6060d26fbccc78f07591247d78602e63187ee97e",
+            "size": 29494,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/6060d26fbccc78f07591247d78602e63187ee97e"
+        },
+        {
+            "path": "internal",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "3b02091d1b1a54f8493dbbab174653716551a432",
+            "url": "https://api.github.com/repos/anikchand461/task/git/trees/3b02091d1b1a54f8493dbbab174653716551a432"
+        },
+        {
+            "path": "internal/task",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "6fb2df1bcdc16c3f959a3ac43f2736658c00ed2b",
+            "url": "https://api.github.com/repos/anikchand461/task/git/trees/6fb2df1bcdc16c3f959a3ac43f2736658c00ed2b"
+        },
+        {
+            "path": "internal/task/add.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "d1a4f5b1f978eb2d5271d13e9757e07dd587cfe3",
+            "size": 414,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/d1a4f5b1f978eb2d5271d13e9757e07dd587cfe3"
+        },
+        {
+            "path": "internal/task/clear.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "e09cb9569269d518e6cdba3207230113a0b24713",
+            "size": 162,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/e09cb9569269d518e6cdba3207230113a0b24713"
+        },
+        {
+            "path": "internal/task/delete.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "3445fdbad84ab6055fc630d978e0ac8a57d50c3f",
+            "size": 702,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/3445fdbad84ab6055fc630d978e0ac8a57d50c3f"
+        },
+        {
+            "path": "internal/task/done.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "6c6289c3fb784c2118e11e514d33edd880a73578",
+            "size": 1878,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/6c6289c3fb784c2118e11e514d33edd880a73578"
+        },
+        {
+            "path": "internal/task/edit.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "a687321e40e31632f1e952ad823c566de3d7b381",
+            "size": 1094,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/a687321e40e31632f1e952ad823c566de3d7b381"
+        },
+        {
+            "path": "internal/task/list.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "5f3d5783bdc754514c0dbf052e25e21cdab310e0",
+            "size": 660,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/5f3d5783bdc754514c0dbf052e25e21cdab310e0"
+        },
+        {
+            "path": "internal/task/lock.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "5af398f16b8bf47f65c9ede09640291febe42397",
+            "size": 695,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/5af398f16b8bf47f65c9ede09640291febe42397"
+        },
+        {
+            "path": "internal/task/path.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "5e49af4ed39750f5dcb903939a7dd172e43067c8",
+            "size": 309,
+            "url": "https://api.github.com/repos/anikchand461/task/git/blobs/5e49af4ed39750f5dcb903939a7dd172e43067c8"
+        }
+    ],
+    "files": [
+        {
+            "path": ".github/workflows/living-docs.yml",
+            "content": "name: Living Docs Sync\n\non:\n  pull_request:\n    types: [opened, synchronize]\n\njobs:\n  sync-docs:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Checkout living-docs agent\n        uses: actions/checkout@v4\n        with:\n          repository: anikchand461/The-living-docs\n          path: living-docs-agent\n\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: \"3.11\"\n\n      - name: Install dependencies\n        run: |\n          cd living-docs-agent\n          pip install google-genai httpx pydantic pydantic-settings typer rich \\\n                      structlog unidiff tenacity python-dotenv fastapi uvicorn\n\n      - name: Run living-docs agent\n        env:\n          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}\n          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}\n          NOTION_PAGE_ID: ${{ secrets.NOTION_PAGE_ID }}\n          REPO: ${{ github.repository }}\n          CONFIDENCE_THRESHOLD: 30\n          DATABASE_URL: sqlite:///./living-docs.db\n          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}\n        run: |\n          cd living-docs-agent\n          python -c \"import os; print('GROQ set:', bool(os.environ.get('GROQ_API_KEY'))); print('NOTION set:', bool(os.environ.get('NOTION_API_KEY')))\"\n          PYTHONPATH=. python -m cli.main run pr ${{ github.event.pull_request.number }}\n"
+        },
+        {
+            "path": "CONTRIBUTING.md",
+            "content": "# Contributing to Task CLI\n\nThanks for wanting to help!  \nEven small contributions (typos, docs, bug reports, tests) are very welcome.\n\nwebsite for showcasing the cli tool : https://task-ten-gules.vercel.app\n\n## Quick Ways to Contribute\n\n- Report bugs  \n- Suggest small features in the CLI and also in the [website](https://task-ten-gules.vercel.app).\n- Fix typos in help text or README  \n- Improve Windows/macOS instructions  \n- Add/update tests  \n- Small refactoring or cleanups  \n\n## Development Setup\n\n```bash\ngit clone https://github.com/anikchand461/task.git\ncd task\n\ngo mod tidy\ngo run ./cmd/task --help\n```\n\nBuild your own binary:\n\n```bash\ngo build -o task ./cmd/task\n./task list\n```\n\n## Workflow\n\n1. Pick or create an issue  \n2. Create a branch:  \n   `git checkout -b fix/something` or `git checkout -b docs/improve-readme`\n3. Make changes  \n4. Test locally:  \n   `go run ./cmd/task ...` or `./task ...`\n5. Commit (small & clear messages)  \n6. Push & open a Pull Request\n\n## Pull Request Guidelines\n\n- Title should be short and clear  \n- Describe what + why in the PR body  \n- Reference related issue if any (`Fixes #42`)  \n- One feature / fix per PR is preferred\n\n\nFeel free to comment \"I'd like to work on this\" — I'll assign it.\n\nQuestions?  \nJust open an issue or mention @anikchand461\n\nThanks for helping make Task CLI better! 🚀\n"
+        },
+        {
+            "path": "README.md",
+            "content": "# Task CLI 📝\r\n\r\nA simple, fast, cross-platform **command-line todo app** written in Go.\r\n\r\nThis tool works as a **terminal command** (`task`) and does **NOT require Go** to be installed for normal users.\r\n\r\n## Use CLI for task management\r\n<p align=\"center\">\r\n  <img src=\"https://github.com/user-attachments/assets/68ae944d-a0fa-4853-94bf-364b54513c37\" width=\"45%\" />\r\n  <img src=\"https://github.com/user-attachments/assets/bf36b908-4d7f-4c25-8100-ccfd7b17c629\" width=\"45%\" />\r\n</p>\r\n\r\n\r\n---\r\n\r\n## 🚀 Setup & Installation (No Go Required)\r\n\r\nBelow are step-by-step setup instructions for **each operating system**.\r\n\r\n---\r\n\r\n## 🟢 macOS Setup\r\n\r\n### 1️⃣ Download the binary\r\n\r\nGo to the **GitHub Releases** page:\r\n\r\n👉 [https://github.com/anikchand461/task/releases](https://github.com/anikchand461/task/releases)\r\n\r\nDownload the correct file:\r\n\r\n* **Apple Silicon (M1 / M2 / M3)** → `task-mac`\r\n* **Intel Mac** → `task-mac-intel`\r\n\r\n---\r\n\r\n### 2️⃣ Make the binary executable\r\n\r\nOpen Terminal and run:\r\n\r\n```bash\r\ncd ~/Downloads\r\nchmod +x task-mac\r\n```\r\n\r\n(Use `task-mac-intel` if you downloaded the Intel version)\r\n\r\n---\r\n\r\n### 3️⃣ Move it to PATH (make it a command)\r\n\r\n```bash\r\nsudo mv task-mac /usr/local/bin/task\r\n```\r\n\r\nNow the command `task` is available system-wide.\r\n\r\n---\r\n\r\n### 4️⃣ macOS security fix (IMPORTANT)\r\n\r\nmacOS may block the binary because it is not notarized.\r\n\r\nIf the command is killed immediately, run:\r\n\r\n```bash\r\nsudo xattr -rd com.apple.quarantine /usr/local/bin/task\r\n```\r\n\r\n---\r\n\r\n### 5️⃣ Verify installation\r\n\r\n```bash\r\ntask\r\n```\r\n\r\n---\r\n\r\n## 🟦 Windows Setup\r\n\r\n### 1️⃣ Download the binary\r\n\r\nFrom the Releases page, download:\r\n\r\n```\r\ntask.exe\r\n```\r\n\r\n---\r\n\r\n### 2️⃣ Move to a folder\r\n\r\nExample:\r\n\r\n```\r\nC:\\task\r\n```\r\n\r\n---\r\n\r\n### 3️⃣ Add folder to PATH\r\n\r\n1. Search **Environment Variables**\r\n2. Open **Edit system environment variables**\r\n3. Click **Environment Variables**\r\n4. Select **Path** → Edit → New\r\n5. Add:\r\n\r\n   ```\r\n   C:\\task\r\n   ```\r\n6. Save and restart terminal\r\n\r\n---\r\n\r\n### 4️⃣ Verify installation\r\n\r\nOpen Command Prompt or PowerShell:\r\n\r\n```powershell\r\ntask\r\n```\r\n\r\n---\r\n\r\n## 🟠 Linux Setup\r\n\r\n### 1️⃣ Download the binary\r\n\r\nFrom the Releases page, download:\r\n\r\n```\r\ntask-linux\r\n```\r\n\r\n---\r\n\r\n### 2️⃣ Make it executable\r\n\r\n```bash\r\nchmod +x task-linux\r\n```\r\n\r\n---\r\n\r\n### 3️⃣ Move to PATH\r\n\r\n```bash\r\nsudo mv task-linux /usr/local/bin/task\r\n```\r\n\r\n---\r\n\r\n### 4️⃣ Verify installation\r\n\r\n```bash\r\ntask\r\n```\r\n\r\n---\r\n\r\n## 📌 Usage Guide\r\n\r\n### Add a task\r\n\r\n```bash\r\ntask add \"Buy groceries\"\r\n```\r\n\r\n### Edit a task\r\n```\r\ntask edit 1 \"New description\"\r\n```\r\n\r\n---\r\n\r\n### List all tasks\r\n\r\n```bash\r\ntask list\r\n```\r\n\r\nOutput example:\r\n\r\n```\r\n1. [ ] Buy groceries\r\n2. [x] Learn Go\r\n```\r\n\r\n---\r\n\r\n### Mark a single task as done\r\n\r\n```bash\r\ntask done 1\r\n```\r\n\r\n---\r\n\r\n### Edit a task\r\n```\r\ntask edit 1 \"Updated task description\"\r\n```\r\n\r\nUpdate the description of an existing task without changing its completion status.\r\n\r\nExample:\r\n```\r\ntask add \"Buy grocerys\"\r\ntask edit 1 \"Buy groceries\"\r\n```\r\n\r\n⚠️ The task number must be valid, and the description cannot be empty.\r\n\r\n---\r\n\r\n### Mark **all** tasks as done\r\n\r\n```bash\r\ntask done all\r\n```\r\n\r\n---\r\n\r\n### Clear (delete) all tasks\r\n\r\n```bash\r\ntask clear\r\n```\r\n\r\n⚠️ This deletes **all tasks for the current user only**.\r\n\r\n---\r\n\r\n### Help\r\n\r\n```bash\r\ntask help\r\ntask -h\r\ntask --help\r\n```\r\n\r\nDisplays all available commands and usage information.\r\n\r\n---\r\n\r\n## 📂 Data Storage\r\n\r\nTasks are stored **per user** at:\r\n\r\n```text\r\n~/.task/tasks.txt\r\n```\r\n\r\n* Each user has a separate task list\r\n* Data persists across updates\r\n* Removing the binary does **not** delete tasks\r\n* Use `task clear` to remove all stored tasks\r\n\r\n---\r\n\r\n## 🗑️ Uninstall\r\n\r\n### macOS / Linux\r\n\r\nRemove the binary:\r\n\r\n```bash\r\nsudo rm /usr/local/bin/task\r\n```\r\n\r\n(Optional) Remove all task data:\r\n\r\n```bash\r\nrm -rf ~/.task\r\n```\r\n\r\n---\r\n\r\n### Windows\r\n\r\n1. Delete `task.exe` from its folder\r\n2. (Optional) Remove task data:\r\n\r\n```powershell\r\nrmdir /s %USERPROFILE%\\.task\r\n```\r\n\r\n---\r\n\r\n## 🛠 Development (For Contributors)\r\n\r\nIf you want to modify the source code:\r\n\r\n```bash\r\ngit clone https://github.com/anikchand461/task.git\r\ncd task\r\ngo run ./cmd/task list\r\n```\r\n\r\nBuild locally:\r\n\r\n```bash\r\ngo build -o task ./cmd/task\r\n```\r\n\r\n---\r\n\r\n## 🙌 Author\r\n\r\n**Anik Chand**\r\nBuilt with ❤️ using Go.\r\n\r\n\r\n\r\n\r\n# test\n"
+        },
+        {
+            "path": "cmd/task/main.go",
+            "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n\t\"strconv\"\n\t\"strings\"\n\n\t\"github.com/anikchand461/task/internal/task\"\n)\n\nfunc printHelp() {\n\tfmt.Print(`\nTask CLI 📝\n\nUsage:\n  task <command> [arguments]\n\nCommands:\n  add \"task name\"     Add a new task\n  list                List all tasks\n  done <id>            Mark a task as done\n  done all             Mark all tasks as done\n  edit <id> \"new name\" Edit a task description\n  clear                Delete all tasks\n  help                 Show this help message\n  delete <id>          Remove a specific task\n\n\nExamples:\n  task add \"Buy milk\"\n  task list\n  task done 1\n  task done all\n  task edit 1 \"Buy groceries and milk\"\n  task clear\n`)\n}\n\nfunc main() {\n\tif len(os.Args) < 2 ||\n\t\tos.Args[1] == \"help\" ||\n\t\tos.Args[1] == \"-h\" ||\n\t\tos.Args[1] == \"--help\" {\n\n\t\tprintHelp()\n\t\treturn\n\t}\n\n\tunlock, err := task.AcquireLock()\n\tif err != nil {\n\t\tfmt.Printf(\"Error: %v\\n\", err)\n\t\treturn\n\t}\n\n\tdefer unlock()\n\n\tswitch os.Args[1] {\n\n\tcase \"add\":\n\t\tif len(os.Args) < 3 {\n\t\t\tfmt.Println(\"Usage: task add \\\"task 1\\\" \\\"task 2\\\" ...\")\n\t\t\treturn\n\t\t}\n\n\t\ttasks := os.Args[2:]\n\n\t\terr := task.Add(tasks...)\n\t\tif err != nil {\n\t\t\tfmt.Println(\"Error:\", err)\n\t\t\treturn\n\t\t}\n\n\t\tfmt.Printf(\"✅ Added %d task(s)\\n\", len(tasks))\n\tcase \"list\":\n\t\terr := task.List()\n\t\tif err != nil {\n\t\t\tfmt.Println(\"Error:\", err)\n\t\t}\n\n\tcase \"clear\":\n\t\terr := task.Clear()\n\t\tif err != nil {\n\t\t\tfmt.Println(\"Error:\", err)\n\t\t\treturn\n\t\t}\n\t\tfmt.Println(\"All tasks deleted\")\n\n\tcase \"edit\":\n\t\tif len(os.Args) < 4 {\n\t\t\tfmt.Println(\"Usage: task edit <number> \\\"<new description>\\\"\")\n\t\t\tfmt.Println(\"Example: task edit 1 \\\"Buy groceries\\\"\")\n\t\t\treturn\n\t\t}\n\n\t\ttaskNum, err := strconv.Atoi(os.Args[2])\n\t\tif err != nil {\n\t\t\tfmt.Println(\"❌ Error: Invalid task number\")\n\t\t\tfmt.Println(\"Example: task edit 1 \\\"Updated description\\\"\")\n\t\t\treturn\n\t\t}\n\n\t\tnewDescription := os.Args[3]\n\n\t\tif strings.TrimSpace(newDescription) == \"\" {\n\t\t\tfmt.Println(\"❌ Error: Task description cannot be empty\")\n\t\t\treturn\n\t\t}\n\n\t\tif err := task.EditTask(taskNum, newDescription); err != nil {\n\t\t\tfmt.Printf(\"❌ Error: %v\\n\", err)\n\t\t\treturn\n\t\t}\n\n\t\tfmt.Printf(\"✅ Task #%d updated successfully\\n\", taskNum)\n\n\tcase \"done\":\n\t\tif len(os.Args) < 3 {\n\t\t\tfmt.Println(\"Usage: task done <id | all> [<id> ...]\")\n\t\t\treturn\n\t\t}\n\n\t\tif os.Args[2] == \"all\" {\n\t\t\terr := task.DoneAll()\n\t\t\tif err != nil {\n\t\t\t\tfmt.Println(\"Error:\", err)\n\t\t\t\treturn\n\t\t\t}\n\t\t\tfmt.Println(\"All tasks marked as done\")\n\t\t\treturn\n\t\t}\n\n\t\t// Join all IDs with commas to support: task done 1 3 or task done \"1,3\"\n\t\tidStr := strings.Join(os.Args[2:], \",\")\n\t\terr := task.Done(idStr)\n\t\tif err != nil {\n\t\t\tfmt.Println(\"Error:\", err)\n\t\t\treturn\n\t\t}\n\t\tfmt.Println(\"Tasks marked as done\")\n\n\tcase \"delete\":\n\t\tif len(os.Args) < 3 {\n\t\t\tfmt.Println(\"Usage: task delete <id>\")\n\t\t\treturn\n\t\t}\n\n\t\ttaskNum, err := strconv.Atoi(os.Args[2])\n\t\tif err != nil {\n\t\t\tfmt.Println(\"❌ Error: Invalid task number\")\n\t\t\treturn\n\t\t}\n\n\t\tif err := task.DeleteTask(taskNum); err != nil {\n\t\t\tfmt.Printf(\"❌ Error: %v\\n\", err)\n\t\t\treturn\n\t\t}\n\n\t\tfmt.Printf(\"✅ Task #%d deleted successfully\\n\", taskNum)\n\n\tdefault:\n\t\tfmt.Println(\"Unknown command:\", os.Args[1])\n\t\tprintHelp()\n\t}\n}\n"
+        },
+        {
+            "path": "index.html",
+            "content": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>task — Terminal Todo Manager</title>\n    <style>\n      :root {\n        --bg: #0a0e14;\n        --text: #e6edf3;\n        --text-dim: #9198a1;\n        --accent: #26d07c;\n        --accent-bright: #39ff9d;\n        --accent-glow: rgba(57, 255, 157, 0.3);\n        --border: #30363d;\n        --terminal-bg: #151b23;\n      }\n\n      * {\n        margin: 0;\n        padding: 0;\n        box-sizing: border-box;\n      }\n\n      body {\n        font-family:\n          \"SF Mono\", \"Monaco\", \"Inconsolata\", \"Fira Code\", \"Consolas\", monospace;\n        background: var(--bg);\n        color: var(--text);\n        line-height: 1.6;\n        -webkit-font-smoothing: antialiased;\n      }\n\n      /* Header */\n      header {\n        padding: 20px 0;\n        border-bottom: 1px solid var(--border);\n      }\n\n      .header-content {\n        max-width: 1200px;\n        margin: 0 auto;\n        padding: 0 40px;\n        display: flex;\n        justify-content: space-between;\n        align-items: center;\n      }\n\n      .logo {\n        font-size: 1.1rem;\n        color: var(--accent-bright);\n        font-weight: 700;\n        text-shadow: 0 0 20px var(--accent-glow);\n        cursor: pointer;\n      }\n\n      .logo::before {\n        content: \">_ \";\n        color: var(--accent);\n      }\n\n      .logo-version {\n        color: var(--text-dim);\n        font-size: 0.85rem;\n        margin-left: 8px;\n      }\n\n      nav {\n        display: flex;\n        gap: 32px;\n        align-items: center;\n      }\n\n      nav a {\n        color: var(--text-dim);\n        text-decoration: none;\n        font-size: 0.9rem;\n        transition: all 0.2s ease;\n      }\n\n      nav a:hover {\n        color: var(--accent-bright);\n        text-shadow: 0 0 10px var(--accent-glow);\n      }\n\n      /* Hero */\n      .hero {\n        max-width: 1200px;\n        margin: 0 auto;\n        padding: 120px 40px 80px;\n        text-align: center;\n      }\n\n      h1 {\n        font-size: 5.5rem;\n        font-weight: 800;\n        color: var(--accent-bright);\n        letter-spacing: -4px;\n        margin-bottom: 24px;\n      }\n\n      .tagline {\n        font-size: 1.5rem;\n        color: var(--text);\n        margin-bottom: 16px;\n        font-weight: 400;\n      }\n\n      .features-inline {\n        display: flex;\n        justify-content: center;\n        gap: 32px;\n        margin: 32px 0 48px;\n        flex-wrap: wrap;\n      }\n\n      .features-inline span {\n        color: var(--text);\n        font-size: 0.95rem;\n        font-weight: 500;\n      }\n\n      .features-inline span::before {\n        content: \"> \";\n        color: var(--accent-bright);\n        font-weight: 700;\n      }\n\n      /* Install section */\n      .install-section {\n        background: var(--terminal-bg);\n        border: 1px solid var(--accent);\n        border-radius: 8px;\n        padding: 24px 32px;\n        max-width: 800px;\n        margin: 0 auto 48px;\n        display: flex;\n        align-items: center;\n        gap: 16px;\n        justify-content: space-between;\n        box-shadow: 0 0 30px rgba(57, 255, 157, 0.1);\n      }\n\n      .install-label {\n        color: var(--accent-bright);\n        font-weight: 700;\n        font-size: 1rem;\n      }\n\n      .install-command {\n        flex: 1;\n        color: var(--accent-bright);\n        font-size: 0.95rem;\n        font-weight: 600;\n        background: var(--bg);\n        padding: 12px 16px;\n        border-radius: 4px;\n        border: 1px solid var(--border);\n      }\n\n      .more-options {\n        color: var(--accent-bright);\n        text-decoration: none;\n        font-size: 0.9rem;\n        font-weight: 600;\n        display: inline-flex;\n        align-items: center;\n        gap: 4px;\n        transition: all 0.2s ease;\n      }\n\n      .more-options:hover {\n        text-shadow: 0 0 10px var(--accent-glow);\n      }\n\n      .more-options::after {\n        content: \"→\";\n      }\n\n      /* Terminal Preview */\n      .terminal-preview {\n        max-width: 1200px;\n        margin: 0 auto 40px;\n        padding: 0 40px;\n      }\n\n      .terminal-window {\n        background: var(--terminal-bg);\n        border: 1px solid var(--accent);\n        border-radius: 8px;\n        overflow: hidden;\n        box-shadow:\n          0 20px 60px rgba(0, 0, 0, 0.7),\n          0 0 40px rgba(57, 255, 157, 0.15);\n      }\n\n      .terminal-header {\n        background: #0a0e14;\n        padding: 12px 16px;\n        display: flex;\n        align-items: center;\n        gap: 8px;\n        border-bottom: 1px solid var(--border);\n      }\n\n      .terminal-dot {\n        width: 12px;\n        height: 12px;\n        border-radius: 50%;\n      }\n\n      .terminal-dot:nth-child(1) {\n        background: #ff5f56;\n      }\n      .terminal-dot:nth-child(2) {\n        background: #ffbd2e;\n      }\n      .terminal-dot:nth-child(3) {\n        background: #27c93f;\n      }\n\n      .terminal-body {\n        padding: 24px;\n        font-size: 1rem;\n        line-height: 1.8;\n        min-height: 300px;\n      }\n\n      .terminal-line {\n        display: block;\n        margin-bottom: 4px;\n        opacity: 0;\n        animation: fadeIn 0.3s ease-out forwards;\n      }\n\n      @keyframes fadeIn {\n        to {\n          opacity: 1;\n        }\n      }\n\n      .terminal-line:nth-child(1) {\n        animation-delay: 0.5s;\n      }\n      .terminal-line:nth-child(2) {\n        animation-delay: 1s;\n      }\n      .terminal-line:nth-child(3) {\n        animation-delay: 1.5s;\n      }\n      .terminal-line:nth-child(4) {\n        animation-delay: 2s;\n      }\n      .terminal-line:nth-child(5) {\n        animation-delay: 2.5s;\n      }\n      .terminal-line:nth-child(6) {\n        animation-delay: 3s;\n      }\n      .terminal-line:nth-child(7) {\n        animation-delay: 3.5s;\n      }\n      .terminal-line:nth-child(8) {\n        animation-delay: 4s;\n      }\n      .terminal-line:nth-child(9) {\n        animation-delay: 4.5s;\n      }\n      .terminal-line:nth-child(10) {\n        animation-delay: 5s;\n      }\n      .terminal-line:nth-child(11) {\n        animation-delay: 5.5s;\n      }\n\n      .prompt {\n        color: var(--accent-bright);\n        font-weight: 700;\n      }\n\n      .command {\n        color: var(--accent-bright);\n        font-weight: 600;\n      }\n\n      .task-item {\n        padding-left: 16px;\n      }\n\n      .task-done {\n        color: var(--accent-bright);\n        font-weight: 700;\n      }\n\n      .task-pending {\n        color: #f5a623;\n        font-weight: 700;\n      }\n\n      .task-text {\n        color: var(--text);\n        font-weight: 500;\n      }\n\n      .task-time {\n        color: var(--text-dim);\n      }\n\n      /* Interactive Terminal */\n      .interactive-terminal {\n        max-width: 1200px;\n        margin: 0 auto 80px;\n        padding: 0 40px;\n      }\n\n      .interactive-title {\n        text-align: center;\n        margin-bottom: 24px;\n        color: var(--accent-bright);\n        font-size: 1.8rem;\n        font-weight: 700;\n        text-shadow: 0 0 20px var(--accent-glow);\n      }\n\n      .interactive-body {\n        padding: 24px;\n        font-size: 1rem;\n        line-height: 1.8;\n        min-height: 400px;\n      }\n\n      #output {\n        margin-bottom: 16px;\n      }\n\n      .input-line {\n        display: flex;\n        align-items: center;\n        gap: 8px;\n      }\n\n      #commandInput {\n        flex: 1;\n        background: transparent;\n        border: none;\n        color: var(--accent-bright);\n        font-family: inherit;\n        font-size: 1rem;\n        font-weight: 600;\n        outline: none;\n        padding: 4px 0;\n      }\n\n      #commandInput::placeholder {\n        color: var(--text-dim);\n      }\n\n      .cursor-blink {\n        display: inline-block;\n        width: 8px;\n        height: 18px;\n        background: var(--accent-bright);\n        animation: blink 1s infinite;\n        margin-left: 2px;\n      }\n\n      @keyframes blink {\n        0%,\n        49% {\n          opacity: 1;\n        }\n        50%,\n        100% {\n          opacity: 0;\n        }\n      }\n\n      .help-text {\n        margin-top: 16px;\n        color: var(--text-dim);\n        font-size: 0.85rem;\n        text-align: center;\n      }\n\n      .help-text code {\n        color: var(--accent);\n        background: var(--bg);\n        padding: 2px 6px;\n        border-radius: 3px;\n      }\n\n      /* Sections */\n      section {\n        max-width: 1200px;\n        margin: 0 auto;\n        padding: 80px 40px;\n        border-top: 1px solid var(--border);\n      }\n\n      h2 {\n        font-size: 2.2rem;\n        color: var(--accent-bright);\n        margin-bottom: 48px;\n        font-weight: 700;\n        text-shadow: 0 0 20px var(--accent-glow);\n      }\n\n      .installation-grid {\n        display: grid;\n        grid-template-columns: repeat(2, 1fr);\n        gap: 12px;\n        margin-bottom: 0;\n        max-width: 900px;\n        margin-left: auto;\n        margin-right: auto;\n      }\n\n      .install-card {\n        background: var(--terminal-bg);\n        border: 1px solid var(--border);\n        border-radius: 6px;\n        padding: 20px;\n        transition: all 0.3s ease;\n        display: flex;\n        flex-direction: column;\n        overflow: hidden;\n        min-height: 150px;\n      }\n\n      .install-card:hover {\n        border-color: var(--accent);\n        box-shadow: 0 0 20px rgba(57, 255, 157, 0.1);\n      }\n\n      .install-card h3 {\n        font-size: 0.95rem;\n        color: var(--accent-bright);\n        margin-bottom: 12px;\n        font-weight: 700;\n      }\n\n      .install-card pre {\n        background: var(--bg);\n        padding: 20px 16px;\n        border-radius: 4px;\n        overflow-x: auto;\n        font-size: 0.95rem;\n        line-height: 1.6;\n        border: 1px solid var(--border);\n        flex: 1;\n        margin: 0;\n        display: flex;\n        align-items: center;\n      }\n      }\n\n      .install-card code {\n        color: var(--text);\n        font-weight: 500;\n      }\n\n      /* Features */\n      .features-grid {\n        display: grid;\n        grid-template-columns: repeat(3, 1fr);\n        gap: 20px;\n      }\n\n      .feature {\n        background: var(--terminal-bg);\n        border: 1px solid var(--border);\n        border-radius: 6px;\n        padding: 24px 20px;\n        display: flex;\n        flex-direction: column;\n        transition: all 0.3s ease;\n        cursor: pointer;\n        min-height: 180px;\n      }\n\n      .feature:hover {\n        border-color: var(--accent);\n        box-shadow: 0 0 20px rgba(57, 255, 157, 0.2);\n        transform: translateY(-4px);\n      }\n\n      .feature h3 {\n        font-size: 1.4rem;\n        color: var(--text);\n        margin-bottom: 14px;\n        font-weight: 700;\n        line-height: 1.3;\n      }\n\n      .feature h3::before {\n        content: \"> \";\n        color: var(--accent-bright);\n        font-weight: 700;\n      }\n\n      .feature p {\n        font-size: 1.05rem;\n        color: var(--text-dim);\n        line-height: 1.65;\n        flex: 1;\n      }\n\n      /* Usage */\n      .usage-block {\n        background: var(--terminal-bg);\n        border: 1px solid var(--border);\n        border-radius: 6px;\n        padding: 24px;\n        margin-bottom: 24px;\n      }\n\n      .usage-block pre {\n        overflow-x: auto;\n        font-size: 0.9rem;\n        line-height: 1.8;\n      }\n\n      .usage-block code {\n        color: var(--text);\n        font-weight: 500;\n      }\n\n      .cmd {\n        color: var(--accent-bright);\n        font-weight: 700;\n      }\n\n      .comment {\n        color: var(--text-dim);\n      }\n\n      /* Privacy note */\n      .privacy-note {\n        background: var(--terminal-bg);\n        border-left: 3px solid var(--accent);\n        padding: 24px;\n        border-radius: 4px;\n      }\n\n      .privacy-note strong {\n        color: var(--accent-bright);\n        font-weight: 700;\n      }\n\n      .privacy-note code {\n        color: var(--accent);\n        background: var(--bg);\n        padding: 2px 6px;\n        border-radius: 3px;\n        font-weight: 600;\n      }\n\n      /* Footer */\n      footer {\n        max-width: 1200px;\n        margin: 0 auto;\n        padding: 40px 40px 60px;\n        text-align: center;\n        color: var(--text-dim);\n        border-top: 1px solid var(--border);\n      }\n\n      footer a {\n        color: var(--accent-bright);\n        text-decoration: none;\n        font-weight: 600;\n      }\n\n      footer a:hover {\n        text-shadow: 0 0 10px var(--accent-glow);\n      }\n\n      /* Buttons */\n      .github-btn {\n        display: inline-flex;\n        align-items: center;\n        gap: 8px;\n        padding: 12px 24px;\n        background: transparent;\n        border: 1px solid var(--accent);\n        color: var(--accent-bright);\n        text-decoration: none;\n        border-radius: 6px;\n        font-size: 0.95rem;\n        font-weight: 700;\n        transition: all 0.3s ease;\n      }\n\n      .github-btn:hover {\n        background: var(--accent);\n        color: var(--bg);\n        box-shadow: 0 0 20px var(--accent-glow);\n      }\n\n      /* Responsive */\n      @media (max-width: 768px) {\n        h1 {\n          font-size: 3.5rem;\n        }\n\n        .tagline {\n          font-size: 1.2rem;\n        }\n\n        .features-inline {\n          flex-direction: column;\n          gap: 16px;\n        }\n\n        .install-section {\n          flex-direction: column;\n          align-items: flex-start;\n        }\n\n        .header-content {\n          padding: 0 20px;\n        }\n\n        .hero,\n        .terminal-preview,\n        .interactive-terminal,\n        section,\n        footer {\n          padding-left: 20px;\n          padding-right: 20px;\n        }\n\n        nav {\n          gap: 20px;\n        }\n      }\n    </style>\n  </head>\n  <body>\n    <header>\n      <div class=\"header-content\">\n        <a\n          href=\"#\"\n          onclick=\"\n            location.reload();\n            return false;\n          \"\n          style=\"text-decoration: none\"\n        >\n          <div class=\"logo\">task<span class=\"logo-version\">v1.0.0</span></div>\n        </a>\n        <nav>\n          <a href=\"#features\">Features</a>\n          <a href=\"#install\">Install</a>\n          <a href=\"https://github.com/anikchand461/task\" target=\"_blank\"\n            >GitHub</a\n          >\n        </nav>\n      </div>\n    </header>\n\n    <main>\n      <section class=\"hero\">\n        <h1>task</h1>\n        <p class=\"tagline\">A terminal todo manager you can just use.</p>\n\n        <div class=\"features-inline\">\n          <span>Fast & lightweight</span>\n          <span>Plain text storage</span>\n          <span>Cross-platform</span>\n          <span>Zero configuration</span>\n        </div>\n\n        <!-- <div class=\"install-section\"> -->\n        <!--   <span class=\"install-label\">Install:</span> -->\n        <!--   <code class=\"install-command\">curl -L get.task.sh | sh</code> -->\n        <!--   <a href=\"#install\" class=\"more-options\">More options</a> -->\n        <!-- </div> -->\n\n        <a\n          href=\"https://github.com/anikchand461/task/releases\"\n          class=\"github-btn\"\n          target=\"_blank\"\n        >\n          <span>Download Releases</span>\n        </a>\n      </section>\n\n      <div class=\"terminal-preview\">\n        <div class=\"terminal-window\">\n          <div class=\"terminal-header\">\n            <div class=\"terminal-dot\"></div>\n            <div class=\"terminal-dot\"></div>\n            <div class=\"terminal-dot\"></div>\n          </div>\n          <div class=\"terminal-body\">\n            <span class=\"terminal-line\"\n              ><span class=\"prompt\">❯</span>\n              <span class=\"command\">task list</span></span\n            >\n            <span class=\"terminal-line task-item\"\n              ><span class=\"task-done\">1. ✅</span>\n              <span class=\"task-text\">leetcode weekly 484</span>\n              <span class=\"task-time\">- 8am</span></span\n            >\n            <span class=\"terminal-line task-item\"\n              ><span class=\"task-pending\">2. ⭕️</span>\n              <span class=\"task-text\">kaggle competition</span></span\n            >\n            <span class=\"terminal-line task-item\"\n              ><span class=\"task-done\">3. ✅</span>\n              <span class=\"task-text\">dp - av</span></span\n            >\n            <span class=\"terminal-line task-item\"\n              ><span class=\"task-pending\">4. ⭕️</span>\n              <span class=\"task-text\">codeforces</span></span\n            >\n            <span class=\"terminal-line task-item\"\n              ><span class=\"task-pending\">5. ⭕️</span>\n              <span class=\"task-text\"\n                >upsolve the questions of ABC contest 440</span\n              ></span\n            >\n            <span class=\"terminal-line\"></span>\n            <span class=\"terminal-line\"\n              ><span class=\"prompt\">❯</span>\n              <span class=\"command\">task add \"Review pull requests\"</span></span\n            >\n            <span class=\"terminal-line\"\n              ><span class=\"task-done\">✓</span>\n              <span class=\"task-text\">Task added successfully</span></span\n            >\n            <span class=\"terminal-line\"></span>\n            <span class=\"terminal-line\"\n              ><span class=\"prompt\">❯</span>\n              <span class=\"command\">task done 2</span></span\n            >\n            <span class=\"terminal-line\"\n              ><span class=\"task-done\">✓</span>\n              <span class=\"task-text\">Task #2 marked as complete</span></span\n            >\n          </div>\n        </div>\n      </div>\n\n      <div class=\"interactive-terminal\">\n        <h2 class=\"interactive-title\">Try it out</h2>\n        <div class=\"terminal-window\">\n          <div class=\"terminal-header\">\n            <div class=\"terminal-dot\"></div>\n            <div class=\"terminal-dot\"></div>\n            <div class=\"terminal-dot\"></div>\n          </div>\n          <div class=\"interactive-body\">\n            <div id=\"output\"></div>\n            <div class=\"input-line\">\n              <span class=\"prompt\">❯</span>\n              <input\n                type=\"text\"\n                id=\"commandInput\"\n                placeholder=\"Type a command (e.g., task add 'Buy milk')\"\n                autofocus\n              />\n            </div>\n            <p class=\"help-text\">\n              Available commands: <code>task add \"description\"</code>,\n              <code>task list</code>, <code>task done [number]</code>,\n              <code>task delete [number]</code>, <code>task clear</code>\n            </p>\n          </div>\n        </div>\n      </div>\n\n      <section id=\"features\">\n        <h2>Features</h2>\n        <div class=\"features-grid\">\n          <div class=\"feature\">\n            <h3>Lightning Fast</h3>\n            <p>\n              Written in Go for instant startup and minimal memory footprint.\n              Manages thousands of tasks without breaking a sweat.\n            </p>\n          </div>\n          <div class=\"feature\">\n            <h3>Local & Private</h3>\n            <p>\n              All data stored in plain text at ~/.task/tasks.txt. No cloud sync,\n              no telemetry, no tracking. Your tasks stay on your machine.\n            </p>\n          </div>\n          <div class=\"feature\">\n            <h3>Simple Commands</h3>\n            <p>\n              Intuitive CLI with commands that make sense: add, list, done,\n              delete. No configuration files or setup required.\n            </p>\n          </div>\n          <div class=\"feature\">\n            <h3>Cross-Platform</h3>\n            <p>\n              Native binaries for macOS (Apple Silicon & Intel), Linux, and\n              Windows. Works the same everywhere.\n            </p>\n          </div>\n          <div class=\"feature\">\n            <h3>Portable Format</h3>\n            <p>\n              Tasks stored in human-readable text format. Easy to backup, sync\n              with git, or edit manually if needed.\n            </p>\n          </div>\n          <div class=\"feature\">\n            <h3>Terminal Native</h3>\n            <p>\n              Designed for your workflow. Beautiful emoji indicators,\n              color-coded output, and seamless shell integration.\n            </p>\n          </div>\n        </div>\n      </section>\n\n      <section id=\"install\">\n        <h2>Installation</h2>\n\n        <div class=\"installation-grid\">\n          <div class=\"install-card\">\n            <h3>macOS (Apple Silicon)</h3>\n            <pre><code>curl -L https://github.com/anikchand461/task/releases/latest/download/task-darwin-arm64 -o task\nchmod +x task\nsudo mv task /usr/local/bin/</code></pre>\n          </div>\n\n          <div class=\"install-card\">\n            <h3>macOS (Intel)</h3>\n            <pre><code>curl -L https://github.com/anikchand461/task/releases/latest/download/task-darwin-amd64 -o task\nchmod +x task\nsudo mv task /usr/local/bin/</code></pre>\n          </div>\n\n          <div class=\"install-card\">\n            <h3>Linux</h3>\n            <pre><code>curl -L https://github.com/anikchand461/task/releases/latest/download/task-linux-amd64 -o task\nchmod +x task\nsudo mv task /usr/local/bin/</code></pre>\n          </div>\n\n          <div class=\"install-card\">\n            <h3>Windows</h3>\n            <pre><code>Invoke-WebRequest -Uri \"https://github.com/anikchand461/task/releases/latest/download/task-windows-amd64.exe\" -OutFile \"task.exe\"\n# Move to PATH directory</code></pre>\n          </div>\n        </div>\n      </section>\n\n      <section id=\"usage\">\n        <h2>Usage</h2>\n\n        <div class=\"usage-block\">\n          <pre><code><span class=\"prompt\">❯</span> <span class=\"cmd\">task add \"Buy groceries\"</span>\n<span class=\"comment\"># Add a new task</span>\n\n<span class=\"prompt\">❯</span> <span class=\"cmd\">task list</span>\n<span class=\"comment\"># View all tasks</span>\n\n<span class=\"prompt\">❯</span> <span class=\"cmd\">task done 1</span>\n<span class=\"comment\"># Mark task #1 as complete</span>\n\n<span class=\"prompt\">❯</span> <span class=\"cmd\">task delete 2</span>\n<span class=\"comment\"># Delete task #2</span>\n\n<span class=\"prompt\">❯</span> <span class=\"cmd\">task clear</span>\n<span class=\"comment\"># Remove all completed tasks</span>\n\n<span class=\"prompt\">❯</span> <span class=\"cmd\">task --help</span>\n<span class=\"comment\"># Show all available commands</span></code></pre>\n        </div>\n      </section>\n\n      <section id=\"privacy\">\n        <h2>Privacy & Data</h2>\n        <div class=\"privacy-note\">\n          <p>\n            <strong>Your data stays local.</strong> All tasks are stored in\n            plain text at <code>~/.task/tasks.txt</code>. No telemetry, no\n            analytics, no external servers. You have full control over your task\n            file—back it up, sync it with git, or version control it however you\n            prefer.\n          </p>\n        </div>\n      </section>\n    </main>\n\n    <footer>\n      <p>Built by <strong>Anik Chand</strong></p>\n      <p style=\"margin-top: 8px\">\n        <a href=\"https://github.com/anikchand461/task\" target=\"_blank\"\n          >View Source on GitHub</a\n        >\n      </p>\n    </footer>\n\n    <script>\n      // Interactive terminal simulation\n      const tasks = [];\n      let taskIdCounter = 1;\n\n      const output = document.getElementById(\"output\");\n      const commandInput = document.getElementById(\"commandInput\");\n\n      function addOutput(text, className = \"\") {\n        const line = document.createElement(\"div\");\n        line.className = `terminal-line ${className}`;\n        line.innerHTML = text;\n        line.style.opacity = \"0\";\n        output.appendChild(line);\n\n        // Animate the line appearing\n        setTimeout(() => {\n          line.style.transition = \"opacity 0.3s ease-out\";\n          line.style.opacity = \"1\";\n        }, 10);\n\n        output.scrollTop = output.scrollHeight;\n      }\n\n      function typeCommand(command) {\n        addOutput(\n          `<span class=\"prompt\">❯</span> <span class=\"command\">${command}</span>`,\n        );\n      }\n\n      function listTasks() {\n        if (tasks.length === 0) {\n          addOutput(\n            '<span class=\"task-text\">No tasks found. Add one with: task add \"your task\"</span>',\n          );\n          return;\n        }\n\n        tasks.forEach((task, index) => {\n          const status = task.done ? \"✅\" : \"⭕️\";\n          const statusClass = task.done ? \"task-done\" : \"task-pending\";\n          addOutput(\n            `<span class=\"task-item\"><span class=\"${statusClass}\">${index + 1}. ${status}</span> <span class=\"task-text\">${task.text}</span></span>`,\n          );\n        });\n      }\n\n      function addTask(text) {\n        const cleanText = text\n          .replace(/^task add [\"']|[\"']$/g, \"\")\n          .replace(/^add [\"']|[\"']$/g, \"\")\n          .trim();\n        if (cleanText) {\n          tasks.push({ id: taskIdCounter++, text: cleanText, done: false });\n          addOutput(\n            '<span class=\"task-done\">✓</span> <span class=\"task-text\">Task added successfully</span>',\n          );\n        } else {\n          addOutput(\n            '<span class=\"task-pending\">✗</span> <span class=\"task-text\">Please provide a task description</span>',\n          );\n        }\n      }\n\n      function markDone(taskNum) {\n        const index = parseInt(taskNum) - 1;\n        if (index >= 0 && index < tasks.length) {\n          tasks[index].done = true;\n          addOutput(\n            `<span class=\"task-done\">✓</span> <span class=\"task-text\">Task #${taskNum} marked as complete</span>`,\n          );\n        } else {\n          addOutput(\n            '<span class=\"task-pending\">✗</span> <span class=\"task-text\">Task not found</span>',\n          );\n        }\n      }\n\n      function deleteTask(taskNum) {\n        const index = parseInt(taskNum) - 1;\n        if (index >= 0 && index < tasks.length) {\n          tasks.splice(index, 1);\n          addOutput(\n            `<span class=\"task-done\">✓</span> <span class=\"task-text\">Task #${taskNum} deleted</span>`,\n          );\n        } else {\n          addOutput(\n            '<span class=\"task-pending\">✗</span> <span class=\"task-text\">Task not found</span>',\n          );\n        }\n      }\n\n      function clearTasks() {\n        const beforeCount = tasks.length;\n        tasks.splice(0, tasks.length, ...tasks.filter((t) => !t.done));\n        const cleared = beforeCount - tasks.length;\n        addOutput(\n          `<span class=\"task-done\">✓</span> <span class=\"task-text\">Cleared ${cleared} completed task(s)</span>`,\n        );\n      }\n\n      function processCommand(cmd) {\n        const trimmed = cmd.trim().toLowerCase();\n\n        typeCommand(cmd);\n\n        if (trimmed === \"task list\" || trimmed === \"list\") {\n          listTasks();\n        } else if (\n          trimmed.startsWith(\"task add\") ||\n          trimmed.startsWith(\"add\")\n        ) {\n          addTask(cmd);\n        } else if (\n          trimmed.startsWith(\"task done\") ||\n          trimmed.startsWith(\"done\")\n        ) {\n          const num = trimmed.match(/\\d+/);\n          if (num) markDone(num[0]);\n          else\n            addOutput(\n              '<span class=\"task-pending\">✗</span> <span class=\"task-text\">Please specify task number</span>',\n            );\n        } else if (\n          trimmed.startsWith(\"task delete\") ||\n          trimmed.startsWith(\"delete\")\n        ) {\n          const num = trimmed.match(/\\d+/);\n          if (num) deleteTask(num[0]);\n          else\n            addOutput(\n              '<span class=\"task-pending\">✗</span> <span class=\"task-text\">Please specify task number</span>',\n            );\n        } else if (trimmed === \"task clear\" || trimmed === \"clear\") {\n          clearTasks();\n        } else if (\n          trimmed === \"help\" ||\n          trimmed === \"task --help\" ||\n          trimmed === \"task help\"\n        ) {\n          addOutput('<span class=\"task-text\">Available commands:</span>');\n          addOutput(\n            '<span class=\"task-item\"><span class=\"task-done\">•</span> <span class=\"task-text\">task add \"description\" - Add a new task</span></span>',\n          );\n          addOutput(\n            '<span class=\"task-item\"><span class=\"task-done\">•</span> <span class=\"task-text\">task list - Show all tasks</span></span>',\n          );\n          addOutput(\n            '<span class=\"task-item\"><span class=\"task-done\">•</span> <span class=\"task-text\">task done [number] - Mark task as complete</span></span>',\n          );\n          addOutput(\n            '<span class=\"task-item\"><span class=\"task-done\">•</span> <span class=\"task-text\">task delete [number] - Delete a task</span></span>',\n          );\n          addOutput(\n            '<span class=\"task-item\"><span class=\"task-done\">•</span> <span class=\"task-text\">task clear - Remove completed tasks</span></span>',\n          );\n        } else {\n          addOutput(\n            '<span class=\"task-pending\">✗</span> <span class=\"task-text\">Unknown command. Type \"help\" for available commands.</span>',\n          );\n        }\n\n        addOutput(\"\");\n      }\n\n      commandInput.addEventListener(\"keydown\", (e) => {\n        if (e.key === \"Enter\") {\n          const cmd = commandInput.value;\n          if (cmd.trim()) {\n            processCommand(cmd);\n            commandInput.value = \"\";\n          }\n        }\n      });\n\n      // Add some demo tasks on load\n      setTimeout(() => {\n        tasks.push(\n          {\n            id: taskIdCounter++,\n            text: \"Try adding your own task!\",\n            done: false,\n          },\n          { id: taskIdCounter++, text: \"Check this demo task\", done: true },\n        );\n      }, 100);\n    </script>\n  </body>\n</html>\n\n\n"
+        },
+        {
+            "path": "internal/task/add.go",
+            "content": "package task\n\nimport \"os\"\n\nfunc Add(tasks ...string) error {\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tf, err := os.OpenFile(path,\n\t\tos.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer f.Close()\n\n\tfor _, task := range tasks {\n\t\tif task == \"\" {\n\t\t\tcontinue\n\t\t}\n\t\t_, err := f.WriteString(task + \"|pending\\n\")\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t}\n\n\treturn nil\n}\n"
+        },
+        {
+            "path": "internal/task/clear.go",
+            "content": "package task\n\nimport (\n\t\"os\"\n)\n\nfunc Clear() error {\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn err\n\t}\n\t\n\t// Delete the file\n\treturn os.Remove(path)\n}"
+        },
+        {
+            "path": "internal/task/delete.go",
+            "content": "package task\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"os\"\n\t\"strings\"\n)\n\n\nfunc DeleteTask(taskNumber int) error {\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tf, err := os.Open(path)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer f.Close()\n\n\tvar lines []string\n\tscanner := bufio.NewScanner(f)\n\tfor scanner.Scan() {\n\t\tlines = append(lines, scanner.Text())\n\t}\n\tif err := scanner.Err(); err != nil {\n\t\treturn err\n\t}\n\n\tif taskNumber < 1 || taskNumber > len(lines) {\n\t\treturn fmt.Errorf(\"invalid task number: %d (valid range: 1-%d)\", taskNumber, len(lines))\n\t}\n\n\tlines = append(lines[:taskNumber-1], lines[taskNumber:]...)\n\t\n\treturn os.WriteFile(\n\t\tpath,\n\t\t[]byte(strings.Join(lines, \"\\n\")+\"\\n\"),\n\t\t0644,\n\t)\n}"
+        },
+        {
+            "path": "internal/task/done.go",
+            "content": "package task\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"os\"\n\t\"strconv\"\n\t\"strings\"\n)\n\nfunc Done(idStr string) error {\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\t// Parse comma-separated IDs\n\tidParts := strings.Split(idStr, \",\")\n\tidsToMark := make(map[int]bool)\n\n\tfor _, part := range idParts {\n\t\ttrimmed := strings.TrimSpace(part)\n\t\tid, err := strconv.Atoi(trimmed)\n\t\tif err != nil {\n\t\t\treturn fmt.Errorf(\"invalid task id: %s\", trimmed)\n\t\t}\n\t\tidsToMark[id] = true\n\t}\n\n\t// Read all tasks\n\tf, err := os.Open(path)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer f.Close()\n\n\tscanner := bufio.NewScanner(f)\n\tvar tasks []string\n\ti := 1\n\tfor scanner.Scan() {\n\t\tline := scanner.Text()\n\t\tif idsToMark[i] {\n\t\t\t// Mark this task as done\n\t\t\tparts := strings.Split(line, \"|\")\n\t\t\tif len(parts) >= 2 {\n\t\t\t\tparts[1] = \"done\"\n\t\t\t\tline = strings.Join(parts, \"|\")\n\t\t\t}\n\t\t}\n\t\ttasks = append(tasks, line)\n\t\ti++\n\t}\n\n\tif err := scanner.Err(); err != nil {\n\t\treturn err\n\t}\n\n\t// Write back all tasks\n\tf, err = os.Create(path)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer f.Close()\n\n\tfor _, task := range tasks {\n\t\t_, err = f.WriteString(task + \"\\n\")\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t}\n\n\treturn nil\n}\n\nfunc DoneAll() error {\n\t// Get absolute path to ~/.task/tasks.txt\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\t// Open file\n\tf, err := os.Open(path)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer f.Close()\n\n\t// Read all lines\n\tvar lines []string\n\tscanner := bufio.NewScanner(f)\n\tfor scanner.Scan() {\n\t\tlines = append(lines, scanner.Text())\n\t}\n\tif err := scanner.Err(); err != nil {\n\t\treturn err\n\t}\n\n\t// Mark all tasks as done\n\tfor i, line := range lines {\n\t\tparts := strings.Split(line, \"|\")\n\t\tif len(parts) >= 2 {\n\t\t\tparts[1] = \"done\"\n\t\t\tlines[i] = strings.Join(parts, \"|\")\n\t\t}\n\t}\n\n\t// Write back to file\n\treturn os.WriteFile(\n\t\tpath,\n\t\t[]byte(strings.Join(lines, \"\\n\")+\"\\n\"),\n\t\t0644,\n\t)\n}\n\n\n"
+        },
+        {
+            "path": "internal/task/edit.go",
+            "content": "package task\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"os\"\n\t\"strings\"\n)\n\n// EditTask updates the description of an existing task\nfunc EditTask(taskNumber int, newDescription string) error {\n\t// Get absolute path to ~/.task/tasks.txt\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\t// Open file\n\tf, err := os.Open(path)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer f.Close()\n\n\t// Read all lines\n\tvar lines []string\n\tscanner := bufio.NewScanner(f)\n\tfor scanner.Scan() {\n\t\tlines = append(lines, scanner.Text())\n\t}\n\tif err := scanner.Err(); err != nil {\n\t\treturn err\n\t}\n\n\t// Validate task number\n\tif taskNumber < 1 || taskNumber > len(lines) {\n\t\treturn fmt.Errorf(\"invalid task number: %d (valid range: 1-%d)\", taskNumber, len(lines))\n\t}\n\n\t// Update task description (preserve status)\n\tparts := strings.Split(lines[taskNumber-1], \"|\")\n\tif len(parts) >= 2 {\n\t\t// Keep the status (pending/done), update description\n\t\tparts[0] = newDescription\n\t\tlines[taskNumber-1] = strings.Join(parts, \"|\")\n\t}\n\n\t// Write back to file\n\treturn os.WriteFile(\n\t\tpath,\n\t\t[]byte(strings.Join(lines, \"\\n\")+\"\\n\"),\n\t\t0644,\n\t)\n}"
+        },
+        {
+            "path": "internal/task/list.go",
+            "content": "package task\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc List() error {\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\t// If file doesn't exist → empty list\n\tif _, err := os.Stat(path); os.IsNotExist(err) {\n\t\tfmt.Println(\"No tasks found.\")\n\t\treturn nil\n\t}\n\n\tf, err := os.Open(path)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer f.Close()\n\n\tscanner := bufio.NewScanner(f)\n\ti := 1\n\tfor scanner.Scan() {\n\t\tparts := strings.Split(scanner.Text(), \"|\")\n\t\tif len(parts) < 2 {\n\t\t\tcontinue\n\t\t}\n\n\t\tstatus := \"⭕️\"\n\t\tif parts[1] == \"done\" {\n\t\t\tstatus = \"✅\"\n\t\t}\n\n\t\tfmt.Printf(\"%d. %s %s\\n\", i, status, parts[0])\n\t\ti++\n\t}\n\n\treturn scanner.Err()\n}\n\n"
+        },
+        {
+            "path": "internal/task/lock.go",
+            "content": "package task\n\nimport (\n\t\"fmt\"\n\t\"os\"\n\t\"path/filepath\"\n\t\"time\"\n)\n\n\nfunc AcquireLock() (func(), error) {\n\tpath, err := dataFilePath()\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\t\n\t// Lock file acts as a flag: if it exists, the DB is busy.\n\tlockPath := filepath.Join(filepath.Dir(path), \"tasks.lock\")\n\n\tfor i := 0; i < 10; i++ { // Try 10 times (1 second total)\n\t\t\n\t\tf, err := os.OpenFile(lockPath, os.O_CREATE|os.O_EXCL, 0644)\n\t\tif err == nil {\n\t\t\t\n\t\t\tf.Close()\n\t\t\t\n\t\t\treturn func() {\n\t\t\t\tos.Remove(lockPath)\n\t\t\t}, nil\n\t\t}\n\n\t\t\n\t\tif !os.IsExist(err) {\n\t\t\treturn nil, err\n\t\t}\n\n\t\t\n\t\ttime.Sleep(100 * time.Millisecond)\n\t}\n\n\treturn nil, fmt.Errorf(\"could not acquire lock: another task process is running\")\n}"
+        },
+        {
+            "path": "internal/task/path.go",
+            "content": "package task\n\nimport (\n\t\"os\"\n\t\"path/filepath\"\n)\n\nfunc dataFilePath() (string, error) {\n\thome, err := os.UserHomeDir()\n\tif err != nil {\n\t\treturn \"\", err\n\t}\n\n\tdir := filepath.Join(home, \".task\")\n\terr = os.MkdirAll(dir, 0755)\n\tif err != nil {\n\t\treturn \"\", err\n\t}\n\n\treturn filepath.Join(dir, \"tasks.txt\"), nil\n}\n\n"
+        }
+    ],
+    "structure": {
+        ".github": {
+            "type": "directory",
+            "children": {
+                "workflows": {
+                    "type": "directory",
+                    "children": {
+                        "living-docs.yml": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        ".gitignore": {
+            "type": "file"
+        },
+        "CONTRIBUTING.md": {
+            "type": "file"
+        },
+        "README.md": {
+            "type": "file"
+        },
+        "cmd": {
+            "type": "directory",
+            "children": {
+                "task": {
+                    "type": "directory",
+                    "children": {
+                        "main.go": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "data": {
+            "type": "directory",
+            "children": {
+                "tasks.txt": {
+                    "type": "file"
+                }
+            }
+        },
+        "go.mod": {
+            "type": "file"
+        },
+        "index.html": {
+            "type": "file"
+        },
+        "internal": {
+            "type": "directory",
+            "children": {
+                "task": {
+                    "type": "directory",
+                    "children": {
+                        "add.go": {
+                            "type": "file"
+                        },
+                        "clear.go": {
+                            "type": "file"
+                        },
+                        "delete.go": {
+                            "type": "file"
+                        },
+                        "done.go": {
+                            "type": "file"
+                        },
+                        "edit.go": {
+                            "type": "file"
+                        },
+                        "list.go": {
+                            "type": "file"
+                        },
+                        "lock.go": {
+                            "type": "file"
+                        },
+                        "path.go": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
