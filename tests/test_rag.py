@@ -9,7 +9,7 @@ from rag.llm import LLM
 def main():
 
     # Load
-    loader = JSONLoader("data/shreyaghorui222004_MedIBot.json")
+    loader = JSONLoader("data/")
     data = loader.load()
 
     # Convert
