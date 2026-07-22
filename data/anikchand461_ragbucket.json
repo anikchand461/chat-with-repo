@@ -1,0 +1,811 @@
+{
+    "repository": {
+        "id": 1244010566,
+        "node_id": "R_kgDOSiYYRg",
+        "name": "ragbucket",
+        "full_name": "anikchand461/ragbucket",
+        "private": false,
+        "owner": {
+            "login": "anikchand461",
+            "id": 161185149,
+            "node_id": "U_kgDOCZt9fQ",
+            "avatar_url": "https://avatars.githubusercontent.com/u/161185149?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/anikchand461",
+            "html_url": "https://github.com/anikchand461",
+            "followers_url": "https://api.github.com/users/anikchand461/followers",
+            "following_url": "https://api.github.com/users/anikchand461/following{/other_user}",
+            "gists_url": "https://api.github.com/users/anikchand461/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/anikchand461/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/anikchand461/subscriptions",
+            "organizations_url": "https://api.github.com/users/anikchand461/orgs",
+            "repos_url": "https://api.github.com/users/anikchand461/repos",
+            "events_url": "https://api.github.com/users/anikchand461/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/anikchand461/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+        },
+        "html_url": "https://github.com/anikchand461/ragbucket",
+        "description": "Package vectors, chunks, configs, and retrieval memory into portable executable .rag artifacts.",
+        "fork": false,
+        "url": "https://api.github.com/repos/anikchand461/ragbucket",
+        "forks_url": "https://api.github.com/repos/anikchand461/ragbucket/forks",
+        "keys_url": "https://api.github.com/repos/anikchand461/ragbucket/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/anikchand461/ragbucket/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/anikchand461/ragbucket/teams",
+        "hooks_url": "https://api.github.com/repos/anikchand461/ragbucket/hooks",
+        "issue_events_url": "https://api.github.com/repos/anikchand461/ragbucket/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/anikchand461/ragbucket/events",
+        "assignees_url": "https://api.github.com/repos/anikchand461/ragbucket/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/anikchand461/ragbucket/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/anikchand461/ragbucket/tags",
+        "blobs_url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/anikchand461/ragbucket/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/anikchand461/ragbucket/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/anikchand461/ragbucket/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/anikchand461/ragbucket/languages",
+        "stargazers_url": "https://api.github.com/repos/anikchand461/ragbucket/stargazers",
+        "contributors_url": "https://api.github.com/repos/anikchand461/ragbucket/contributors",
+        "subscribers_url": "https://api.github.com/repos/anikchand461/ragbucket/subscribers",
+        "subscription_url": "https://api.github.com/repos/anikchand461/ragbucket/subscription",
+        "commits_url": "https://api.github.com/repos/anikchand461/ragbucket/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/anikchand461/ragbucket/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/anikchand461/ragbucket/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/anikchand461/ragbucket/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/anikchand461/ragbucket/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/anikchand461/ragbucket/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/anikchand461/ragbucket/merges",
+        "archive_url": "https://api.github.com/repos/anikchand461/ragbucket/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/anikchand461/ragbucket/downloads",
+        "issues_url": "https://api.github.com/repos/anikchand461/ragbucket/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/anikchand461/ragbucket/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/anikchand461/ragbucket/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/anikchand461/ragbucket/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/anikchand461/ragbucket/labels{/name}",
+        "releases_url": "https://api.github.com/repos/anikchand461/ragbucket/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/anikchand461/ragbucket/deployments",
+        "created_at": "2026-05-19T22:06:05Z",
+        "updated_at": "2026-06-26T05:11:44Z",
+        "pushed_at": "2026-06-26T05:11:40Z",
+        "git_url": "git://github.com/anikchand461/ragbucket.git",
+        "ssh_url": "git@github.com:anikchand461/ragbucket.git",
+        "clone_url": "https://github.com/anikchand461/ragbucket.git",
+        "svn_url": "https://github.com/anikchand461/ragbucket",
+        "homepage": "https://ragbucket.vercel.app",
+        "size": 3320,
+        "stargazers_count": 2,
+        "watchers_count": 2,
+        "language": "HTML",
+        "has_issues": true,
+        "has_projects": true,
+        "has_downloads": false,
+        "has_wiki": true,
+        "has_pages": false,
+        "has_discussions": false,
+        "forks_count": 0,
+        "mirror_url": null,
+        "archived": false,
+        "disabled": false,
+        "open_issues_count": 0,
+        "license": {
+            "key": "mit",
+            "name": "MIT License",
+            "spdx_id": "MIT",
+            "url": "https://api.github.com/licenses/mit",
+            "node_id": "MDc6TGljZW5zZTEz"
+        },
+        "allow_forking": true,
+        "is_template": false,
+        "web_commit_signoff_required": false,
+        "has_pull_requests": true,
+        "pull_request_creation_policy": "all",
+        "topics": [
+            "artifacts",
+            "generative-ai",
+            "groq",
+            "machine-learning",
+            "nlp",
+            "portable-rag",
+            "portable-tools",
+            "python",
+            "python3",
+            "rag",
+            "retrieval",
+            "sentense-transformers",
+            "zipfile"
+        ],
+        "visibility": "public",
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 2,
+        "default_branch": "main",
+        "permissions": {
+            "admin": false,
+            "maintain": false,
+            "push": false,
+            "triage": false,
+            "pull": true
+        },
+        "network_count": 0,
+        "subscribers_count": 0
+    },
+    "branch": "main",
+    "tree": [
+        {
+            "path": ".gitignore",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "51b81085fa4146dec888068100990f9e86e5eada",
+            "size": 418,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/51b81085fa4146dec888068100990f9e86e5eada"
+        },
+        {
+            "path": "LICENSE",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "da0e9ffcd6a5c15ee39582e7868b7a80e187e8ff",
+            "size": 1067,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/da0e9ffcd6a5c15ee39582e7868b7a80e187e8ff"
+        },
+        {
+            "path": "README.md",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "c51f4f0178bdc8ce7c8c5124044893d775977fb6",
+            "size": 10469,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/c51f4f0178bdc8ce7c8c5124044893d775977fb6"
+        },
+        {
+            "path": "docs",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "609091313d02746515fa4a0a9bb88860c715d1d2",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/609091313d02746515fa4a0a9bb88860c715d1d2"
+        },
+        {
+            "path": "docs/sample.txt",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "748a54e3b715e68c020817737c92bf59bfcce50b",
+            "size": 3845,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/748a54e3b715e68c020817737c92bf59bfcce50b"
+        },
+        {
+            "path": "examples",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "45140420bac16d63e977613017853cc099238044",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/45140420bac16d63e977613017853cc099238044"
+        },
+        {
+            "path": "examples/build_example.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "ee8d581d284b3b509e6b45bbf5f752d2609bf931",
+            "size": 446,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/ee8d581d284b3b509e6b45bbf5f752d2609bf931"
+        },
+        {
+            "path": "examples/runtime_example.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "94e005dbb73827e5e63a09205c22623086790cd9",
+            "size": 663,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/94e005dbb73827e5e63a09205c22623086790cd9"
+        },
+        {
+            "path": "frontend",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "99a55b411bcd1d28635c36d6f0336eab9f67de65",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/99a55b411bcd1d28635c36d6f0336eab9f67de65"
+        },
+        {
+            "path": "frontend/img",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "44d7633f9fb49a8411b7759671bff02082a1d565",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/44d7633f9fb49a8411b7759671bff02082a1d565"
+        },
+        {
+            "path": "frontend/img/main.png",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "af6d8ad55ce1545f1704a56e3a0a8a2291a5ba97",
+            "size": 1362461,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/af6d8ad55ce1545f1704a56e3a0a8a2291a5ba97"
+        },
+        {
+            "path": "frontend/img/preview.png",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "28b2816208089ef67c4fb2856105e801df6847cd",
+            "size": 441643,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/28b2816208089ef67c4fb2856105e801df6847cd"
+        },
+        {
+            "path": "frontend/img/ragbucket.png",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "28b2816208089ef67c4fb2856105e801df6847cd",
+            "size": 441643,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/28b2816208089ef67c4fb2856105e801df6847cd"
+        },
+        {
+            "path": "frontend/img/workflow.png",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "282202cf46fa182198c1cd68259d27e34f806920",
+            "size": 1866574,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/282202cf46fa182198c1cd68259d27e34f806920"
+        },
+        {
+            "path": "frontend/index.css",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "bb476fc06b51fc798e594bc733463f821d391a4d",
+            "size": 21582,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/bb476fc06b51fc798e594bc733463f821d391a4d"
+        },
+        {
+            "path": "frontend/index.html",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "7d8b3454dd594687fda860172082e158ada56c73",
+            "size": 30965,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/7d8b3454dd594687fda860172082e158ada56c73"
+        },
+        {
+            "path": "frontend/index.js",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "b899e733aff693b5d253bb34740386bc14a02e9b",
+            "size": 3326,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/b899e733aff693b5d253bb34740386bc14a02e9b"
+        },
+        {
+            "path": "pyproject.toml",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "f57a0ec00e690ce3e9f6c735bcd980426810cc23",
+            "size": 865,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/f57a0ec00e690ce3e9f6c735bcd980426810cc23"
+        },
+        {
+            "path": "ragbucket",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "1318712e0003494b288ee98970eb31d61a74deb3",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/1318712e0003494b288ee98970eb31d61a74deb3"
+        },
+        {
+            "path": "ragbucket/__init__.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "c40745fe56a5839b8cae79f05576fba04717262d",
+            "size": 490,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/c40745fe56a5839b8cae79f05576fba04717262d"
+        },
+        {
+            "path": "ragbucket/builder",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "8d0bf4046ce62e917e5a65b3d56d5c74f509277f",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/8d0bf4046ce62e917e5a65b3d56d5c74f509277f"
+        },
+        {
+            "path": "ragbucket/builder/builder.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "a22442ff20c333126bc6044fae8fc7887fea11e8",
+            "size": 2495,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/a22442ff20c333126bc6044fae8fc7887fea11e8"
+        },
+        {
+            "path": "ragbucket/builder/chunker.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "201c98613d8b3b4a047d4833e60d83457f7c58d6",
+            "size": 703,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/201c98613d8b3b4a047d4833e60d83457f7c58d6"
+        },
+        {
+            "path": "ragbucket/builder/indexer.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "7d70d5f5535d4a3dd2c4231eed871c05e5d8ece0",
+            "size": 1238,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/7d70d5f5535d4a3dd2c4231eed871c05e5d8ece0"
+        },
+        {
+            "path": "ragbucket/builder/packager.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "0b63b1afb50ce0310545af7656d4bfe3861369b2",
+            "size": 2292,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/0b63b1afb50ce0310545af7656d4bfe3861369b2"
+        },
+        {
+            "path": "ragbucket/constants.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "950396bcf89284ec8880c0429945c9c6bdcc1a52",
+            "size": 51,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/950396bcf89284ec8880c0429945c9c6bdcc1a52"
+        },
+        {
+            "path": "ragbucket/embeddings",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "336baf4ef427f3239928e8224c879ef1368fcbb5",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/336baf4ef427f3239928e8224c879ef1368fcbb5"
+        },
+        {
+            "path": "ragbucket/embeddings/cohere_embedder.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "656194a5fe1c654c0c51249b9c1adc800438dcc6",
+            "size": 693,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/656194a5fe1c654c0c51249b9c1adc800438dcc6"
+        },
+        {
+            "path": "ragbucket/embeddings/factory.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "f0925e095fea12b04fe4564ca314ce43d8ca004c",
+            "size": 1546,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/f0925e095fea12b04fe4564ca314ce43d8ca004c"
+        },
+        {
+            "path": "ragbucket/embeddings/gemini_embedder.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "be24ba44edbe42836423c7ad945fe2aa615b8d9d",
+            "size": 871,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/be24ba44edbe42836423c7ad945fe2aa615b8d9d"
+        },
+        {
+            "path": "ragbucket/embeddings/local_embedder.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "00369da7dbd4beb8a46114934cab2299df4cf1b7",
+            "size": 856,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/00369da7dbd4beb8a46114934cab2299df4cf1b7"
+        },
+        {
+            "path": "ragbucket/embeddings/openai_embedder.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "78942028464f6697b55609e62c5892ac0817a210",
+            "size": 733,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/78942028464f6697b55609e62c5892ac0817a210"
+        },
+        {
+            "path": "ragbucket/embeddings/voyage_embedder.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "9648af48c4ba7340d5d8b0b8226f3d30392b58a7",
+            "size": 663,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/9648af48c4ba7340d5d8b0b8226f3d30392b58a7"
+        },
+        {
+            "path": "ragbucket/runtime",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "66ba2bee9b9d4c14413fd4e7ea3a45e8df24a93c",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/66ba2bee9b9d4c14413fd4e7ea3a45e8df24a93c"
+        },
+        {
+            "path": "ragbucket/runtime/loader.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "2540b845de2bf3084fc1c047d7952ea72f56d9a7",
+            "size": 737,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/2540b845de2bf3084fc1c047d7952ea72f56d9a7"
+        },
+        {
+            "path": "ragbucket/runtime/providers",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "b35ae6d1d0c388b79fac43933b13c867ea318220",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/b35ae6d1d0c388b79fac43933b13c867ea318220"
+        },
+        {
+            "path": "ragbucket/runtime/providers/anthropic_provider.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "108f52705174fcd65974f09730a3bacea2777f08",
+            "size": 950,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/108f52705174fcd65974f09730a3bacea2777f08"
+        },
+        {
+            "path": "ragbucket/runtime/providers/factory.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "0c80a46c5be05de7d52446914ea09156d7e83d5f",
+            "size": 2241,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/0c80a46c5be05de7d52446914ea09156d7e83d5f"
+        },
+        {
+            "path": "ragbucket/runtime/providers/gemini_provider.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "0dd1f902e5a4f380a1167463960429371ea08d1a",
+            "size": 775,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/0dd1f902e5a4f380a1167463960429371ea08d1a"
+        },
+        {
+            "path": "ragbucket/runtime/providers/groq_provider.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "006b01cfaf1643f6ce6c061504f652b8b206a16a",
+            "size": 1015,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/006b01cfaf1643f6ce6c061504f652b8b206a16a"
+        },
+        {
+            "path": "ragbucket/runtime/providers/openai_provider.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "ab1aad61a0fffc79f9eb0cd001103f37b3a0c003",
+            "size": 1025,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/ab1aad61a0fffc79f9eb0cd001103f37b3a0c003"
+        },
+        {
+            "path": "ragbucket/runtime/retriever.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "d3491225c61091cc5ce54a56e901f32c193b0363",
+            "size": 1653,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/d3491225c61091cc5ce54a56e901f32c193b0363"
+        },
+        {
+            "path": "ragbucket/runtime/runtime.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "7ac519e0d2e7da1cb1d4ca759b4c792a6dcb94da",
+            "size": 1228,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/7ac519e0d2e7da1cb1d4ca759b4c792a6dcb94da"
+        },
+        {
+            "path": "ragbucket/schemas",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "15ddb758c7e5a55e2c4c437144ebddc48f0f8ec3",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/15ddb758c7e5a55e2c4c437144ebddc48f0f8ec3"
+        },
+        {
+            "path": "ragbucket/schemas/config.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "c1beb85f8dec669ef4c97666cfcdf277703f61b8",
+            "size": 274,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/c1beb85f8dec669ef4c97666cfcdf277703f61b8"
+        },
+        {
+            "path": "ragbucket/schemas/manifest.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+            "size": 0,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+            "path": "ragbucket/utils",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "8b5142deb361e2f66fc3f6dda4f5b7eede568af0",
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/trees/8b5142deb361e2f66fc3f6dda4f5b7eede568af0"
+        },
+        {
+            "path": "ragbucket/utils/file_utils.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "e07336bb84c81a602e04f8937293cfcb3d8e3705",
+            "size": 120,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/e07336bb84c81a602e04f8937293cfcb3d8e3705"
+        },
+        {
+            "path": "ragbucket/utils/hashing.py",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "db191a2106e3e9129e40f01d26cc57cce66f35b7",
+            "size": 90,
+            "url": "https://api.github.com/repos/anikchand461/ragbucket/git/blobs/db191a2106e3e9129e40f01d26cc57cce66f35b7"
+        }
+    ],
+    "files": [
+        {
+            "path": "README.md",
+            "content": "<div align=\"center\">\n\n<br/>\n\n<img src=\"frontend/img/ragbucket.png\" alt=\"RagBucket Logo\" width=\"160\" />\n\n<br/>\n\n# RagBucket\n\n<h3><em>Portable Executable RAG Artifacts for Python</em></h3>\n\n**Build once. Load anywhere. Query forever.**\n\n<br/>\n\n[![PyPI version](https://img.shields.io/pypi/v/ragbucket?style=for-the-badge&color=FFD700&labelColor=0d0d1a&logo=python&logoColor=FFD700)](https://pypi.org/project/ragbucket/)\n[![Python](https://img.shields.io/pypi/pyversions/ragbucket?style=for-the-badge&color=4FC3F7&labelColor=0d0d1a)](https://pypi.org/project/ragbucket/)\n[![License: MIT](https://img.shields.io/badge/License-MIT-A8FF78?style=for-the-badge&labelColor=0d0d1a)](LICENSE)\n[![PyPI Downloads](https://static.pepy.tech/personalized-badge/ragbucket?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=BLUE&right_color=GREEN&left_text=downloads%2Fmonth)](https://pepy.tech/projects/ragbucket)\n<br/>\n[![Website](https://img.shields.io/badge/Website-ragbucket.vercel.app-c084fc?style=for-the-badge&labelColor=0d0d1a&logo=vercel&logoColor=c084fc)](https://ragbucket.vercel.app)\n[![Blog](https://img.shields.io/badge/BLOG-HASHNODE-2962FF?style=for-the-badge&logo=hashnode&logoColor=white)](https://anikchand.hashnode.dev/why-rag-pipelines-aren-t-portable-building-ragbucket)\n\n<br/>\n\n<p>\n  <a href=\"#-the-problem\">Problem</a> ·\n  <a href=\"#-introducing-rag\">The .rag Format</a> ·\n  <a href=\"#-installation\">Install</a> ·\n  <a href=\"#-quickstart\">Quickstart</a> ·\n  <a href=\"#-multi-provider-runtime\">Providers</a> ·\n  <a href=\"#-roadmap\">Roadmap</a>\n</p>\n\n<br/>\n\n</div>\n\n---\n\n## ◈ The Problem\n\nEvery major ML format is portable by default:\n\n```\nmodel.pt   ·   model.onnx   ·   model.gguf   ·   model.h5\n```\n\nYou save them, share them, deploy them anywhere.\n\n**RAG systems can't do any of that.**\n\nA typical RAG pipeline is a fragile web of moving parts:\n\n```\n❌  Vector databases tied to specific infrastructure\n❌  Embedding pipelines that must be rebuilt from scratch\n❌  Chunking configs scattered across codebases\n❌  Provider-specific integrations with zero portability\n❌  Metadata that lives nowhere and everywhere at once\n```\n\nEvery time you switch environments — laptop to server, dev to prod, team to team — you rebuild the whole thing. **That's broken.**\n\n**RagBucket fixes this.**\n\nIt packages your entire RAG pipeline — vectors, chunks, config, and runtime metadata — into a single portable `.rag` artifact. Like a model checkpoint, but for retrieval intelligence.\n\n---\n\n## ◈ Introducing `.rag`\n\n<div align=\"center\">\n<img src=\"frontend/img/main.png\" alt=\"RagBucket Architecture\" width=\"800\" />\n</div>\n\n<br/>\n\nA `.rag` artifact is a **self-contained, executable unit of retrieval intelligence.** It is not a config file. It is not a directory. It is a complete, ready-to-run retrieval system.\n\n| What it stores              | How it stores it             |\n| :-------------------------- | :--------------------------- |\n| Semantic embeddings         | via Sentence Transformers    |\n| Vector index                | via FAISS                    |\n| Chunked knowledge           | via LangChain splitters      |\n| Retrieval configuration     | embedded in manifest         |\n| Runtime metadata            | versioned artifact manifest  |\n\n```\nBuild it once.\nDrop it anywhere.\nQuery it with one line of code.\n```\n\n---\n\n## ◈ Full Architecture\n\n<div align=\"center\">\n<img src=\"frontend/img/workflow.png\" alt=\"RagBucket Full Workflow\" width=\"900\" />\n</div>\n\n---\n\n## ◈ Installation\n\n```bash\n# Using uv (recommended)\nuv add ragbucket\n\n# Using pip\npip install ragbucket\n```\n\n> **Lightweight by default.** Local embedding dependencies are only pulled in when you set `embedding_provider=\"local\"`. Cloud providers add nothing to your base install.\n\n---\n\n## ◈ Quickstart\n\n### Step 1 — Build a Portable `.rag` Artifact\n\n```python\nfrom ragbucket import RagBuilder, RagConfig\nimport os\nfrom dotenv import load_dotenv\n\nload_dotenv()\n\nconfig = RagConfig(\n\n    # ── Embedding Provider ────────────────────────────────────\n    embedding_provider = \"cohere\",\n    embedding_model    = \"embed-english-v3.0\",\n    embedding_api_key  = os.getenv(\"COHERE_API_KEY\"),\n\n    # ── Chunking ──────────────────────────────────────────────\n    chunk_size    = 512,\n    chunk_overlap = 50,\n\n    # ── Retrieval ─────────────────────────────────────────────\n    top_k = 3,\n)\n\nbuilder = RagBuilder(config=config)\n\nbuilder.build(\n    doc_path = \"docs/\",\n    op_path  = \"artifacts/demo.rag\",\n)\n```\n\nThis generates a single portable artifact:\n\n```\nartifacts/\n└── demo.rag          ← your entire RAG pipeline, packaged\n```\n\n---\n\n### Step 2 — Load and Query the Artifact\n\n```python\nfrom ragbucket import RagRuntime\nimport os\nfrom dotenv import load_dotenv\n\nload_dotenv()\n\nrag = RagRuntime(\n\n    # ── RAG Artifact ──────────────────────────────────────────\n    rag_path = \"artifacts/demo.rag\",\n\n    # ── Generation Provider ───────────────────────────────────\n    provider = \"groq\",\n    api_key  = os.getenv(\"GROQ_API_KEY\"),\n    model    = \"llama-3.1-8b-instant\",\n\n    # ── Embedding Provider Key ────────────────────────────────\n    embedding_api_key = os.getenv(\"COHERE_API_KEY\"),\n\n    # ── System Prompt ─────────────────────────────────────────\n    system_prompt = \"You are a helpful assistant. Keep answers short and crisp.\",\n)\n\nresponse = rag.ask(\"What are Anik's AI/ML skills?\")\nprint(response)\n```\n\nThat's it. No vector DB to spin up. No pipeline to reconstruct. Just load and ask.\n\n---\n\n## ◈ Multi-Provider Runtime\n\nRagBucket cleanly separates **retrieval** from **generation** — meaning you can mix and match embedding providers with generation providers freely.\n\n### Generation Providers\n\n| Provider      | Example Model                 |\n| :------------ | :---------------------------- |\n| `groq`        | `llama-3.1-8b-instant`        |\n| `openai`      | `gpt-4o-mini`                 |\n| `gemini`      | `gemini-1.5-flash`            |\n| `anthropic`   | `claude-3-haiku-20240307`     |\n\n```python\n# Swap providers without touching anything else\nrag = RagRuntime(\n    rag_path  = \"demo.rag\",\n    provider  = \"anthropic\",\n    api_key   = os.getenv(\"ANTHROPIC_API_KEY\"),\n    model     = \"claude-3-haiku-20240307\",\n    embedding_api_key = os.getenv(\"COHERE_API_KEY\"),\n)\n```\n\n### Embedding Providers\n\n| Provider    | Example Model                       |\n| :---------- | :---------------------------------- |\n| `local`     | `BAAI/bge-small-en-v1.5`            |\n| `cohere`    | `embed-english-v3.0`                |\n| `openai`    | `text-embedding-3-small`            |\n| `gemini`    | `models/embedding-001`              |\n| `voyage`    | `voyage-large-2`                    |\n\n```python\n# Use any embedding provider at build time\nconfig = RagConfig(\n    embedding_provider = \"openai\",\n    embedding_model    = \"text-embedding-3-small\",\n    embedding_api_key  = os.getenv(\"OPENAI_API_KEY\"),\n)\n```\n\n---\n\n## ◈ Dynamic Retrieval Configuration\n\nEvery stage of the retrieval pipeline is configurable. Sane defaults are always applied automatically.\n\n```python\nfrom ragbucket import RagConfig\n\nconfig = RagConfig(\n\n    # Embedding system\n    embedding_provider = \"local\",\n    embedding_model    = \"sentence-transformers/all-MiniLM-L6-v2\",\n\n    # Chunking\n    chunk_size    = 1024,\n    chunk_overlap = 100,\n\n    # Retrieval\n    top_k = 5,\n)\n```\n\n> All missing values are filled using framework defaults. Nothing breaks if you leave something out.\n\n---\n\n## ◈ What a `.rag` Artifact Contains\n\n```\ndemo.rag\n│\n├── vectors.faiss     ← FAISS vector index (semantic search backbone)\n├── chunks.json       ← document chunks with source metadata\n└── manifest.json     ← embedding config, top_k, model info, version\n```\n\nThe artifact is entirely self-describing. Anyone who receives a `.rag` file has everything needed to query it — no external config, no infrastructure dependencies, no guesswork.\n\n---\n\n## ◈ Technology Stack\n\n| Component           | Technology                  |\n| :------------------ | :-------------------------- |\n| Embeddings          | Sentence Transformers       |\n| Vector Search       | FAISS                       |\n| Chunking            | LangChain Text Splitters    |\n| Artifact Packaging  | Python `zipfile`            |\n| Config Validation   | Pydantic                    |\n| Runtime             | Pure Python                 |\n\n---\n\n## ◈ Philosophy\n\n> *RAG systems should be as portable as model files. Not as fragile as microservice stacks.*\n\nRagBucket treats RAG systems as **portable intelligence artifacts** — not fragile infrastructure pipelines. This cleanly separates two concerns that have no business being coupled:\n\n```\nRetrieval memory   →  what you built      →  lives in the .rag file\nLanguage generation →  how you query it   →  any provider, any environment\n```\n\nYour retrieval knowledge travels with your code. Swap generation providers without rebuilding anything. Share a `.rag` file like you'd share a model checkpoint.\n\nThe result: reusable semantic memory that is fully decoupled from infrastructure.\n\n---\n\n## ◈ Links\n\n| Resource   | URL                                                               |\n| :--------- | :---------------------------------------------------------------- |\n| Website    | [ragbucket.vercel.app](https://ragbucket.vercel.app)             |\n| PyPI       | [pypi.org/project/ragbucket](https://pypi.org/project/ragbucket) |\n| GitHub     | [github.com/anikchand461/ragbucket](https://github.com/anikchand461/ragbucket) |\n\n---\n\n## ◈ License\n\nMIT License — see [LICENSE](LICENSE) for details.\n\n---\n\n<div align=\"center\">\n\n<br/>\n\n```\n◈ RagBucket\n```\n\n*The portable runtime layer for Retrieval-Augmented Generation systems.*\n\nBuilt by [Anik Chand](https://github.com/anikchand461) · [ragbucket.vercel.app](https://ragbucket.vercel.app)\n\n<br/>\n\n</div>\n"
+        },
+        {
+            "path": "examples/build_example.py",
+            "content": "from ragbucket import RagBuilder\nfrom ragbucket import RagConfig\n\n# import os\n#\n# from dotenv import load_dotenv\n#\n#\n# load_dotenv()\n\n\n# config = RagConfig(\n#\n#     embedding_provider=\"cohere\",\n#\n#     embedding_model=\"embed-english-v3.0\",\n#\n#     embedding_api_key=\"cohere_PsVPiWeKIo61TF3dBedeECxgJ2usdn63VKIvygMg0Ae7ue\"\n# )\n#\n\nbuilder = RagBuilder(\n    # config=config\n)\n\n\nbuilder.build(\n    doc_path=\"docs\",\n    op_path=\"artifacts/demo.rag\"\n)\n"
+        },
+        {
+            "path": "examples/runtime_example.py",
+            "content": "from ragbucket import RagRuntime\nimport os \nfrom dotenv import load_dotenv\n\nload_dotenv()\n\nsystem_prompt = \"\"\"you are Anik's personal chatbot. you know all things about anik.\nIf anyone asks about the resume of anik please share the details as required.\nkeep the answers super simple and very short and crisp\n\"\"\"\n\nrag = RagRuntime(\n    rag_path = \"artifacts/demo.rag\",\n    provider= \"groq\",\n    api_key = os.getenv(\"GROQ_API_KEY\"),\n    model = \"llama-3.1-8b-instant\",\n    # embedding_api_key=os.getenv(\"COHERE_API_KEY\"),\n    system_prompt=system_prompt\n)\n\nresponse = rag.ask(\"tell me the best job profile for Anik? means which job ? which role?\")\n\nprint(response)\n"
+        },
+        {
+            "path": "frontend/index.css",
+            "content": "/* ── RESET ─────────────────────────────────────── */\n*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\nhtml { scroll-behavior: smooth; font-size: 16px; }\n\n/* ── TOKENS ────────────────────────────────────── */\n:root {\n  --gold:        #FFD700;\n  --gold-dim:    #c9aa00;\n  --gold-faint:  rgba(255, 215, 0, 0.08);\n  --cyan:        #38bdf8;\n  --green:       #86efac;\n  --red:         #f87171;\n\n  --bg:          #0a0a0f;\n  --bg-1:        #111118;\n  --bg-2:        #18181f;\n  --bg-3:        #1f1f28;\n\n  --border:      rgba(255,255,255, 0.07);\n  --border-gold: rgba(255,215,0,  0.18);\n\n  --text:        #e4e4ef;\n  --text-2:      #8888a8;\n  --text-3:      #55556a;\n\n  --font:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n  --mono:        'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;\n\n  --radius-sm:   6px;\n  --radius-md:   10px;\n  --radius-lg:   16px;\n\n  --transition:  0.22s ease;\n}\n\n/* ── BASE ──────────────────────────────────────── */\nbody {\n  background: var(--bg);\n  color: var(--text);\n  font-family: var(--font);\n  line-height: 1.6;\n  overflow-x: hidden;\n  -webkit-font-smoothing: antialiased;\n}\n\nimg { max-width: 100%; display: block; }\na   { color: inherit; text-decoration: none; }\nbutton { font-family: var(--font); cursor: pointer; }\n\n/* ── SCROLLBAR ─────────────────────────────────── */\n::-webkit-scrollbar       { width: 6px; }\n::-webkit-scrollbar-track { background: var(--bg); }\n::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 3px; }\n\n/* ── GRID BACKGROUND ───────────────────────────── */\nbody::before {\n  content: '';\n  position: fixed; inset: 0; z-index: -1; pointer-events: none;\n  background-image:\n    linear-gradient(var(--border) 1px, transparent 1px),\n    linear-gradient(90deg, var(--border) 1px, transparent 1px);\n  background-size: 56px 56px;\n  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);\n}\n\n/* ── NOISE ─────────────────────────────────────── */\nbody::after {\n  content: '';\n  position: fixed; inset: 0; z-index: -1; pointer-events: none;\n  opacity: 0.025;\n  background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\");\n}\n\n/* ── NAV ───────────────────────────────────────── */\n.nav {\n  position: fixed; top: 0; left: 0; right: 0; z-index: 100;\n  height: 60px;\n  display: flex; align-items: center; justify-content: space-between;\n  padding: 0 2.5rem;\n  background: rgba(10, 10, 15, 0.85);\n  backdrop-filter: blur(16px);\n  border-bottom: 1px solid var(--border);\n}\n\n.nav-logo {\n  display: flex;\n  align-items: center;\n  gap: 0.65rem;\n\n  font-size: 15px;\n  font-weight: 600;\n  letter-spacing: -0.3px;\n  color: var(--text);\n}\n\n.nav-logo img {\n  width: 26px;\n  height: 26px;\n  object-fit: contain;\n  flex-shrink: 0;\n}\n\n.nav-logo span { color: var(--gold); }\n\n.logo-text {\n  display: flex;\n  gap: 0;\n}\n\n.logo-text span:last-child {\n  color: var(--gold);\n}\n\n.nav-links {\n  display: flex; gap: 2rem; list-style: none;\n}\n\n.nav-links a {\n  font-size: 13px; color: var(--text-2);\n  transition: color var(--transition);\n  letter-spacing: 0.01em;\n}\n\n.nav-links a:hover { color: var(--text); }\n\n.nav-end { display: flex; gap: 0.75rem; align-items: center; }\n\n.btn {\n  display: inline-flex; align-items: center; gap: 6px;\n  font-size: 13px; font-weight: 500;\n  padding: 7px 16px; border-radius: var(--radius-sm);\n  transition: all var(--transition); border: 1px solid transparent;\n  letter-spacing: 0.01em;\n}\n.btn-ghost {\n  color: var(--text-2); border-color: var(--border);\n  background: transparent;\n}\n.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.14); background: var(--bg-2); }\n\n.btn-gold {\n  color: #000; background: var(--gold); border-color: var(--gold);\n  font-weight: 600;\n}\n.btn-gold:hover { background: #ffe84d; border-color: #ffe84d; }\n\n/* ── LAYOUT ────────────────────────────────────── */\n.container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }\nsection { padding: 100px 0; position: relative; }\n\n/* ── SCROLL REVEAL ─────────────────────────────── */\n[data-reveal] {\n  opacity: 0;\n  transform: translateY(28px);\n  transition: opacity 0.65s cubic-bezier(.22,1,.36,1), transform 0.65s cubic-bezier(.22,1,.36,1);\n}\n[data-reveal].visible { opacity: 1; transform: none; }\n[data-reveal][data-delay=\"1\"] { transition-delay: 0.08s; }\n[data-reveal][data-delay=\"2\"] { transition-delay: 0.16s; }\n[data-reveal][data-delay=\"3\"] { transition-delay: 0.24s; }\n[data-reveal][data-delay=\"4\"] { transition-delay: 0.32s; }\n[data-reveal][data-delay=\"5\"] { transition-delay: 0.40s; }\n\n/* ── SECTION LABELS ────────────────────────────── */\n.eyebrow {\n  display: inline-block;\n  font-size: 11px; font-weight: 600; letter-spacing: 0.12em;\n  text-transform: uppercase;\n  color: var(--gold); background: var(--gold-faint);\n  border: 1px solid var(--border-gold);\n  padding: 4px 12px; border-radius: 100px;\n  margin-bottom: 1.25rem;\n}\n\n.section-title {\n  font-size: clamp(2rem, 4.5vw, 3rem);\n  font-weight: 700; line-height: 1.12;\n  letter-spacing: -0.04em;\n  color: var(--text);\n  margin-bottom: 1.1rem;\n}\n\n.section-lead {\n  font-size: 16px; color: var(--text-2); line-height: 1.75;\n  max-width: 560px;\n}\n\n/* ── HERO ──────────────────────────────────────── */\n#hero {\n  min-height: 100vh;\n  display: flex; align-items: center; justify-content: center;\n  text-align: center;\n  padding-top: 80px;\n  position: relative;\n}\n\n.hero-glow {\n  position: absolute; inset: 0; pointer-events: none; z-index: 0;\n  background: radial-gradient(ellipse 900px 500px at 50% 0%,\n    rgba(255,215,0,0.055) 0%, transparent 70%);\n}\n\n.hero-inner { position: relative; z-index: 1; max-width: 800px; }\n\n\n@keyframes float {\n  0%,100% { transform: translateY(0); }\n  50%      { transform: translateY(-9px); }\n}\n\n.hero-badge {\n  display: inline-flex; align-items: center; gap: 7px;\n  font-size: 12px; font-weight: 500;\n  color: var(--text-2); border: 1px solid var(--border);\n  background: var(--bg-1); padding: 5px 14px; border-radius: 100px;\n  margin-bottom: 1.75rem; letter-spacing: 0.02em;\n}\n.hero-badge-dot {\n  width: 6px; height: 6px; border-radius: 50%;\n  background: var(--green);\n  box-shadow: 0 0 8px rgba(134,239,172,0.8);\n  animation: pulse-dot 2s ease-in-out infinite;\n}\n@keyframes pulse-dot {\n  0%,100% { opacity: 1; }\n  50%      { opacity: 0.4; }\n}\n\nh1.hero-title {\n  font-size: clamp(3rem, 9vw, 6rem);\n  font-weight: 800; line-height: 1.0;\n  letter-spacing: -0.055em;\n  margin-bottom: 1.3rem;\n  color: var(--text);\n}\nh1.hero-title .accent { color: var(--gold); }\n\n.hero-desc {\n  font-size: 18px; color: var(--text-2);\n  line-height: 1.7; max-width: 540px; margin: 0 auto 2.5rem;\n  letter-spacing: -0.01em;\n}\n\n.hero-actions {\n  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;\n  margin-bottom: 2.75rem;\n}\n\n.hero-install {\n  display: inline-flex; align-items: center; gap: 12px;\n  background: var(--bg-1); border: 1px solid var(--border);\n  padding: 10px 18px; border-radius: var(--radius-md);\n  font-family: var(--mono); font-size: 14px; color: var(--green);\n}\n.hero-install .prompt { color: var(--gold); user-select: none; }\n.copy-btn {\n  font-size: 11px; font-weight: 600;\n  color: var(--text-3); background: var(--bg-2);\n  border: 1px solid var(--border); padding: 3px 9px;\n  border-radius: 4px; transition: all var(--transition);\n  letter-spacing: 0.04em; text-transform: uppercase;\n}\n.copy-btn:hover { color: var(--gold); border-color: var(--border-gold); }\n.copy-btn.copied { color: var(--green); border-color: rgba(134,239,172,0.3); }\n\n.hero-scroll {\n  position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);\n  display: flex; flex-direction: column; align-items: center; gap: 6px;\n  font-size: 11px; color: var(--text-3); letter-spacing: 0.1em;\n  text-transform: uppercase; animation: bob 2.5s ease-in-out infinite;\n}\n@keyframes bob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(5px)} }\n.scroll-line {\n  width: 1px; height: 30px;\n  background: linear-gradient(to bottom, var(--border-gold), transparent);\n}\n\n/* ── HERO ANIMATE IN ───────────────────────────── */\n.hero-logo   { width: 148px; margin: 0 auto 2rem; filter: drop-shadow(0 0 40px rgba(255,215,0,0.25)); opacity: 0; animation: hero-in 0.6s 0.1s forwards, float 4s 0.7s ease-in-out infinite; }\n.hero-badge  { opacity: 0; animation: hero-in 0.5s 0.25s forwards; }\nh1.hero-title{ opacity: 0; animation: hero-in 0.6s 0.35s forwards; }\n.hero-desc   { opacity: 0; animation: hero-in 0.6s 0.5s  forwards; }\n.hero-actions{ opacity: 0; animation: hero-in 0.6s 0.62s forwards; }\n.hero-install{ opacity: 0; animation: hero-in 0.6s 0.75s forwards; }\n@keyframes hero-in {\n  from { opacity: 0; transform: translateY(16px); }\n  to   { opacity: 1; transform: translateY(0); }\n}\n\n/* ── PROBLEM ───────────────────────────────────── */\n#problem { background: var(--bg-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }\n\n.compare-grid {\n  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;\n  margin-top: 3.5rem;\n}\n\n.compare-card {\n  background: var(--bg-2); border: 1px solid var(--border);\n  border-radius: var(--radius-lg); overflow: hidden;\n  transition: border-color var(--transition), transform var(--transition);\n}\n.compare-card:hover { transform: translateY(-3px); }\n.compare-card.bad  { border-top: 2px solid rgba(248,113,113,0.5); }\n.compare-card.good { border-top: 2px solid rgba(134,239,172,0.5); }\n\n.compare-head {\n  padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);\n  display: flex; align-items: center; gap: 10px;\n  background: var(--bg-3);\n}\n.compare-tag {\n  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;\n  text-transform: uppercase; padding: 3px 10px; border-radius: 100px;\n}\n.bad  .compare-tag { background: rgba(248,113,113,0.1); color: #f87171; }\n.good .compare-tag { background: rgba(134,239,172,0.1); color: #86efac; }\n.compare-head-title { font-size: 14px; font-weight: 600; }\n\n.compare-body { padding: 1.25rem 1.5rem; }\n.compare-item {\n  display: flex; align-items: flex-start; gap: 10px;\n  padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04);\n  font-size: 14px; color: var(--text-2); line-height: 1.5;\n}\n.compare-item:last-child { border-bottom: none; }\n.compare-icon { font-size: 13px; margin-top: 2px; flex-shrink: 0; }\n.bad  .compare-icon { color: var(--red); }\n.good .compare-icon { color: var(--green); }\n\n/* ── ARTIFACT ──────────────────────────────────── */\n.artifact-layout {\n  display: grid; grid-template-columns: 1fr 1fr; gap: 5rem;\n  align-items: center; margin-top: 3.5rem;\n}\n\n.rag-visual {\n  background: var(--bg-1); border: 1px solid var(--border);\n  border-radius: var(--radius-lg); overflow: hidden;\n}\n.rag-visual-top {\n  background: var(--bg-2); padding: 10px 14px;\n  display: flex; align-items: center; gap: 8px;\n  border-bottom: 1px solid var(--border);\n}\n.dot { width: 10px; height: 10px; border-radius: 50%; }\n.dot-r { background: #ff5f57; }\n.dot-y { background: #febc2e; }\n.dot-g { background: #28c840; }\n.rag-filename {\n  font-family: var(--mono); font-size: 12px; color: var(--text-2);\n  margin-left: 4px;\n}\n.rag-filename b { color: var(--gold); }\n.rag-tree { padding: 1.5rem; font-family: var(--mono); font-size: 13px; line-height: 2.1; }\n.rag-root { color: var(--gold); font-weight: 700; }\n.rag-item {\n  display: flex; align-items: center; gap: 8px;\n  padding-left: 20px; color: var(--text-2);\n  transition: color var(--transition);\n}\n.rag-item:hover { color: var(--text); }\n.rag-item-label { flex: 1; }\n.rag-item-desc { font-size: 11px; color: var(--text-3); }\n\n.artifact-copy { }\n.artifact-copy .section-lead { margin-bottom: 2.25rem; }\n\n.stats { display: flex; gap: 1rem; flex-wrap: wrap; }\n.stat {\n  flex: 1; min-width: 90px;\n  background: var(--bg-1); border: 1px solid var(--border);\n  border-radius: var(--radius-md); padding: 1rem 1.25rem;\n  transition: border-color var(--transition), transform var(--transition);\n}\n.stat:hover { border-color: var(--border-gold); transform: translateY(-2px); }\n.stat-val { font-size: 2rem; font-weight: 800; color: var(--gold); letter-spacing: -0.05em; font-family: var(--mono); }\n.stat-lbl { font-size: 11px; color: var(--text-3); margin-top: 2px; letter-spacing: 0.03em; }\n\n/* ── ARCHITECTURE ──────────────────────────────── */\n#architecture { background: var(--bg-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }\n\n.arch-wrap {\n  margin-top: 3rem; border-radius: var(--radius-lg);\n  border: 1px solid var(--border); overflow: hidden;\n  transition: border-color var(--transition);\n}\n.arch-wrap:hover { border-color: var(--border-gold); }\n.arch-wrap img { width: 100%; }\n\n/* ── CODE ──────────────────────────────────────── */\n.tab-bar {\n  display: flex; border-bottom: 1px solid var(--border);\n  margin-top: 3rem;\n}\n.tab-btn {\n  font-size: 13px; font-weight: 500;\n  background: none; border: none; color: var(--text-3);\n  padding: 10px 20px; letter-spacing: 0.02em;\n  border-bottom: 2px solid transparent; margin-bottom: -1px;\n  transition: color var(--transition), border-color var(--transition);\n}\n.tab-btn:hover     { color: var(--text-2); }\n.tab-btn.active    { color: var(--gold); border-bottom-color: var(--gold); }\n\n.tab-panel { display: none; }\n.tab-panel.active  { display: block; }\n\n.code-window {\n  background: var(--bg-1); border: 1px solid var(--border);\n  border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);\n  overflow: hidden;\n}\n.code-window-bar {\n  background: var(--bg-2); padding: 9px 1.25rem;\n  display: flex; align-items: center; justify-content: space-between;\n  border-bottom: 1px solid var(--border);\n}\n.code-file { font-family: var(--mono); font-size: 12px; color: var(--text-3); }\n.code-copy-btn {\n  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;\n  text-transform: uppercase; color: var(--text-3);\n  background: var(--bg-3); border: 1px solid var(--border);\n  padding: 3px 10px; border-radius: 4px;\n  transition: all var(--transition);\n}\n.code-copy-btn:hover { color: var(--gold); border-color: var(--border-gold); }\n\npre.code {\n  padding: 1.75rem 1.5rem;\n  font-family: var(--mono); font-size: 13.5px; line-height: 1.85;\n  overflow-x: auto; color: var(--text);\n}\n/* syntax tokens */\n.t-kw   { color: #c792ea; }\n.t-fn   { color: #82aaff; }\n.t-str  { color: #c3e88d; }\n.t-num  { color: #f78c6c; }\n.t-cm   { color: #464b5d; font-style: italic; }\n.t-cls  { color: #ffcb6b; }\n.t-op   { color: #89ddff; }\n.t-var  { color: var(--text); }\n\n/* ── COMPATIBILITY ─────────────────────────────── */\n.compat-block {\n  margin-top: 3.5rem;\n}\n.compat-block + .compat-block { margin-top: 2.5rem; }\n\n.compat-label {\n  display: flex; align-items: baseline; gap: 0.75rem;\n  margin-bottom: 1rem; padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--border);\n}\n.compat-label-text {\n  font-size: 13px; font-weight: 600; color: var(--text);\n  letter-spacing: -0.01em;\n}\n.compat-label-sub {\n  font-size: 11px; color: var(--text-3);\n  font-family: var(--mono); letter-spacing: 0.03em;\n}\n\n.compat-row {\n  display: flex; flex-wrap: wrap; gap: 1rem;\n}\n\n.compat-card {\n  background: var(--bg-1); border: 1px solid var(--border);\n  border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;\n  display: flex; flex-direction: column; align-items: center;\n  gap: 0.75rem; min-width: 130px; flex: 1;\n  text-align: center;\n  transition: border-color var(--transition), transform var(--transition), background var(--transition);\n}\n.compat-card:hover {\n  border-color: var(--border-gold);\n  transform: translateY(-4px);\n  background: var(--bg-2);\n}\n\n.compat-card--wide {\n  flex-direction: row; text-align: left; align-items: center;\n  gap: 1.25rem; flex: none; width: 100%; max-width: 480px;\n}\n.compat-card--wide:hover { transform: translateY(-3px); }\n\n.compat-logo {\n  width: 44px; height: 44px; border-radius: 10px;\n  display: flex; align-items: center; justify-content: center;\n  flex-shrink: 0;\n  background: var(--bg-3); border: 1px solid var(--border);\n  overflow: hidden;\n}\n.compat-logo svg { display: block; }\n\n.compat-name {\n  font-size: 14px; font-weight: 600; color: var(--text);\n  letter-spacing: -0.01em;\n}\n.compat-detail {\n  font-family: var(--mono); font-size: 11px; color: var(--text-3);\n  letter-spacing: 0.02em;\n}\n\n.compat-badge {\n  margin-left: auto; flex-shrink: 0;\n  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;\n  text-transform: uppercase; padding: 3px 10px; border-radius: 100px;\n  background: var(--gold-faint); color: var(--gold);\n  border: 1px solid var(--border-gold);\n}\n\n/* ── FEATURES ──────────────────────────────────── */\n#features { background: var(--bg-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }\n\n.features-grid {\n  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;\n  margin-top: 3rem;\n}\n.feature-card {\n  background: var(--bg-2); border: 1px solid var(--border);\n  border-radius: var(--radius-lg); padding: 1.75rem;\n  transition: all var(--transition);\n}\n.feature-card:hover { border-color: rgba(56,189,248,0.2); transform: translateY(-3px); }\n.feature-icon {\n  width: 40px; height: 40px; border-radius: 10px;\n  background: var(--gold-faint); border: 1px solid var(--border-gold);\n  display: flex; align-items: center; justify-content: center;\n  font-size: 18px; margin-bottom: 1rem;\n}\n.feature-title { font-size: 14px; font-weight: 600; margin-bottom: 7px; }\n.feature-desc  { font-size: 13px; color: var(--text-2); line-height: 1.65; }\n\n/* ── STACK TABLE ───────────────────────────────── */\n.stack-table { margin-top: 3rem; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }\n.stack-row {\n  display: grid; grid-template-columns: 1.2fr 1.4fr 2.2fr;\n  border-bottom: 1px solid rgba(255,255,255,0.04);\n  transition: background var(--transition);\n}\n.stack-row:last-child { border-bottom: none; }\n.stack-row:hover:not(.stack-head) { background: rgba(255,215,0,0.025); }\n.stack-head { background: var(--bg-2); }\n.stack-cell {\n  padding: 13px 1.5rem; font-size: 13px; color: var(--text-2);\n  border-right: 1px solid rgba(255,255,255,0.04);\n}\n.stack-cell:last-child { border-right: none; }\n.stack-head .stack-cell { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }\n.stack-cell.c-main { color: var(--text); font-weight: 500; }\n.stack-cell.c-tech { color: var(--cyan); font-family: var(--mono); font-size: 12px; }\n\n/* ── FOOTER ────────────────────────────────────── */\nfooter {\n  padding: 4rem 2rem 2.5rem; text-align: center;\n  border-top: 1px solid var(--border);\n  background: var(--bg-1);\n}\n.footer-logo { width: 48px; margin: 0 auto 1.25rem; filter: drop-shadow(0 0 16px rgba(255,215,0,0.2)); }\n.footer-tagline { font-size: 14px; color: var(--text-2); max-width: 440px; margin: 0 auto 1.75rem; line-height: 1.7; }\n.footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }\n.footer-links a { font-size: 13px; color: var(--text-3); transition: color var(--transition); }\n.footer-links a:hover { color: var(--text); }\n.footer-copy { font-size: 12px; color: var(--text-3); }\n\n/* ── RESPONSIVE ────────────────────────────────── */\n@media (max-width: 900px) {\n  .compare-grid     { grid-template-columns: 1fr; }\n  .artifact-layout  { grid-template-columns: 1fr; gap: 2.5rem; }\n  .providers-grid   { grid-template-columns: repeat(2, 1fr); }\n  .features-grid    { grid-template-columns: repeat(2, 1fr); }\n  .stack-row        { grid-template-columns: 1fr 1fr; }\n  .stack-cell:last-child { display: none; }\n}\n@media (max-width: 600px) {\n  .nav-links        { display: none; }\n  .features-grid    { grid-template-columns: 1fr; }\n  .providers-grid   { grid-template-columns: repeat(2, 1fr); }\n  section           { padding: 64px 0; }\n}"
+        },
+        {
+            "path": "frontend/index.html",
+            "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n  <title>RagBucket — Portable RAG Artifacts for Python</title>\n\n  <meta name=\"description\" content=\"Build RAG pipelines as reusable, portable .rag artifacts. Build once. Load anywhere.\" />\n\n  <!-- Open Graph -->\n  <meta property=\"og:title\" content=\"RagBucket — Portable RAG Artifacts for Python\" />\n  <meta property=\"og:description\" content=\"Build RAG pipelines as reusable, portable .rag artifacts. Build once. Load anywhere.\" />\n  <meta property=\"og:image\" content=\"https://ragbucket.vercel.app/img/preview.png\" />\n  <meta property=\"og:url\" content=\"https://ragbucket.vercel.app\" />\n  <meta property=\"og:type\" content=\"website\" />\n\n  <!-- Twitter -->\n  <meta name=\"twitter:card\" content=\"summary_large_image\" />\n  <meta name=\"twitter:title\" content=\"RagBucket — Portable RAG Artifacts for Python\" />\n  <meta name=\"twitter:description\" content=\"Build RAG pipelines as reusable, portable .rag artifacts.\" />\n  <meta name=\"twitter:image\" content=\"https://ragbucket.vercel.app/img/preview.png\" />\n\n  <link rel=\"icon\" href=\"img/ragbucket.png\" type=\"image/png\" />\n\n  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" />\n  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n\n  <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap\" rel=\"stylesheet\" />\n\n  <link rel=\"stylesheet\" href=\"index.css\" />\n</head>\n<body>\n\n<!-- NAV -->\n<nav class=\"nav\">\n  <a href=\"#hero\" class=\"nav-logo\">\n    <img src=\"img/ragbucket.png\" alt=\"RagBucket logo\" />\n    <div class=\"logo-text\">\n        Rag<span>Bucket</span>\n    </div>\n  </a>\n  <ul class=\"nav-links\">\n    <li><a href=\"#problem\">Problem</a></li>\n    <li><a href=\"#artifact\">Format</a></li>\n    <li><a href=\"#architecture\">Architecture</a></li>\n    <li><a href=\"#code\">Quickstart</a></li>\n    <li><a href=\"#providers\">Providers</a></li>\n    <li><a href=\"#features\">Features</a></li>\n  </ul>\n  <div class=\"nav-end\">\n    <a href=\"https://github.com/anikchand461/ragbucket\" target=\"_blank\" class=\"btn btn-ghost\">GitHub</a>\n    <a href=\"https://pypi.org/project/ragbucket/\" target=\"_blank\" class=\"btn btn-gold\">PyPI →</a>\n    <a href=\"https://www.producthunt.com/products/ragbucket-portable-rag-artifacts?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-ragbucket-portable-rag-artifacts\" target=\"_blank\" rel=\"noopener noreferrer\"><img alt=\"RagBucket — Portable RAG Artifacts - Build once. Query anywhere with portable RAG artifacts | Product Hunt\" width=\"200\" height=\"40\" src=\"https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1152393&amp;theme=dark&amp;t=1779357212314\"></a>\n  </div>\n</nav>\n\n<!-- HERO -->\n<section id=\"hero\">\n  <div class=\"hero-glow\"></div>\n  <div class=\"hero-inner\">\n    <img src=\"img/ragbucket.png\" alt=\"RagBucket\" class=\"hero-logo\" />\n\n    <div class=\"hero-badge\">\n      <span class=\"hero-badge-dot\"></span>\n      v0.2.1 · Now on PyPI\n    </div>\n\n    <h1 class=\"hero-title\">\n      Rag<span class=\"accent\">Bucket</span>\n    </h1>\n\n    <p class=\"hero-desc\">\n      Portable executable <strong style=\"color:var(--text);font-weight:600\">.rag</strong> artifacts for Python.\n      Package your entire RAG pipeline into a single file.\n      Build once. Load anywhere.\n    </p>\n\n    <div class=\"hero-actions\">\n      <a href=\"https://pypi.org/project/ragbucket/\" target=\"_blank\" class=\"btn btn-gold\" style=\"font-size:15px;padding:10px 22px\">\n        Get on PyPI →\n      </a>\n      <a href=\"https://github.com/anikchand461/ragbucket\" target=\"_blank\" class=\"btn btn-ghost\" style=\"font-size:15px;padding:10px 22px\">\n        View on GitHub\n      </a>\n      <a href=\"#code\" class=\"btn btn-ghost\" style=\"font-size:15px;padding:10px 22px\">\n        Quickstart\n      </a>\n    </div>\n\n    <div class=\"hero-install\">\n      <span class=\"prompt\">$</span>\n      <span id=\"typing-text\">uv add ragbucket</span>\n      <button class=\"copy-btn\" onclick=\"copyInstall(this)\">Copy</button>\n    </div>\n  </div>\n\n  <div class=\"hero-scroll\">\n    <div class=\"scroll-line\"></div>\n    <span>scroll</span>\n  </div>\n</section>\n\n<!-- PROBLEM -->\n<section id=\"problem\">\n  <div class=\"container\">\n    <span class=\"eyebrow\" data-reveal>The Problem</span>\n    <h2 class=\"section-title\" data-reveal>RAG systems are still fragmented.</h2>\n    <p class=\"section-lead\" data-reveal>\n      ML models travel as single files — <code style=\"font-family:var(--mono);font-size:13px;color:var(--text-2)\">.pt .onnx .gguf .h5</code> — saved, shared, deployed anywhere.\n      RAG pipelines don't. They're a web of infrastructure, scattered config, and provider lock-in.\n    </p>\n\n    <div class=\"compare-grid\">\n      <div class=\"compare-card bad\" data-reveal data-delay=\"1\">\n        <div class=\"compare-head\">\n          <span class=\"compare-tag\">Before RagBucket</span>\n          <span class=\"compare-head-title\">Fragmented Pipeline</span>\n        </div>\n        <div class=\"compare-body\">\n          <div class=\"compare-item\"><span class=\"compare-icon\">✕</span>Vector DB tied to your infrastructure</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✕</span>Embedding pipeline re-runs every deploy</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✕</span>Chunking config scattered across repos</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✕</span>Provider lock-in at every layer</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✕</span>Non-reproducible retrieval results</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✕</span>Impossible to share or distribute</div>\n        </div>\n      </div>\n\n      <div class=\"compare-card good\" data-reveal data-delay=\"2\">\n        <div class=\"compare-head\">\n          <span class=\"compare-tag\">With RagBucket</span>\n          <span class=\"compare-head-title\">Portable .rag Artifact</span>\n        </div>\n        <div class=\"compare-body\">\n          <div class=\"compare-item\"><span class=\"compare-icon\">✓</span>Everything in one self-contained file</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✓</span>Build once, deploy anywhere</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✓</span>Config baked into the artifact</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✓</span>Swap LLM providers at runtime</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✓</span>100% reproducible retrieval</div>\n          <div class=\"compare-item\"><span class=\"compare-icon\">✓</span>Share via pip, S3, or git</div>\n        </div>\n      </div>\n    </div>\n  </div>\n</section>\n\n<!-- ARTIFACT FORMAT -->\n<section id=\"artifact\">\n  <div class=\"container\">\n    <div class=\"artifact-layout\">\n      <div data-reveal>\n        <div class=\"rag-visual\">\n          <div class=\"rag-visual-top\">\n            <div class=\"dot dot-r\"></div>\n            <div class=\"dot dot-y\"></div>\n            <div class=\"dot dot-g\"></div>\n            <span class=\"rag-filename\">demo<b>.rag</b></span>\n          </div>\n          <div class=\"rag-tree\">\n            <div class=\"rag-root\">📦 demo.rag</div>\n            <div class=\"rag-item\" style=\"animation-delay:.08s\">\n              <span>🗄️</span>\n              <span class=\"rag-item-label\">vectors.faiss</span>\n              <span class=\"rag-item-desc\">FAISS index</span>\n            </div>\n            <div class=\"rag-item\" style=\"animation-delay:.16s\">\n              <span>📄</span>\n              <span class=\"rag-item-label\">chunks.json</span>\n              <span class=\"rag-item-desc\">document memory</span>\n            </div>\n            <div class=\"rag-item\" style=\"animation-delay:.24s\">\n              <span>⚙️</span>\n              <span class=\"rag-item-label\">manifest.json</span>\n              <span class=\"rag-item-desc\">config + metadata</span>\n            </div>\n          </div>\n        </div>\n      </div>\n\n      <div>\n        <span class=\"eyebrow\" data-reveal>The Format</span>\n        <h2 class=\"section-title\" data-reveal>Introducing <span style=\"color:var(--gold)\">.rag</span></h2>\n        <p class=\"section-lead\" data-reveal>\n          A compressed, self-contained archive that packages your entire retrieval system.\n          Vectors, chunks, and config — everything in one file.\n          The only external dependency at inference time is an LLM API key.\n        </p>\n\n        <div class=\"stats\" data-reveal style=\"margin-top:2rem\">\n          <div class=\"stat\">\n            <div class=\"stat-val\">3</div>\n            <div class=\"stat-lbl\">files inside</div>\n          </div>\n          <div class=\"stat\">\n            <div class=\"stat-val\">4</div>\n            <div class=\"stat-lbl\">LLM providers</div>\n          </div>\n          <div class=\"stat\">\n            <div class=\"stat-val\">∞</div>\n            <div class=\"stat-lbl\">embedding models</div>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</section>\n\n<!-- ARCHITECTURE -->\n<section id=\"architecture\">\n  <div class=\"container\">\n    <span class=\"eyebrow\" data-reveal>Architecture</span>\n    <h2 class=\"section-title\" data-reveal>How it works</h2>\n    <p class=\"section-lead\" data-reveal>\n      Two completely decoupled phases: build-time artifact generation\n      and runtime retrieval + generation. The artifact is the bridge.\n    </p>\n    <div class=\"arch-wrap\" data-reveal>\n      <img src=\"img/workflow.png\" alt=\"RagBucket architecture diagram — build pipeline and runtime flow\" />\n    </div>\n  </div>\n</section>\n\n<!-- CODE QUICKSTART -->\n<section id=\"code\">\n  <div class=\"container\">\n    <span class=\"eyebrow\" data-reveal>Quickstart</span>\n    <h2 class=\"section-title\" data-reveal>Two steps.<br>That's the whole API.</h2>\n    <p class=\"section-lead\" data-reveal>\n      Build your artifact from documents. Load and query it anywhere — with any LLM provider.\n    </p>\n\n    <div class=\"tab-bar\" data-reveal>\n      <button class=\"tab-btn active\" onclick=\"switchTab(this,'build')\">01 · Build</button>\n      <button class=\"tab-btn\" onclick=\"switchTab(this,'runtime')\">02 · Runtime</button>\n      <button class=\"tab-btn\" onclick=\"switchTab(this,'config')\">Config</button>\n    </div>\n\n    <!-- BUILD TAB -->\n    <div id=\"tab-build\" class=\"tab-panel active\">\n      <div class=\"code-window\">\n        <div class=\"code-window-bar\">\n          <span class=\"code-file\">build_example.py</span>\n          <button class=\"code-copy-btn\" onclick=\"copyCode(this,'code-build')\">Copy</button>\n        </div>\n        <pre class=\"code\" id=\"code-build\"><span class=\"t-kw\">from</span> <span class=\"t-cls\">ragbucket</span> <span class=\"t-kw\">import</span> <span class=\"t-cls\">RagBuilder</span>, <span class=\"t-cls\">RagConfig</span>\n\n<span class=\"t-cm\"># Configure the pipeline</span>\n<span class=\"t-var\">config</span> <span class=\"t-op\">=</span> <span class=\"t-cls\">RagConfig</span>(\n    <span class=\"t-var\">embedding_model</span><span class=\"t-op\">=</span><span class=\"t-str\">\"BAAI/bge-small-en-v1.5\"</span>,\n    <span class=\"t-var\">chunk_size</span><span class=\"t-op\">=</span><span class=\"t-num\">512</span>,\n    <span class=\"t-var\">chunk_overlap</span><span class=\"t-op\">=</span><span class=\"t-num\">50</span>,\n    <span class=\"t-var\">top_k</span><span class=\"t-op\">=</span><span class=\"t-num\">3</span>,\n)\n\n<span class=\"t-cm\"># Build the .rag artifact</span>\n<span class=\"t-var\">builder</span> <span class=\"t-op\">=</span> <span class=\"t-cls\">RagBuilder</span>(<span class=\"t-var\">config</span><span class=\"t-op\">=</span><span class=\"t-var\">config</span>)\n\n<span class=\"t-var\">builder</span>.<span class=\"t-fn\">build</span>(\n    <span class=\"t-var\">doc_path</span><span class=\"t-op\">=</span><span class=\"t-str\">\"docs/\"</span>,       <span class=\"t-cm\"># folder of .txt files</span>\n    <span class=\"t-var\">op_path</span><span class=\"t-op\">=</span><span class=\"t-str\">\"demo.rag\"</span>,    <span class=\"t-cm\"># output artifact</span>\n)\n\n<span class=\"t-cm\"># ✓ demo.rag created</span>\n<span class=\"t-cm\"># Contains: vectors.faiss + chunks.json + manifest.json</span></pre>\n      </div>\n    </div>\n\n    <!-- RUNTIME TAB -->\n    <div id=\"tab-runtime\" class=\"tab-panel\">\n      <div class=\"code-window\">\n        <div class=\"code-window-bar\">\n          <span class=\"code-file\">runtime_example.py</span>\n          <button class=\"code-copy-btn\" onclick=\"copyCode(this,'code-runtime')\">Copy</button>\n        </div>\n        <pre class=\"code\" id=\"code-runtime\"><span class=\"t-kw\">from</span> <span class=\"t-cls\">ragbucket</span> <span class=\"t-kw\">import</span> <span class=\"t-cls\">RagRuntime</span>\n<span class=\"t-kw\">import</span> <span class=\"t-cls\">os</span>\n<span class=\"t-kw\">from</span> <span class=\"t-cls\">dotenv</span> <span class=\"t-kw\">import</span> <span class=\"t-fn\">load_dotenv</span>\n\n<span class=\"t-fn\">load_dotenv</span>()\n\n<span class=\"t-cm\"># Load the artifact — works from any environment</span>\n<span class=\"t-var\">rag</span> <span class=\"t-op\">=</span> <span class=\"t-cls\">RagRuntime</span>(\n    <span class=\"t-var\">rag_path</span><span class=\"t-op\">=</span><span class=\"t-str\">\"demo.rag\"</span>,\n    <span class=\"t-var\">provider</span><span class=\"t-op\">=</span><span class=\"t-str\">\"groq\"</span>,              <span class=\"t-cm\"># groq | openai | gemini | anthropic</span>\n    <span class=\"t-var\">api_key</span><span class=\"t-op\">=</span><span class=\"t-cls\">os</span>.<span class=\"t-fn\">getenv</span>(<span class=\"t-str\">\"GROQ_API_KEY\"</span>),\n    <span class=\"t-var\">model</span><span class=\"t-op\">=</span><span class=\"t-str\">\"llama-3.1-8b-instant\"</span>,\n    <span class=\"t-var\">system_prompt</span><span class=\"t-op\">=</span><span class=\"t-str\">\"You are a helpful assistant.\"</span>,\n)\n\n<span class=\"t-cm\"># Ask anything</span>\n<span class=\"t-var\">response</span> <span class=\"t-op\">=</span> <span class=\"t-var\">rag</span>.<span class=\"t-fn\">ask</span>(<span class=\"t-str\">\"What are Anik's AI/ML skills?\"</span>)\n<span class=\"t-fn\">print</span>(<span class=\"t-var\">response</span>)</pre>\n      </div>\n    </div>\n\n    <!-- CONFIG TAB -->\n    <div id=\"tab-config\" class=\"tab-panel\">\n      <div class=\"code-window\">\n        <div class=\"code-window-bar\">\n          <span class=\"code-file\">config.py</span>\n          <button class=\"code-copy-btn\" onclick=\"copyCode(this,'code-config')\">Copy</button>\n        </div>\n        <pre class=\"code\" id=\"code-config\"><span class=\"t-kw\">from</span> <span class=\"t-cls\">ragbucket</span> <span class=\"t-kw\">import</span> <span class=\"t-cls\">RagConfig</span>\n\n<span class=\"t-cm\"># All fields are optional — defaults are sensible</span>\n<span class=\"t-var\">config</span> <span class=\"t-op\">=</span> <span class=\"t-cls\">RagConfig</span>(\n\n    <span class=\"t-cm\"># Any Sentence Transformers compatible model</span>\n    <span class=\"t-var\">embedding_model</span><span class=\"t-op\">=</span><span class=\"t-str\">\"BAAI/bge-small-en-v1.5\"</span>,\n\n    <span class=\"t-cm\"># Chunking</span>\n    <span class=\"t-var\">chunk_size</span><span class=\"t-op\">=</span><span class=\"t-num\">512</span>,\n    <span class=\"t-var\">chunk_overlap</span><span class=\"t-op\">=</span><span class=\"t-num\">50</span>,\n\n    <span class=\"t-cm\"># How many chunks to retrieve per query</span>\n    <span class=\"t-var\">top_k</span><span class=\"t-op\">=</span><span class=\"t-num\">3</span>,\n)\n\n<span class=\"t-cm\"># Supported embedding models:</span>\n<span class=\"t-cm\"># \"BAAI/bge-small-en-v1.5\"          fast, great for English</span>\n<span class=\"t-cm\"># \"BAAI/bge-base-en-v1.5\"           balanced quality/speed</span>\n<span class=\"t-cm\"># \"sentence-transformers/all-MiniLM-L6-v2\"</span>\n<span class=\"t-cm\"># \"sentence-transformers/all-mpnet-base-v2\"</span></pre>\n      </div>\n    </div>\n  </div>\n</section>\n\n<!-- COMPATIBILITY -->\n<section id=\"providers\">\n  <div class=\"container\">\n    <span class=\"eyebrow\" data-reveal>Compatibility</span>\n    <h2 class=\"section-title\" data-reveal>Works with the tools<br>you already use.</h2>\n    <p class=\"section-lead\" data-reveal>Plug in any LLM provider, any embedding model, any vector store. RagBucket handles the wiring.</p>\n\n    <!-- LLM PROVIDERS -->\n    <div class=\"compat-block\" data-reveal>\n      <div class=\"compat-label\">\n        <span class=\"compat-label-text\">LLM Providers</span>\n        <span class=\"compat-label-sub\">response generation</span>\n      </div>\n      <div class=\"compat-row\">\n\n        <!-- Groq -->\n        <div class=\"compat-card\" data-reveal data-delay=\"1\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#F55036\"/>\n              <path d=\"M24 10C16.268 10 10 16.268 10 24C10 31.732 16.268 38 24 38C31.732 38 38 31.732 38 24C38 20.287 36.525 16.928 34.142 14.444L30.485 18.101C32.066 19.778 33.04 22.018 33.04 24.48C33.04 29.774 28.774 34.04 23.48 34.04C18.186 34.04 13.92 29.774 13.92 24.48C13.92 19.186 18.186 14.92 23.48 14.92C25.005 14.92 26.445 15.288 27.713 15.94L31.37 12.283C29.22 11.145 26.685 10.48 24 10.48V10Z\" fill=\"white\"/>\n              <circle cx=\"23.48\" cy=\"24.48\" r=\"4.56\" fill=\"white\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">Groq</div>\n          <div class=\"compat-detail\">llama-3.1-8b-instant</div>\n        </div>\n\n        <!-- OpenAI -->\n        <div class=\"compat-card\" data-reveal data-delay=\"2\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#1a1a1a\"/>\n              <path d=\"M38.57 20.27a8.31 8.31 0 0 0-.71-6.82 8.4 8.4 0 0 0-9.05-4.03 8.31 8.31 0 0 0-6.27-2.8 8.4 8.4 0 0 0-8.01 5.82 8.31 8.31 0 0 0-5.55 4.03 8.4 8.4 0 0 0 1.03 9.86 8.31 8.31 0 0 0 .71 6.82 8.4 8.4 0 0 0 9.05 4.03 8.31 8.31 0 0 0 6.27 2.8 8.4 8.4 0 0 0 8.02-5.83 8.31 8.31 0 0 0 5.54-4.03 8.4 8.4 0 0 0-1.03-9.85zm-12.56 17.6a6.22 6.22 0 0 1-4-.46l.14-.08 6.63-3.83a1.1 1.1 0 0 0 .55-.96v-9.34l2.8 1.62a.1.1 0 0 1 .06.08v7.74a6.26 6.26 0 0 1-6.18 5.23zM10.7 32.73a6.22 6.22 0 0 1-.74-4.17l.14.08 6.63 3.83a1.1 1.1 0 0 0 1.1 0l8.1-4.68v3.23a.1.1 0 0 1-.04.09l-6.71 3.87a6.26 6.26 0 0 1-8.48-2.25zm-1.74-14.47a6.22 6.22 0 0 1 3.25-2.74v7.87a1.1 1.1 0 0 0 .55.96l8.08 4.67-2.8 1.62a.1.1 0 0 1-.1 0l-6.71-3.88a6.26 6.26 0 0 1-2.27-8.5zm22.97 5.37-8.1-4.68 2.8-1.61a.1.1 0 0 1 .1 0l6.7 3.87a6.25 6.25 0 0 1-.96 11.28v-7.9a1.1 1.1 0 0 0-.54-.96zm2.79-4.2-.14-.08-6.62-3.84a1.1 1.1 0 0 0-1.1 0l-8.1 4.68v-3.24a.1.1 0 0 1 .04-.09l6.71-3.86a6.25 6.25 0 0 1 9.21 6.43zm-17.52 5.77-2.8-1.61a.1.1 0 0 1-.06-.09v-7.73a6.25 6.25 0 0 1 10.25-4.8l-.14.08-6.63 3.83a1.1 1.1 0 0 0-.55.95l-.07 9.37zm1.52-3.27 3.6-2.08 3.6 2.08v4.15l-3.6 2.08-3.6-2.08V22z\" fill=\"white\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">OpenAI</div>\n          <div class=\"compat-detail\">gpt-4o-mini</div>\n        </div>\n\n        <!-- Gemini -->\n        <div class=\"compat-card\" data-reveal data-delay=\"3\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#1a73e8\"/>\n              <path d=\"M24 9C24 9 17 20 9 24C17 28 24 39 24 39C24 39 31 28 39 24C31 20 24 9 24 9Z\" fill=\"white\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">Gemini</div>\n          <div class=\"compat-detail\">gemini-1.5-flash</div>\n        </div>\n\n        <!-- Anthropic -->\n        <div class=\"compat-card\" data-reveal data-delay=\"4\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#CC785C\"/>\n              <path d=\"M28.5 12h-4.2L16 36h4.5l1.7-4.8h7.5L31.5 36H36L28.5 12zm-4.9 15.4 2.6-7.5 2.6 7.5h-5.2z\" fill=\"white\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">Anthropic</div>\n          <div class=\"compat-detail\">claude-3-haiku</div>\n        </div>\n\n      </div>\n    </div>\n\n    <!-- EMBEDDING MODELS -->\n    <div class=\"compat-block\" data-reveal>\n      <div class=\"compat-label\">\n        <span class=\"compat-label-text\">Embedding Models</span>\n        <span class=\"compat-label-sub\">vector generation</span>\n      </div>\n      <div class=\"compat-row\">\n\n        <!-- OpenAI embeddings -->\n        <div class=\"compat-card\" data-reveal data-delay=\"1\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#1a1a1a\"/>\n              <path d=\"M38.57 20.27a8.31 8.31 0 0 0-.71-6.82 8.4 8.4 0 0 0-9.05-4.03 8.31 8.31 0 0 0-6.27-2.8 8.4 8.4 0 0 0-8.01 5.82 8.31 8.31 0 0 0-5.55 4.03 8.4 8.4 0 0 0 1.03 9.86 8.31 8.31 0 0 0 .71 6.82 8.4 8.4 0 0 0 9.05 4.03 8.31 8.31 0 0 0 6.27 2.8 8.4 8.4 0 0 0 8.02-5.83 8.31 8.31 0 0 0 5.54-4.03 8.4 8.4 0 0 0-1.03-9.85zm-12.56 17.6a6.22 6.22 0 0 1-4-.46l.14-.08 6.63-3.83a1.1 1.1 0 0 0 .55-.96v-9.34l2.8 1.62a.1.1 0 0 1 .06.08v7.74a6.26 6.26 0 0 1-6.18 5.23zM10.7 32.73a6.22 6.22 0 0 1-.74-4.17l.14.08 6.63 3.83a1.1 1.1 0 0 0 1.1 0l8.1-4.68v3.23a.1.1 0 0 1-.04.09l-6.71 3.87a6.26 6.26 0 0 1-8.48-2.25zm-1.74-14.47a6.22 6.22 0 0 1 3.25-2.74v7.87a1.1 1.1 0 0 0 .55.96l8.08 4.67-2.8 1.62a.1.1 0 0 1-.1 0l-6.71-3.88a6.26 6.26 0 0 1-2.27-8.5zm22.97 5.37-8.1-4.68 2.8-1.61a.1.1 0 0 1 .1 0l6.7 3.87a6.25 6.25 0 0 1-.96 11.28v-7.9a1.1 1.1 0 0 0-.54-.96zm2.79-4.2-.14-.08-6.62-3.84a1.1 1.1 0 0 0-1.1 0l-8.1 4.68v-3.24a.1.1 0 0 1 .04-.09l6.71-3.86a6.25 6.25 0 0 1 9.21 6.43zm-17.52 5.77-2.8-1.61a.1.1 0 0 1-.06-.09v-7.73a6.25 6.25 0 0 1 10.25-4.8l-.14.08-6.63 3.83a1.1 1.1 0 0 0-.55.95l-.07 9.37zm1.52-3.27 3.6-2.08 3.6 2.08v4.15l-3.6 2.08-3.6-2.08V22z\" fill=\"white\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">OpenAI</div>\n          <div class=\"compat-detail\">text-embedding-3-small</div>\n        </div>\n\n        <!-- Cohere -->\n        <div class=\"compat-card\" data-reveal data-delay=\"2\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#39594D\"/>\n              <circle cx=\"17\" cy=\"24\" r=\"6\" fill=\"#D4FF70\"/>\n              <circle cx=\"31\" cy=\"17\" r=\"4.5\" fill=\"#FF7759\"/>\n              <circle cx=\"31\" cy=\"31\" r=\"4.5\" fill=\"#D4FF70\" opacity=\"0.6\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">Cohere</div>\n          <div class=\"compat-detail\">embed-english-v3.0</div>\n        </div>\n\n        <!-- Gemini embeddings -->\n        <div class=\"compat-card\" data-reveal data-delay=\"3\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#1a73e8\"/>\n              <path d=\"M24 9C24 9 17 20 9 24C17 28 24 39 24 39C24 39 31 28 39 24C31 20 24 9 24 9Z\" fill=\"white\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">Gemini</div>\n          <div class=\"compat-detail\">text-embedding-004</div>\n        </div>\n\n        <!-- Voyage -->\n        <div class=\"compat-card\" data-reveal data-delay=\"4\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#0f0f1a\"/>\n              <path d=\"M24 10 L38 38 H26 L24 33 L22 38 H10 Z\" fill=\"#7C6AF7\"/>\n              <path d=\"M24 10 L38 38 H26 L24 33 Z\" fill=\"#A89CF7\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">Voyage AI</div>\n          <div class=\"compat-detail\">voyage-3</div>\n        </div>\n\n        <!-- Sentence Transformers / local -->\n        <div class=\"compat-card\" data-reveal data-delay=\"5\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#1a1a2e\"/>\n              <rect x=\"10\" y=\"14\" width=\"28\" height=\"4\" rx=\"2\" fill=\"#FFD700\"/>\n              <rect x=\"10\" y=\"22\" width=\"20\" height=\"4\" rx=\"2\" fill=\"#FFD700\" opacity=\"0.6\"/>\n              <rect x=\"10\" y=\"30\" width=\"24\" height=\"4\" rx=\"2\" fill=\"#FFD700\" opacity=\"0.35\"/>\n              <circle cx=\"38\" cy=\"34\" r=\"5\" fill=\"#86efac\"/>\n              <path d=\"M36 34 L37.5 35.8 L40 32.5\" stroke=\"#1a1a2e\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n            </svg>\n          </div>\n          <div class=\"compat-name\">Local</div>\n          <div class=\"compat-detail\">sentence-transformers</div>\n        </div>\n\n      </div>\n    </div>\n\n    <!-- VECTOR DB -->\n    <div class=\"compat-block\" data-reveal>\n      <div class=\"compat-label\">\n        <span class=\"compat-label-text\">Vector Store</span>\n        <span class=\"compat-label-sub\">semantic indexing</span>\n      </div>\n      <div class=\"compat-row\">\n\n        <!-- FAISS -->\n        <div class=\"compat-card compat-card--wide\" data-reveal data-delay=\"1\">\n          <div class=\"compat-logo\">\n            <svg width=\"36\" height=\"36\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n              <rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#0057b7\"/>\n              <ellipse cx=\"24\" cy=\"16\" rx=\"12\" ry=\"5\" fill=\"white\" opacity=\"0.9\"/>\n              <path d=\"M12 16 L12 24 Q12 29 24 29 Q36 29 36 24 L36 16\" stroke=\"white\" stroke-width=\"2\" fill=\"none\" opacity=\"0.7\"/>\n              <path d=\"M12 24 L12 32 Q12 37 24 37 Q36 37 36 32 L36 24\" stroke=\"white\" stroke-width=\"2\" fill=\"none\" opacity=\"0.5\"/>\n            </svg>\n          </div>\n          <div>\n            <div class=\"compat-name\">FAISS</div>\n            <div class=\"compat-detail\">Facebook AI Similarity Search · built-in, zero config</div>\n          </div>\n          <span class=\"compat-badge\">Default</span>\n        </div>\n\n      </div>\n    </div>\n\n  </div>\n</section>\n\n<!-- FEATURES -->\n<section id=\"features\">\n  <div class=\"container\">\n    <span class=\"eyebrow\" data-reveal>Features</span>\n    <h2 class=\"section-title\" data-reveal>Everything you need.<br>Nothing you don't.</h2>\n\n    <div class=\"features-grid\">\n      <div class=\"feature-card\" data-reveal data-delay=\"1\">\n        <div class=\"feature-icon\">📦</div>\n        <div class=\"feature-title\">Portable Artifacts</div>\n        <div class=\"feature-desc\">Serialize your entire RAG pipeline into a single reusable .rag file. Build once, run everywhere.</div>\n      </div>\n      <div class=\"feature-card\" data-reveal data-delay=\"2\">\n        <div class=\"feature-icon\">🔍</div>\n        <div class=\"feature-title\">Built-in Semantic Search</div>\n        <div class=\"feature-desc\">FAISS-powered vector similarity search. No external vector database required.</div>\n      </div>\n      <div class=\"feature-card\" data-reveal data-delay=\"3\">\n        <div class=\"feature-icon\">🔌</div>\n        <div class=\"feature-title\">Multi-Provider Runtime</div>\n        <div class=\"feature-desc\">Groq, OpenAI, Gemini, Anthropic — all behind one unified interface. Swap with one line.</div>\n      </div>\n      <div class=\"feature-card\" data-reveal data-delay=\"1\">\n        <div class=\"feature-icon\">⚙️</div>\n        <div class=\"feature-title\">Configurable Pipeline</div>\n        <div class=\"feature-desc\">Customize chunk size, overlap, embedding model, and top-k via RagConfig. Defaults just work.</div>\n      </div>\n      <div class=\"feature-card\" data-reveal data-delay=\"2\">\n        <div class=\"feature-icon\">🏃</div>\n        <div class=\"feature-title\">Lightweight Runtime</div>\n        <div class=\"feature-desc\">Load and execute .rag artifacts anywhere Python runs. No server, no infrastructure.</div>\n      </div>\n      <div class=\"feature-card\" data-reveal data-delay=\"3\">\n        <div class=\"feature-icon\">🧠</div>\n        <div class=\"feature-title\">Self-Contained Memory</div>\n        <div class=\"feature-desc\">The artifact IS the retrieval system. Semantic memory travels with your code, not your infra.</div>\n      </div>\n    </div>\n  </div>\n</section>\n\n<!-- STACK -->\n<section id=\"stack\">\n  <div class=\"container\">\n    <span class=\"eyebrow\" data-reveal>Tech Stack</span>\n    <h2 class=\"section-title\" data-reveal>Built on proven tools.</h2>\n\n    <div class=\"stack-table\" data-reveal>\n      <div class=\"stack-row stack-head\">\n        <div class=\"stack-cell\">Component</div>\n        <div class=\"stack-cell\">Technology</div>\n        <div class=\"stack-cell\">Role</div>\n      </div>\n      <div class=\"stack-row\">\n        <div class=\"stack-cell c-main\">Embeddings</div>\n        <div class=\"stack-cell c-tech\">Sentence Transformers</div>\n        <div class=\"stack-cell\">Converts text chunks to semantic vectors</div>\n      </div>\n      <div class=\"stack-row\">\n        <div class=\"stack-cell c-main\">Vector Search</div>\n        <div class=\"stack-cell c-tech\">FAISS</div>\n        <div class=\"stack-cell\">L2 similarity search at inference time</div>\n      </div>\n      <div class=\"stack-row\">\n        <div class=\"stack-cell c-main\">Chunking</div>\n        <div class=\"stack-cell c-tech\">LangChain Splitters</div>\n        <div class=\"stack-cell\">Recursive character-aware text splitting</div>\n      </div>\n      <div class=\"stack-row\">\n        <div class=\"stack-cell c-main\">Packaging</div>\n        <div class=\"stack-cell c-tech\">zipfile</div>\n        <div class=\"stack-cell\">Compresses artifact into portable archive</div>\n      </div>\n      <div class=\"stack-row\">\n        <div class=\"stack-cell c-main\">Config</div>\n        <div class=\"stack-cell c-tech\">Pydantic</div>\n        <div class=\"stack-cell\">Validated, typed configuration schema</div>\n      </div>\n      <div class=\"stack-row\">\n        <div class=\"stack-cell c-main\">Build System</div>\n        <div class=\"stack-cell c-tech\">Hatchling</div>\n        <div class=\"stack-cell\">PyPI packaging and distribution</div>\n      </div>\n    </div>\n  </div>\n</section>\n\n<!-- FOOTER -->\n<footer>\n  <img src=\"img/ragbucket.png\" alt=\"RagBucket\" class=\"footer-logo\" />\n  <p class=\"footer-tagline\">\n    The portable runtime layer for Retrieval-Augmented Generation systems.<br>\n    Build once. Share anywhere. Execute everywhere.\n  </p>\n  <div class=\"footer-links\">\n    <a href=\"https://pypi.org/project/ragbucket/\" target=\"_blank\">PyPI</a>\n    <a href=\"https://github.com/anikchand461/ragbucket\" target=\"_blank\">GitHub</a>\n    <a href=\"https://dev.to/anikchand461\" target=\"_blank\">DEV.to</a>\n    <a href=\"mailto:anikchand461@gmail.com\">Contact</a>\n  </div>\n  <p class=\"footer-copy\">MIT License · Built by Anik Chand</p>\n</footer>\n\n<script src=\"index.js\"></script>\n</body>\n</html>"
+        },
+        {
+            "path": "frontend/index.js",
+            "content": "/* ── SCROLL REVEAL ─────────────────────────────── */\nconst revealObserver = new IntersectionObserver((entries) => {\n  entries.forEach(e => {\n    if (e.isIntersecting) {\n      e.target.classList.add('visible');\n      revealObserver.unobserve(e.target);\n    }\n  });\n}, { threshold: 0.1 });\n\ndocument.querySelectorAll('[data-reveal]').forEach(el => revealObserver.observe(el));\n\n/* ── ACTIVE NAV LINK ───────────────────────────── */\nconst sections = document.querySelectorAll('section[id]');\nconst navLinks = document.querySelectorAll('.nav-links a');\n\nconst sectionObserver = new IntersectionObserver((entries) => {\n  entries.forEach(e => {\n    if (e.isIntersecting) {\n      const id = e.target.id;\n      navLinks.forEach(a => {\n        a.style.color = a.getAttribute('href') === `#${id}` ? 'var(--text)' : '';\n      });\n    }\n  });\n}, { threshold: 0.4 });\n\nsections.forEach(s => sectionObserver.observe(s));\n\n/* ── NAV SCROLL SHADOW ─────────────────────────── */\nconst nav = document.querySelector('.nav');\nwindow.addEventListener('scroll', () => {\n  nav.style.borderBottomColor = window.scrollY > 10\n    ? 'rgba(255,255,255,0.1)'\n    : 'rgba(255,255,255,0.07)';\n}, { passive: true });\n\n/* ── TYPING EFFECT ─────────────────────────────── */\nconst phrases = ['uv add ragbucket', 'pip install ragbucket'];\nlet pi = 0, ci = 0, deleting = false;\nconst typer = document.getElementById('typing-text');\n\nfunction tick() {\n  const phrase = phrases[pi];\n  if (!deleting) {\n    typer.textContent = phrase.slice(0, ++ci);\n    if (ci === phrase.length) { deleting = true; setTimeout(tick, 2400); return; }\n  } else {\n    typer.textContent = phrase.slice(0, --ci);\n    if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; setTimeout(tick, 500); return; }\n  }\n  setTimeout(tick, deleting ? 42 : 72);\n}\nsetTimeout(tick, 1800);\n\n/* ── COPY INSTALL ──────────────────────────────── */\nwindow.copyInstall = function(btn) {\n  navigator.clipboard.writeText(typer.textContent.trim() || 'uv add ragbucket');\n  btn.textContent = 'Copied!';\n  btn.classList.add('copied');\n  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);\n};\n\n/* ── CODE TABS ─────────────────────────────────── */\nwindow.switchTab = function(btn, id) {\n  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));\n  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));\n  btn.classList.add('active');\n  document.getElementById('tab-' + id).classList.add('active');\n};\n\n/* ── COPY CODE ─────────────────────────────────── */\nwindow.copyCode = function(btn, id) {\n  const pre = document.getElementById(id);\n  navigator.clipboard.writeText(pre.innerText);\n  btn.textContent = 'Copied!';\n  btn.classList.add('copied');\n  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);\n};"
+        },
+        {
+            "path": "ragbucket/__init__.py",
+            "content": "# Package-level abstraction\n\n# Import the RagBuilder class from:\n# ragbucket/builder/builder.py\nfrom ragbucket.builder.builder import RagBuilder\nfrom ragbucket.runtime.runtime import RagRuntime\nfrom ragbucket.schemas.config import RagConfig\n\n# Expose RagBuilder as part of the public API.\n#\n# This allows users to write:\n# from ragbucket import RagBuilder\n#\n# instead of:\n# from ragbucket.builder.builder import RagBuilder\n__all__ = [\n    \"RagBuilder\",\n    \"RagRuntime\",\n    \"RagConfig\"\n]\n\n"
+        },
+        {
+            "path": "ragbucket/builder/builder.py",
+            "content": "from numpy.distutils.lib2def import output_def\nimport json \n\nfrom ragbucket.builder.chunker import Chunker\nfrom ragbucket.builder.indexer import Indexer\nfrom ragbucket.builder.packager import Packager\n\nfrom ragbucket.constants import ARTIFACT_VERSION\nfrom ragbucket.utils.file_utils import get_text_files\nfrom ragbucket.schemas.config import RagConfig\nfrom ragbucket.embeddings.factory import get_embedder\n\n\nclass RagBuilder:\n\n    def __init__(self, config: RagConfig | None = None):\n\n        if config is None:\n            config = RagConfig()\n\n        self.config = config\n        self.chunker = Chunker(config)\n        self.embedder = get_embedder(\n            provider=config.embedding_provider,\n            model=config.embedding_model,\n            api_key=config.embedding_api_key\n        )\n        self.indexer = Indexer()\n        self.packager = Packager()\n\n    def build(self, doc_path, op_path):\n        \n        print(\"\\nloading documents ...\\n\")\n        files = get_text_files(doc_path)\n\n        all_chunks = []\n\n        for file in files:\n            with open(file, \"r\", encoding=\"utf-8\") as f:\n                text = f.read()\n\n            chunks = self.chunker.chunk(text)\n            all_chunks.extend(chunks)\n\n        print(f\"Generated {len(all_chunks)} chunks\")\n\n        embeddings = self.embedder.embed(all_chunks)\n\n        print(\"embeddings generated\")\n\n        index = self.indexer.build_index(embeddings)\n\n        manifest = {\n\n            \"artifact_version\": ARTIFACT_VERSION,\n\n            \"vector_store\": \"faiss\",\n\n            \"created_by\": \"ragbucket\",\n\n            \"config\": {\n\n                # --------------------------------\n                # EMBEDDING CONFIG\n                # --------------------------------\n                \"embedding_provider\": self.config.embedding_provider,\n\n                \"embedding_model\": self.config.embedding_model,\n\n                # --------------------------------\n                # CHUNKING CONFIG\n                # --------------------------------\n                \"chunk_size\": self.config.chunk_size,\n\n                \"chunk_overlap\": self.config.chunk_overlap,\n\n                # --------------------------------\n                # RETRIEVAL CONFIG\n                # --------------------------------\n                \"top_k\": self.config.top_k\n            }\n        }\n\n        self.packager.package(\n            output_path=op_path,\n            chunks=all_chunks,\n            index=index,\n            manifest=manifest\n        )\n\n"
+        },
+        {
+            "path": "ragbucket/builder/chunker.py",
+            "content": "# This file defines the chunking engine\n# of the RAG pipeline.\n\n\n# Import the recursive text chunking utility\n# from LangChain.\nfrom langchain_text_splitters import RecursiveCharacterTextSplitter\n\n\n# Chunker class responsible for splitting\n# raw documents into retrieval-ready chunks.\nclass Chunker:\n\n    def __init__(self, config):\n\n        # Initialize the recursive text splitter\n        # with predefined chunk settings.\n        self.splitter = RecursiveCharacterTextSplitter(\n            chunk_size=config.chunk_size,\n            chunk_overlap=config.chunk_overlap\n        )\n\n    # Split input text into overlapping chunks.\n    def chunk(self, text):\n\n        return self.splitter.split_text(text)\n"
+        },
+        {
+            "path": "ragbucket/builder/indexer.py",
+            "content": "# This file defines the vector indexing engine\n# of the RAG pipeline.\n\n# Import FAISS for vector similarity indexing and retrieval\nimport faiss\n\n# Import NumPy for numerical array conversion.\nimport numpy as np\n\n\n# Indexer class responsible for converting embeddings into a searchable FAISS index.\nclass Indexer:\n\n    # Build a FAISS vector index from embeddings.\n    def build_index(self, embedding):\n\n        # Convert embeddings into a NumPy float32 array,\n        # which is required by FAISS.\n        embeddings = np.array(\n            embedding,\n            dtype=\"float32\"\n        )\n\n        # Extract embedding dimensionality.\n        #\n        # Example:\n        # embeddings.shape = (100, 384)\n        #\n        # meaning:\n        # 100 vectors\n        # each vector has 384 dimensions\n        dimension = embeddings.shape[1]\n\n        # Create a flat L2 distance index.\n        #\n        # L2 = Euclidean distance similarity search.\n        index = faiss.IndexFlatL2(dimension)\n        # an empty database table created \n\n        # Add embeddings into the FAISS index.\n        index.add(embeddings)\n        # the embeddings are inserted in the database table \n\n        # Return the searchable vector index.\n        return index\n"
+        },
+        {
+            "path": "ragbucket/builder/packager.py",
+            "content": "\"\"\"\nThis file defines the packaging engine\nof the RAG pipeline.\n\nIts responsibility is:\n- serializing RAG components\n- saving vector memory\n- storing metadata\n- generating the final portable .rag artifact\n\"\"\"\n\n# Import JSON for storing chunks and metadata.\nimport json\n\n\n# Import zipfile for packaging the final\n# .rag artifact as a compressed archive.\nimport zipfile\n\n\n# Import Path for clean filesystem path handling.\nfrom pathlib import Path\n\n\n# Import FAISS for serializing the vector index.\nimport faiss\n\n\n# Packager class responsible for converting\n# pipeline outputs into a portable .rag artifact.\nclass Packager:\n\n    # Package all RAG components into a .rag file.\n    def package(self, output_path, index, chunks, manifest):\n\n        # Create a temporary staging directory\n        # used for assembling artifact files.\n        temp_dir = Path(\"temp_rag\")\n\n        # Create the directory if it does not exist.\n        temp_dir.mkdir(exist_ok=True)\n\n        # Save the FAISS vector index into the\n        # temporary artifact directory.\n        #\n        # This stores the searchable semantic memory\n        # of the RAG system.\n        faiss.write_index(index, str(temp_dir / \"vectors.faiss\"))\n\n        # Store all chunked document text\n        # inside chunks.json\n        with open(temp_dir / \"chunks.json\", \"w\") as f:\n            json.dump(chunks, f, indent=2)\n\n        # Store artifact metadata and configuration\n        # inside manifest.json\n        with open(temp_dir / \"manifest.json\", \"w\") as f:\n            json.dump(manifest, f, indent=2)\n\n        # Create the final .rag archive.\n        #\n        # ZIP_DEFLATED enables compression\n        # to reduce artifact size.\n        with zipfile.ZipFile(output_path, \"w\", zipfile.ZIP_DEFLATED) as zipf:\n\n            # Iterate through all generated files\n            # inside the temporary directory.\n            for file in temp_dir.iterdir():\n\n                # Add each file into the .rag archive.\n                #\n                # arcname=file.name ensures that only\n                # clean filenames are stored inside\n                # the artifact instead of full paths.\n                zipf.write(file, arcname=file.name)\n\n        # Display successful artifact creation message.\n        print(f\"\\nCreated {output_path}\")\n"
+        },
+        {
+            "path": "ragbucket/constants.py",
+            "content": "# pypi package version \nARTIFACT_VERSION = \"0.2.6\"\n"
+        },
+        {
+            "path": "ragbucket/embeddings/cohere_embedder.py",
+            "content": "class CohereEmbedder:\n\n    def __init__(\n        self,\n        api_key,\n        model\n    ):\n\n        try:\n\n            import cohere\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\n\"\n                \"Cohere embedding support requires:\\n\\n\"\n                \"pip install cohere\\n\\n\"\n                \"OR\\n\\n\"\n                \"uv add cohere\\n\"\n            )\n\n        self.client = cohere.Client(\n            api_key\n        )\n\n        self.model = model\n\n    def embed(self, texts):\n\n        response = self.client.embed(\n            texts=texts,\n            model=self.model,\n            input_type=\"search_document\"\n        )\n\n        return response.embeddings\n"
+        },
+        {
+            "path": "ragbucket/embeddings/factory.py",
+            "content": "# ragbucket/embeddings/factory.py\n\n\ndef get_embedder(\n    provider,\n    model,\n    api_key=None\n):\n\n    provider = provider.lower()\n\n    # -----------------------------------\n    # LOCAL EMBEDDINGS\n    # -----------------------------------\n    if provider == \"local\":\n\n        from ragbucket.embeddings.local_embedder import LocalEmbedder\n\n        return LocalEmbedder(\n            model_name=model\n        )\n\n    # -----------------------------------\n    # OPENAI EMBEDDINGS\n    # -----------------------------------\n    elif provider == \"openai\":\n\n        from ragbucket.embeddings.openai_embedder import OpenAIEmbedder\n\n        return OpenAIEmbedder(\n            api_key=api_key,\n            model=model\n        )\n\n    # -----------------------------------\n    # GEMINI EMBEDDINGS\n    # -----------------------------------\n    elif provider == \"gemini\":\n\n        from ragbucket.embeddings.gemini_embedder import GeminiEmbedder\n\n        return GeminiEmbedder(\n            api_key=api_key,\n            model=model\n        )\n\n    # -----------------------------------\n    # COHERE EMBEDDINGS\n    # -----------------------------------\n    elif provider == \"cohere\":\n\n        from ragbucket.embeddings.cohere_embedder import CohereEmbedder\n\n        return CohereEmbedder(\n            api_key=api_key,\n            model=model\n        )\n\n    # -----------------------------------\n    # INVALID PROVIDER\n    # -----------------------------------\n    else:\n\n        raise ValueError(\n            f\"Unsupported embedding provider: {provider}\"\n        )\n"
+        },
+        {
+            "path": "ragbucket/embeddings/gemini_embedder.py",
+            "content": "class GeminiEmbedder:\n\n    def __init__(\n        self,\n        api_key,\n        model\n    ):\n\n        try:\n\n            import google.generativeai as genai\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\n\"\n                \"Gemini embedding support requires:\\n\\n\"\n                \"pip install google-generativeai\\n\\n\"\n                \"OR\\n\\n\"\n                \"uv add google-generativeai\\n\"\n            )\n\n        genai.configure(\n            api_key=api_key\n        )\n\n        self.genai = genai\n\n        self.model = model\n\n    def embed(self, texts):\n\n        embeddings = []\n\n        for text in texts:\n\n            result = self.genai.embed_content(\n                model=self.model,\n                content=text\n            )\n\n            embeddings.append(\n                result[\"embedding\"]\n            )\n\n        return embeddings\n"
+        },
+        {
+            "path": "ragbucket/embeddings/local_embedder.py",
+            "content": "_cached_models = {}\n\n\nclass LocalEmbedder:\n    def __init__(self, model_name):\n\n        try:\n            from sentence_transformers import SentenceTransformer\n\n        except ImportError:\n            raise ImportError(\n                \"\\n\"\n                \"Local embedding support requires:\\n\\n\"\n                \"pip install sentence-transformers\\n\\n\"\n                \"OR\\n\\n\"\n                \"uv add sentence-transformers\\n\"\n            )\n\n        # -----------------------------------\n        # LOAD MODEL ONLY ONCE\n        # -----------------------------------\n        global _cached_models\n\n        if model_name not in _cached_models:\n            _cached_models[model_name] = SentenceTransformer(model_name)\n\n        self.model = _cached_models[model_name]\n\n    def embed(self, texts):\n\n        return self.model.encode(texts, show_progress_bar=True)\n"
+        },
+        {
+            "path": "ragbucket/embeddings/openai_embedder.py",
+            "content": "class OpenAIEmbedder:\n\n    def __init__(\n        self,\n        api_key,\n        model\n    ):\n\n        try:\n\n            from openai import OpenAI\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\n\"\n                \"OpenAI embedding support requires:\\n\\n\"\n                \"pip install openai\\n\\n\"\n                \"OR\\n\\n\"\n                \"uv add openai\\n\"\n            )\n\n        self.client = OpenAI(\n            api_key=api_key\n        )\n\n        self.model = model\n\n    def embed(self, texts):\n\n        response = self.client.embeddings.create(\n            model=self.model,\n            input=texts\n        )\n\n        return [\n            item.embedding\n            for item in response.data\n        ]\n"
+        },
+        {
+            "path": "ragbucket/embeddings/voyage_embedder.py",
+            "content": "class VoyageEmbedder:\n\n    def __init__(\n        self,\n        api_key,\n        model\n    ):\n\n        try:\n\n            import voyageai\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\n\"\n                \"VoyageAI embedding support requires:\\n\\n\"\n                \"pip install voyageai\\n\\n\"\n                \"OR\\n\\n\"\n                \"uv add voyageai\\n\"\n            )\n\n        self.client = voyageai.Client(\n            api_key=api_key\n        )\n\n        self.model = model\n\n    def embed(self, texts):\n\n        response = self.client.embed(\n            texts,\n            model=self.model\n        )\n\n        return response.embeddings\n"
+        },
+        {
+            "path": "ragbucket/runtime/loader.py",
+            "content": "# runtime loader for .rag artifacts \n\nimport json\nimport zipfile\nimport tempfile\nfrom pathlib import Path\nimport faiss\n\nclass RagLoader:\n\n    def load(self, rag_path):\n\n        temp_dir = tempfile.mkdtemp()\n\n        with zipfile.ZipFile(rag_path, \"r\") as zipf:\n            zipf.extractall(temp_dir)\n\n            temp_path = Path(temp_dir)\n\n        index = faiss.read_index(\n            str(temp_path / \"vectors.faiss\")\n        )\n\n        with open(temp_path / \"chunks.json\", \"r\") as f:\n            chunks = json.load(f)\n\n        with open(temp_path / \"manifest.json\", \"r\") as f:\n            manifest = json.load(f)\n\n        return {\n            \"index\" : index,\n            \"chunks\" : chunks,\n            \"manifest\": manifest\n        }\n\n"
+        },
+        {
+            "path": "ragbucket/runtime/providers/anthropic_provider.py",
+            "content": "# ragbucket/runtime/providers/anthropic_provider.py\n\nimport anthropic\n\n\nclass AnthropicProvider:\n\n    def __init__(\n        self,\n        api_key: str,\n        model: str\n    ):\n\n        self.client = anthropic.Anthropic(\n            api_key=api_key\n        )\n\n        self.model = model\n\n    def generate(\n        self,\n        query: str,\n        context: list[str],\n        system_prompt: str | None = None\n    ):\n\n        joined_context = \"\\n\\n\".join(context)\n\n        prompt = f\"\"\"\nAnswer the question using the provided context.\n\nContext:\n{joined_context}\n\nQuestion:\n{query}\n\"\"\"\n\n        message = self.client.messages.create(\n            model=self.model,\n            max_tokens=1024,\n\n            system=system_prompt if system_prompt else \"\",\n\n            messages=[\n                {\n                    \"role\": \"user\",\n                    \"content\": prompt\n                }\n            ]\n        )\n\n        return message.content[0].text\n"
+        },
+        {
+            "path": "ragbucket/runtime/providers/factory.py",
+            "content": "# ragbucket/runtime/providers/factory.py\n\ndef get_provider(\n    provider: str,\n    api_key: str,\n    model: str\n):\n\n    provider = provider.lower()\n\n    # -----------------------------\n    # GROQ\n    # -----------------------------\n    if provider == \"groq\":\n\n        try:\n\n            from ragbucket.runtime.providers.groq_provider import GroqProvider\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\nGroq support requires:\\n\"\n                \"pip install groq\\n\"\n            )\n\n        return GroqProvider(\n            api_key=api_key,\n            model=model\n        )\n\n    # -----------------------------\n    # OPENAI\n    # -----------------------------\n    elif provider == \"openai\":\n\n        try:\n\n            from ragbucket.runtime.providers.openai_provider import OpenAIProvider\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\nOpenAI support requires:\\n\"\n                \"pip install openai\\n\"\n            )\n\n        return OpenAIProvider(\n            api_key=api_key,\n            model=model\n        )\n\n    # -----------------------------\n    # GEMINI\n    # -----------------------------\n    elif provider == \"gemini\":\n\n        try:\n\n            from ragbucket.runtime.providers.gemini_provider import GeminiProvider\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\nGemini support requires:\\n\"\n                \"pip install google-generativeai\\n\"\n            )\n\n        return GeminiProvider(\n            api_key=api_key,\n            model=model\n        )\n\n    # -----------------------------\n    # ANTHROPIC\n    # -----------------------------\n    elif provider == \"anthropic\":\n\n        try:\n\n            from ragbucket.runtime.providers.anthropic_provider import AnthropicProvider\n\n        except ImportError:\n\n            raise ImportError(\n                \"\\nAnthropic support requires:\\n\"\n                \"pip install anthropic\\n\"\n            )\n\n        return AnthropicProvider(\n            api_key=api_key,\n            model=model\n        )\n\n    # -----------------------------\n    # INVALID PROVIDER\n    # -----------------------------\n    else:\n\n        raise ValueError(\n            f\"Unsupported provider: {provider}\"\n        )\n"
+        },
+        {
+            "path": "ragbucket/runtime/providers/gemini_provider.py",
+            "content": "# ragbucket/runtime/providers/gemini_provider.py\n\nimport google.generativeai as genai\n\n\nclass GeminiProvider:\n\n    def __init__(\n        self,\n        api_key: str,\n        model: str\n    ):\n\n        genai.configure(\n            api_key=api_key\n        )\n\n        self.model = genai.GenerativeModel(\n            model\n        )\n\n    def generate(\n        self,\n        query: str,\n        context: list[str],\n        system_prompt: str | None = None\n    ):\n\n        joined_context = \"\\n\\n\".join(context)\n\n        prompt = f\"\"\"\n{system_prompt if system_prompt else \"\"}\n\nAnswer the question using the provided context.\n\nContext:\n{joined_context}\n\nQuestion:\n{query}\n\"\"\"\n\n        response = self.model.generate_content(\n            prompt\n        )\n\n        return response.text\n"
+        },
+        {
+            "path": "ragbucket/runtime/providers/groq_provider.py",
+            "content": "# ragbucket/runtime/providers/groq_provider.py\n\nfrom groq import Groq\n\n\nclass GroqProvider:\n\n    def __init__(\n        self,\n        api_key: str,\n        model: str\n    ):\n\n        self.client = Groq(\n            api_key=api_key\n        )\n\n        self.model = model\n\n    def generate(\n        self,\n        query: str,\n        context: list[str],\n        system_prompt: str | None = None\n    ):\n\n        joined_context = \"\\n\\n\".join(context)\n\n        prompt = f\"\"\"\nAnswer the question using the provided context.\n\nContext:\n{joined_context}\n\nQuestion:\n{query}\n\"\"\"\n\n        messages = []\n\n        if system_prompt:\n\n            messages.append({\n                \"role\": \"system\",\n                \"content\": system_prompt\n            })\n\n        messages.append({\n            \"role\": \"user\",\n            \"content\": prompt\n        })\n\n        completion = self.client.chat.completions.create(\n            model=self.model,\n            messages=messages\n        )\n\n        return completion.choices[0].message.content\n"
+        },
+        {
+            "path": "ragbucket/runtime/providers/openai_provider.py",
+            "content": "# ragbucket/runtime/providers/openai_provider.py\n\nfrom openai import OpenAI\n\n\nclass OpenAIProvider:\n\n    def __init__(\n        self,\n        api_key: str,\n        model: str\n    ):\n\n        self.client = OpenAI(\n            api_key=api_key\n        )\n\n        self.model = model\n\n    def generate(\n        self,\n        query: str,\n        context: list[str],\n        system_prompt: str | None = None\n    ):\n\n        joined_context = \"\\n\\n\".join(context)\n\n        prompt = f\"\"\"\nAnswer the question using the provided context.\n\nContext:\n{joined_context}\n\nQuestion:\n{query}\n\"\"\"\n\n        messages = []\n\n        if system_prompt:\n\n            messages.append({\n                \"role\": \"system\",\n                \"content\": system_prompt\n            })\n\n        messages.append({\n            \"role\": \"user\",\n            \"content\": prompt\n        })\n\n        completion = self.client.chat.completions.create(\n            model=self.model,\n            messages=messages\n        )\n\n        return completion.choices[0].message.content\n"
+        },
+        {
+            "path": "ragbucket/runtime/retriever.py",
+            "content": "# This file defines the semantic retrieval engine\n# of the runtime pipeline.\n\n\n# Import NumPy for vector conversion.\nimport numpy as np\n\n\n# Import the globally cached embedding model.\nfrom ragbucket.embeddings.factory import get_embedder\n\n\n# Retriever class responsible for:\n# - embedding user queries\n# - performing semantic search\n# - retrieving relevant chunks\nclass Retriever:\n\n    def __init__(self, config: dict):\n        self.config = config\n        self.model = get_embedder(\n            provider=config[\"embedding_provider\"],\n            model=config[\"embedding_model\"],\n            api_key=config.get(\"embedding_api_key\")\n        )\n\n    # Retrieve the most relevant chunks\n    # for a given user query.\n    def retrieve(\n        self,\n        query: str,\n        index,\n        chunks,\n        top_k = None\n    ):\n\n        if top_k is None:\n            top_k = self.config[\"top_k\"]\n\n        # Convert the user query into\n        # a semantic vector embedding.\n        query_embedding = self.model.embed(\n            [query]\n        )\n\n        # Convert embeddings into float32 format\n        # required by FAISS.\n        query_embedding = np.array(\n            query_embedding,\n            dtype=\"float32\"\n        )\n\n        # Perform semantic similarity search.\n        #\n        # Returns:\n        # - distances\n        # - matching indices\n        distances, indices = index.search(\n            query_embedding,\n            top_k\n        )\n\n        # Retrieve matching chunks using\n        # the returned indices.\n        retrieved_chunks = [\n            chunks[i]\n            for i in indices[0]\n        ]\n\n        return retrieved_chunks\n"
+        },
+        {
+            "path": "ragbucket/runtime/runtime.py",
+            "content": "from ragbucket.runtime.loader import RagLoader\nfrom ragbucket.runtime.retriever import Retriever\nfrom ragbucket.runtime.providers.factory import get_provider\n\nclass RagRuntime:\n\n    def __init__(self, rag_path, provider, api_key, model, embedding_api_key=None, system_prompt=None):\n\n        loader = RagLoader()\n        loaded = loader.load(rag_path)\n\n        self.index = loaded[\"index\"]\n        self.chunks = loaded[\"chunks\"]\n        self.manifest = loaded[\"manifest\"]\n        self.config = self.manifest[\"config\"]\n\n        if embedding_api_key is not None:\n            self.config[\"embedding_api_key\"] = embedding_api_key\n\n        self.retriever = Retriever(config=self.config)\n        self.generator = get_provider(\n            provider=provider,\n            api_key=api_key,\n            model=model\n        )\n        self.system_prompt = system_prompt\n\n    def ask(self, query):\n        retrieved_chunks = self.retriever.retrieve(\n            query = query,\n            index = self.index,\n            chunks = self.chunks\n        )\n\n        answer = self.generator.generate(\n            query = query,\n            context = retrieved_chunks,\n            system_prompt = self.system_prompt\n        )\n\n        return answer\n"
+        },
+        {
+            "path": "ragbucket/schemas/config.py",
+            "content": "from dataclasses import dataclass\n\n\n@dataclass\nclass RagConfig:\n\n    embedding_provider: str = \"local\"\n\n    embedding_model: str = \"BAAI/bge-small-en-v1.5\"\n\n    embedding_api_key: str | None = None\n\n    chunk_size: int = 512\n\n    chunk_overlap: int = 50\n\n    top_k: int = 3\n"
+        },
+        {
+            "path": "ragbucket/schemas/manifest.py",
+            "content": ""
+        },
+        {
+            "path": "ragbucket/utils/file_utils.py",
+            "content": "from pathlib import Path\n\ndef get_text_files(directory):\n    path = Path(directory)\n    return list(path.glob(\"*.txt\"))\n"
+        },
+        {
+            "path": "ragbucket/utils/hashing.py",
+            "content": "import hashlib\n\ndef hash_text(text):\n    return hashlib.sha256(text.encode()).hexdigest()\n"
+        }
+    ],
+    "structure": {
+        ".gitignore": {
+            "type": "file"
+        },
+        "LICENSE": {
+            "type": "file"
+        },
+        "README.md": {
+            "type": "file"
+        },
+        "docs": {
+            "type": "directory",
+            "children": {
+                "sample.txt": {
+                    "type": "file"
+                }
+            }
+        },
+        "examples": {
+            "type": "directory",
+            "children": {
+                "build_example.py": {
+                    "type": "file"
+                },
+                "runtime_example.py": {
+                    "type": "file"
+                }
+            }
+        },
+        "frontend": {
+            "type": "directory",
+            "children": {
+                "img": {
+                    "type": "directory",
+                    "children": {
+                        "main.png": {
+                            "type": "file"
+                        },
+                        "preview.png": {
+                            "type": "file"
+                        },
+                        "ragbucket.png": {
+                            "type": "file"
+                        },
+                        "workflow.png": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "index.css": {
+                    "type": "file"
+                },
+                "index.html": {
+                    "type": "file"
+                },
+                "index.js": {
+                    "type": "file"
+                }
+            }
+        },
+        "pyproject.toml": {
+            "type": "file"
+        },
+        "ragbucket": {
+            "type": "directory",
+            "children": {
+                "__init__.py": {
+                    "type": "file"
+                },
+                "builder": {
+                    "type": "directory",
+                    "children": {
+                        "builder.py": {
+                            "type": "file"
+                        },
+                        "chunker.py": {
+                            "type": "file"
+                        },
+                        "indexer.py": {
+                            "type": "file"
+                        },
+                        "packager.py": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "constants.py": {
+                    "type": "file"
+                },
+                "embeddings": {
+                    "type": "directory",
+                    "children": {
+                        "cohere_embedder.py": {
+                            "type": "file"
+                        },
+                        "factory.py": {
+                            "type": "file"
+                        },
+                        "gemini_embedder.py": {
+                            "type": "file"
+                        },
+                        "local_embedder.py": {
+                            "type": "file"
+                        },
+                        "openai_embedder.py": {
+                            "type": "file"
+                        },
+                        "voyage_embedder.py": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "runtime": {
+                    "type": "directory",
+                    "children": {
+                        "loader.py": {
+                            "type": "file"
+                        },
+                        "providers": {
+                            "type": "directory",
+                            "children": {
+                                "anthropic_provider.py": {
+                                    "type": "file"
+                                },
+                                "factory.py": {
+                                    "type": "file"
+                                },
+                                "gemini_provider.py": {
+                                    "type": "file"
+                                },
+                                "groq_provider.py": {
+                                    "type": "file"
+                                },
+                                "openai_provider.py": {
+                                    "type": "file"
+                                }
+                            }
+                        },
+                        "retriever.py": {
+                            "type": "file"
+                        },
+                        "runtime.py": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "schemas": {
+                    "type": "directory",
+                    "children": {
+                        "config.py": {
+                            "type": "file"
+                        },
+                        "manifest.py": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "utils": {
+                    "type": "directory",
+                    "children": {
+                        "file_utils.py": {
+                            "type": "file"
+                        },
+                        "hashing.py": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

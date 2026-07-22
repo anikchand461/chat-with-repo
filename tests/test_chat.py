@@ -37,7 +37,7 @@ def main():
     selected_file = json_files[choice - 1]
 
     print("\n" + "=" * 60)
-    print(f"Building Repository Index")
+    print("Building Repository Index")
     print(f"Repository : {selected_file.name}")
     print("=" * 60)
 
