@@ -12,7 +12,6 @@ class DocumentConverter:
     def convert(self, data: Any) -> list[Document]:
         documents = []
 
-        # Repository name (if available)
         repository_name = "Unknown Repository"
 
         if isinstance(data, dict):
@@ -31,6 +30,51 @@ class DocumentConverter:
         else:
             raise ValueError("Unsupported JSON format.")
 
+        # --------------------------------------------------
+        # Find README
+        # --------------------------------------------------
+
+        readme_content = ""
+
+        for file in files:
+            filename = Path(file.get("path", "")).name.lower()
+
+            if filename.startswith("readme"):
+                readme_content = file.get("content", "").strip()
+                break
+
+        # --------------------------------------------------
+        # Repository Overview (NEW)
+        # --------------------------------------------------
+
+        overview = Document(
+            page_content=f"""
+Repository Overview
+
+Repository:
+{repository_name}
+
+This document provides a high-level overview of the repository.
+
+Repository README:
+
+{readme_content[:3000]}
+""",
+            metadata={
+                "repository": repository_name,
+                "document_type": "repository_overview",
+                "path": "__repository_overview__",
+                "filename": "__repository_overview__",
+                "extension": ".overview",
+            },
+        )
+
+        documents.append(overview)
+
+        # --------------------------------------------------
+        # Convert all files
+        # --------------------------------------------------
+
         for file in files:
 
             content = file.get("content", "").strip()
@@ -42,9 +86,10 @@ class DocumentConverter:
             filename = Path(path).name
             extension = Path(path).suffix.lower()
 
-            # -------------------------------
-            # README files
-            # -------------------------------
+            # -----------------------------------------
+            # README
+            # -----------------------------------------
+
             if filename.lower().startswith("readme"):
 
                 page_content = f"""
@@ -54,17 +99,26 @@ Document Type: Repository README
 
 File: {path}
 
-This document describes the repository, its purpose, features,
-installation, usage, and other important information.
+This README explains:
 
-Content:
+- Project Overview
+- Main Purpose
+- Features
+- Installation
+- Usage
+- Technologies
+
+README Content:
 
 {content}
 """
 
-            # -------------------------------
+                document_type = "readme"
+
+            # -----------------------------------------
             # Documentation
-            # -------------------------------
+            # -----------------------------------------
+
             elif extension in {".md", ".html"}:
 
                 page_content = f"""
@@ -79,9 +133,12 @@ Documentation Content:
 {content}
 """
 
-            # -------------------------------
+                document_type = "documentation"
+
+            # -----------------------------------------
             # Source Code
-            # -------------------------------
+            # -----------------------------------------
+
             else:
 
                 page_content = f"""
@@ -91,10 +148,12 @@ Document Type: Source Code
 
 File: {path}
 
-Code:
+Source Code:
 
 {content}
 """
+
+                document_type = "source_code"
 
             document = Document(
                 page_content=page_content,
@@ -103,15 +162,7 @@ Code:
                     "path": path,
                     "filename": filename,
                     "extension": extension,
-                    "document_type": (
-                        "readme"
-                        if filename.lower().startswith("readme")
-                        else (
-                            "documentation"
-                            if extension in {".md", ".html"}
-                            else "source_code"
-                        )
-                    ),
+                    "document_type": document_type,
                 },
             )
 
