@@ -63,7 +63,7 @@ analysis:
 
         classification = text.lower().strip()
 
-        print(f"\nQuery Classification Result: {classification}")
+        # print(f"\nQuery Classification Result: {classification}")
 
         if "analysis" in classification:
             return "analysis"

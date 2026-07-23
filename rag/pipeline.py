@@ -57,16 +57,16 @@ class RAGPipeline:
         retrieve_k = 30 if query_type == "analysis" else 20
         rerank_k = 8 if query_type == "analysis" else 5
 
-        print(f"\nQuery Type: {query_type}")
+        # print(f"\nQuery Type: {query_type}")
 
         # ---------------- Multi Query Generation ----------------
 
         try:
             queries = self.multi_query.generate(question)
 
-            print("\nGenerated Queries:")
-            for i, query in enumerate(queries, start=1):
-                print(f"{i}. {query}")
+            # print("\nGenerated Queries:")
+            # for i, query in enumerate(queries, start=1):
+            #     print(f"{i}. {query}")
 
         except Exception as e:
 
@@ -83,7 +83,7 @@ class RAGPipeline:
         
         docs = self.rrf.fuse(ranked_lists)
 
-        print(f"\nRetrieved {len(docs)} unique documents")
+        # print(f"\nRetrieved {len(docs)} unique documents")
 
         # ---------------- Reranking ----------------
 
@@ -95,7 +95,7 @@ class RAGPipeline:
             top_k=rerank_k,
         )
 
-        print(f"Top {len(docs)} documents after reranking")
+        # print(f"Top {len(docs)} documents after reranking")
 
         # ---------------- Answer Generation ----------------
 
