@@ -1,5 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 
+
 class QueryClassifier:
 
     def __init__(self, model):
@@ -47,9 +48,24 @@ analysis:
             "question": question
         })
 
-        classification = result.content.lower()
-        
+        # Safely extract text from the model response
+        content = result.content
+
+        if isinstance(content, list):
+            text = ""
+            for item in content:
+                if isinstance(item, dict):
+                    text += item.get("text", "")
+                else:
+                    text += str(item)
+        else:
+            text = str(content)
+
+        classification = text.lower().strip()
+
+        print(f"\nQuery Classification Result: {classification}")
+
         if "analysis" in classification:
             return "analysis"
-        
+
         return "lookup"

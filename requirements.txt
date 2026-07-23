@@ -7,3 +7,5 @@ langchain_chroma
 chromadb
 langchain_google_genai
 langchain-text-splitters
+beautifulsoup4
+langchain-cohere

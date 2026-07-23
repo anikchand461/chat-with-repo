@@ -1,5 +1,7 @@
 from pathlib import Path
+
 from rag.query_classifier import QueryClassifier
+from rag.multi_query import MultiQueryGenerator
 from rag.loader import JSONLoader
 from rag.converter import DocumentConverter
 from rag.chunker import Chunker
@@ -25,88 +27,73 @@ class RAGPipeline:
         self.reranker = Reranker()
         self.llm = LLM()
 
-        # Add this line
         self.query_classifier = QueryClassifier(self.llm.model)
+        self.multi_query = MultiQueryGenerator(self.llm.model)
 
     def build_index(self):
+
         data = self.loader.load()
-    
+
         documents = self.converter.convert(data)
-    
+
         chunks = self.chunker.split_documents(documents)
-    
-        # Clear old vectors for this repository
+
         self.vector_store.clear()
-    
-        # Add new vectors
         self.vector_store.add_documents(chunks)
-    
-        print("Index built successfully!")
+
+        print("Repository indexed successfully!")
 
     def ask(self, question):
-    
-        # -------------------------------------------------
-        # Classify Query
-        # -------------------------------------------------
+
+        # ---------------- Query Classification ----------------
+
         try:
             query_type = self.query_classifier.classify(question)
-        except Exception:
+        except Exception as e:
+            print(f"Query Classification Error: {e}")
             query_type = "lookup"
-            
-        if query_type == "analysis":
-            retrieve_k = 30
-            rerank_k = 8
-        else:
-            retrieve_k = 20
-            rerank_k = 5
-    
-        # print(f"\nQuery Type : {query_type}")
-        # print(f"Retrieve K : {retrieve_k}")
-        # print(f"Rerank K   : {rerank_k}")
-    
-        # -------------------------------------------------
-        # Retrieve
-        # -------------------------------------------------
-    
+
+        retrieve_k = 30 if query_type == "analysis" else 20
+        rerank_k = 8 if query_type == "analysis" else 5
+
+        print(f"\nQuery Type: {query_type}")
+
+        # ---------------- Multi Query Generation ----------------
+
+        try:
+            queries = self.multi_query.generate(question)
+
+            print("\nGenerated Queries:")
+            for i, query in enumerate(queries, start=1):
+                print(f"{i}. {query}")
+
+        except Exception as e:
+
+            print(f"\nMulti Query Error: {e}")
+
+            queries = [question]
+
+        # ---------------- Retrieval ----------------
+
         docs = self.retriever.retrieve(
-            query=question,
+            queries=queries,
             k=retrieve_k,
         )
-    
-        # print("\n" + "=" * 80)
-        # print("RETRIEVED DOCUMENTS")
-        # print("=" * 80)
-    
-        # for i, doc in enumerate(docs, 1):
-        #     print(f"\n[{i}]")
-        #     print(doc.metadata)
-        #     print(doc.page_content[:300])
-        #     print("-" * 80)
-    
-        # -------------------------------------------------
-        # Rerank
-        # -------------------------------------------------
-    
+
+        print(f"\nRetrieved {len(docs)} unique documents")
+
+        # ---------------- Reranking ----------------
+
         docs = self.reranker.rerank(
             query=question,
             documents=docs,
             top_k=rerank_k,
         )
-    
-        # print("\n" + "=" * 80)
-        # print("RERANKED DOCUMENTS")
-        # print("=" * 80)
-    
-        # for i, doc in enumerate(docs, 1):
-        #     print(f"\n[{i}]")
-        #     print(doc.metadata)
-        #     print(doc.page_content[:300])
-        #     print("-" * 80)
-    
-        # -------------------------------------------------
-        # Generate
-        # -------------------------------------------------
-    
+
+        print(f"Top {len(docs)} documents after reranking")
+
+        # ---------------- Answer Generation ----------------
+
         return self.llm.generate(
             question=question,
             documents=docs,
