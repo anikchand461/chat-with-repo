@@ -8,8 +8,7 @@ class Retriever:
 
     def retrieve(self, queries, k=20):
 
-        all_docs = []
-        seen = set()
+        ranked_lists = []
 
         for query in queries:
 
@@ -20,11 +19,6 @@ class Retriever:
                 lambda_mult=0.5,
             )
 
-            for doc in docs:
-                text = doc.page_content
+            ranked_lists.append(docs)
 
-                if text not in seen:
-                    seen.add(text)
-                    all_docs.append(doc)
-
-        return all_docs
+        return ranked_lists

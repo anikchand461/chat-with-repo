@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from rag.rrf import ReciprocalRankFusion
 from rag.query_classifier import QueryClassifier
 from rag.multi_query import MultiQueryGenerator
 from rag.loader import JSONLoader
@@ -9,7 +9,6 @@ from rag.vector_store import VectorStore
 from rag.retriever import Retriever
 from rag.reranker import Reranker
 from rag.llm import LLM
-
 
 class RAGPipeline:
 
@@ -27,8 +26,10 @@ class RAGPipeline:
         self.reranker = Reranker()
         self.llm = LLM()
 
-        self.query_classifier = QueryClassifier(self.llm.model)
-        self.multi_query = MultiQueryGenerator(self.llm.model)
+        self.query_classifier = QueryClassifier()
+        self.multi_query = MultiQueryGenerator()
+
+        self.rrf = ReciprocalRankFusion()
 
     def build_index(self):
 
@@ -74,16 +75,20 @@ class RAGPipeline:
             queries = [question]
 
         # ---------------- Retrieval ----------------
-
-        docs = self.retriever.retrieve(
+        
+        ranked_lists = self.retriever.retrieve(
             queries=queries,
             k=retrieve_k,
         )
+        
+        docs = self.rrf.fuse(ranked_lists)
 
         print(f"\nRetrieved {len(docs)} unique documents")
 
         # ---------------- Reranking ----------------
 
+        docs = docs[:30]
+        
         docs = self.reranker.rerank(
             query=question,
             documents=docs,
