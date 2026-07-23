@@ -9,3 +9,4 @@ langchain_google_genai
 langchain-text-splitters
 beautifulsoup4
 langchain-cohere
+langchain_groq

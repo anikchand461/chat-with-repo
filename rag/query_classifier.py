@@ -1,10 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate
-
+from rag.model_factory import ModelFactory
 
 class QueryClassifier:
 
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
+        self.model = ModelFactory.classifier()
 
         self.prompt = ChatPromptTemplate.from_messages([
             (

@@ -1,10 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate
-
+from rag.model_factory import ModelFactory
 
 class MultiQueryGenerator:
 
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
+        self.model = ModelFactory.query_generator()
 
         self.prompt = ChatPromptTemplate.from_template(
             """
@@ -25,42 +25,32 @@ Instructions:
         )
 
     def generate(self, original_query: str):
-
+    
         chain = self.prompt | self.model
-
+    
         result = chain.invoke(
             {
                 "original_query": original_query
             }
         )
-
-        # Extract response text safely
+    
         content = result.content
-
+    
         if isinstance(content, list):
-            text = ""
-            for item in content:
-                if isinstance(item, dict):
-                    text += item.get("text", "")
-                else:
-                    text += str(item)
+            text = "".join(
+                item.get("text", "")
+                for item in content
+                if isinstance(item, dict)
+            )
         else:
             text = str(content)
-
-        # Split into individual queries
+    
         generated_queries = [
-            q.strip()
-            for q in text.split("\n")
-            if q.strip()
-        ]
-
-        # Keep only the first 2 generated queries
-        generated_queries = generated_queries[:2]
-
-        # Final output = Original + 2 generated = 3 total queries
+            query.strip()
+            for query in text.splitlines()
+            if query.strip()
+        ][:2]
+    
         queries = [original_query] + generated_queries
-
-        # Remove duplicates while preserving order
-        queries = list(dict.fromkeys(queries))
-
-        return queries
+    
+        return list(dict.fromkeys(queries))

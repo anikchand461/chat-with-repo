@@ -1,0 +1,115 @@
+============================================================
+Available Repositories
+============================================================
+1. anikchand461_ragbucket.json
+2. anikchand461_task.json
+
+Select repository: 
+============================================================
+Building Repository Index
+Repository : anikchand461_ragbucket.json
+============================================================
+Repository indexed successfully!
+
+✅ Repository indexed successfully!
+Type 'exit' to quit.
+
+You > 
+DevLens >
+
+Query Classification Result: analysis
+
+Query Type: analysis
+
+Generated Queries:
+1. What is RagBucket?
+2. What is the purpose and functionality of the RagBucket component?
+3. RagBucket implementation details and usage documentation
+
+Retrieved 34 unique documents
+Top 8 documents after reranking
+Hello! I am DevLens, and I am here to help you understand the **anikchand461_ragbucket** repository.
+
+**RagBucket** is a tool designed to solve the fragmentation in RAG (Retrieval-Augmented Generation) systems by packaging your entire retrieval pipeline—including vectors, chunks, configuration, and runtime metadata—into a single, portable `.rag` artifact.
+
+Key aspects of RagBucket include:
+
+*   **Portability:** It treats RAG systems as self-contained intelligence artifacts that can be built once and deployed anywhere, eliminating the need for external infrastructure like dedicated vector databases.
+*   **Decoupling:** It separates retrieval memory (what you built) from language generation (how you query it), allowing you to swap LLM providers at runtime without rebuilding the pipeline.
+*   **Technology Stack:** It utilizes FAISS for vector search, Sentence Transformers for embeddings, LangChain for chunking, and Pydantic for configuration validation.
+*   **Ease of Use:** It provides a simple Python interface to load an artifact and query it, with support for multiple LLM providers like Groq, OpenAI, Gemini, and Anthropic.
+------------------------------------------------------------
+You > 
+DevLens >
+
+Query Classification Result: analysis
+
+Query Type: analysis
+
+Generated Queries:
+1. What are the core features of RagBucket?
+2. RagBucket key functionalities and architectural capabilities
+3. RagBucket documentation overview and primary feature set
+
+Retrieved 36 unique documents
+Top 8 documents after reranking
+Hello! I am DevLens, and I am here to help you understand the **anikchand461_ragbucket** repository.
+
+The core features of RagBucket include:
+
+*   **Portable Artifacts (.rag files):** Packages your entire RAG pipeline—vectors, chunks, configuration, and metadata—into a single, self-contained, and shareable file.
+*   **Infrastructure Decoupling:** Separates retrieval memory (what you built) from language generation (how you query it), allowing you to swap LLM providers at runtime without rebuilding.
+*   **Reproducibility:** Ensures 100% reproducible retrieval results by baking the chunking configuration and indexing into the artifact.
+*   **Flexibility:** Supports multiple LLM providers (Groq, OpenAI, Gemini, Anthropic) and various embedding models (OpenAI, Cohere, Gemini, Voyage AI, and local Sentence Transformers).
+*   **Built-in Vector Search:** Uses FAISS (Facebook AI Similarity Search) for semantic indexing with zero-config setup.
+*   **Self-Describing:** The artifact contains everything needed to query it, eliminating the need for external infrastructure dependencies or scattered configuration files.
+------------------------------------------------------------
+You > 
+DevLens >
+
+Query Classification Result: analysis
+
+Query Type: analysis
+
+Generated Queries:
+1. Which constants are configurable?
+2. list of configurable constants and parameters
+3. where are the user-defined configuration constants defined
+
+Retrieved 41 unique documents
+Top 8 documents after reranking
+Hello! I am DevLens, and I'm here to help you with the **anikchand461_ragbucket** repository.
+
+Based on the `RagConfig` dataclass in `ragbucket/schemas/config.py`, the following constants are configurable:
+
+*   **`embedding_provider`**: The provider for embeddings (default: `"local"`).
+*   **`embedding_model`**: The specific embedding model to use (default: `"BAAI/bge-small-en-v1.5"`).
+*   **`embedding_api_key`**: The API key for the chosen embedding provider (default: `None`).
+*   **`chunk_size`**: The size of the text chunks (default: `512`).
+*   **`chunk_overlap`**: The overlap between text chunks (default: `50`).
+*   **`top_k`**: The number of chunks to retrieve per query (default: `3`).
+------------------------------------------------------------
+You > 
+DevLens >
+
+Query Classification Result: analysis
+
+Query Type: analysis
+
+Generated Queries:
+1. If I wanted to replace FAISS with Chroma, which files would need to change?
+2. refactoring codebase to migrate vector store from FAISS to ChromaDB
+3. identifying dependencies and modules requiring updates for FAISS to Chroma migration
+
+Retrieved 41 unique documents
+Top 8 documents after reranking
+Hello! I am DevLens, and I am here to help you understand the **anikchand461_ragbucket** repository.
+
+To replace FAISS with Chroma, you would need to modify the following files:
+
+*   **`ragbucket/builder/indexer.py`**: This file currently contains the `Indexer` class, which uses `faiss.IndexFlatL2` to build the vector index. You would need to replace the FAISS-specific logic here with Chroma's indexing implementation.
+*   **`ragbucket/runtime/loader.py`**: The `RagLoader.load` method currently uses `faiss.read_index` to load the vector store from the `.rag` artifact. You would need to update this to load the Chroma database instead.
+*   **The artifact creation logic (referenced in your context)**: The code responsible for saving the artifact (which writes `vectors.faiss` using `faiss.write_index`) would need to be updated to serialize and save the Chroma database into the temporary staging directory instead of a FAISS file.
+------------------------------------------------------------
+You > 
+Goodbye!
