@@ -1,10 +1,9 @@
 import os
-
 from dotenv import load_dotenv
 from cohere import ClientV2
+from rag.model_factory import ModelFactory
 
 load_dotenv()
-
 
 class Reranker:
     """
@@ -52,7 +51,7 @@ Content:
         ]
 
         response = self.client.rerank(
-            model="rerank-v3.5",
+            model=ModelFactory.reranker_model(),
             query=query,
             documents=formatted_documents,
             top_n=min(top_k, len(formatted_documents)),
