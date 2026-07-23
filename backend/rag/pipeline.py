@@ -12,7 +12,7 @@ from rag.llm import LLM
 
 class RAGPipeline:
 
-    def __init__(self, json_path):
+    def __init__(self, json_path, collection_name=None, persist_directory="chroma_db"):
         self.json_path = json_path
         self.repo_name = Path(json_path).stem
 
@@ -20,8 +20,16 @@ class RAGPipeline:
         self.converter = DocumentConverter()
         self.chunker = Chunker()
 
-        self.vector_store = VectorStore(self.repo_name)
-        self.retriever = Retriever(self.repo_name)
+        self.vector_store = VectorStore(
+            self.repo_name,
+            persist_directory=persist_directory,
+            collection_name=collection_name,
+        )
+        self.retriever = Retriever(
+            self.repo_name,
+            persist_directory=persist_directory,
+            collection_name=collection_name,
+        )
 
         self.reranker = Reranker()
         self.llm = LLM()

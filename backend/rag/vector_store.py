@@ -9,11 +9,12 @@ class VectorStore:
         self,
         repository_name: str,
         persist_directory: str = "chroma_db",
+        collection_name: str | None = None,
     ):
 
         self.embedding = EmbeddingModel().get_embedding_model()
 
-        self.collection_name = (
+        self.collection_name = collection_name or (
             repository_name.lower()
             .replace("/", "_")
             .replace("-", "_")

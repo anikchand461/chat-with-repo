@@ -3,8 +3,12 @@ from rag.vector_store import VectorStore
 
 class Retriever:
 
-    def __init__(self, repository_name):
-        self.vector_store = VectorStore(repository_name)
+    def __init__(self, repository_name, persist_directory="chroma_db", collection_name=None):
+        self.vector_store = VectorStore(
+            repository_name,
+            persist_directory=persist_directory,
+            collection_name=collection_name,
+        )
 
     def retrieve(self, queries, k=20):
 
