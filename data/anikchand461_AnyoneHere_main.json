@@ -1,0 +1,345 @@
+{
+    "repository": {
+        "id": 1288249545,
+        "node_id": "R_kgDOTMkgyQ",
+        "name": "AnyoneHere",
+        "full_name": "anikchand461/AnyoneHere",
+        "private": false,
+        "owner": {
+            "login": "anikchand461",
+            "id": 161185149,
+            "node_id": "U_kgDOCZt9fQ",
+            "avatar_url": "https://avatars.githubusercontent.com/u/161185149?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/anikchand461",
+            "html_url": "https://github.com/anikchand461",
+            "followers_url": "https://api.github.com/users/anikchand461/followers",
+            "following_url": "https://api.github.com/users/anikchand461/following{/other_user}",
+            "gists_url": "https://api.github.com/users/anikchand461/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/anikchand461/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/anikchand461/subscriptions",
+            "organizations_url": "https://api.github.com/users/anikchand461/orgs",
+            "repos_url": "https://api.github.com/users/anikchand461/repos",
+            "events_url": "https://api.github.com/users/anikchand461/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/anikchand461/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+        },
+        "html_url": "https://github.com/anikchand461/AnyoneHere",
+        "description": "A minimal, real-time-feeling chat app built with plain PHP, MySQL, and vanilla JS.",
+        "fork": false,
+        "url": "https://api.github.com/repos/anikchand461/AnyoneHere",
+        "forks_url": "https://api.github.com/repos/anikchand461/AnyoneHere/forks",
+        "keys_url": "https://api.github.com/repos/anikchand461/AnyoneHere/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/anikchand461/AnyoneHere/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/anikchand461/AnyoneHere/teams",
+        "hooks_url": "https://api.github.com/repos/anikchand461/AnyoneHere/hooks",
+        "issue_events_url": "https://api.github.com/repos/anikchand461/AnyoneHere/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/anikchand461/AnyoneHere/events",
+        "assignees_url": "https://api.github.com/repos/anikchand461/AnyoneHere/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/anikchand461/AnyoneHere/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/anikchand461/AnyoneHere/tags",
+        "blobs_url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/anikchand461/AnyoneHere/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/anikchand461/AnyoneHere/languages",
+        "stargazers_url": "https://api.github.com/repos/anikchand461/AnyoneHere/stargazers",
+        "contributors_url": "https://api.github.com/repos/anikchand461/AnyoneHere/contributors",
+        "subscribers_url": "https://api.github.com/repos/anikchand461/AnyoneHere/subscribers",
+        "subscription_url": "https://api.github.com/repos/anikchand461/AnyoneHere/subscription",
+        "commits_url": "https://api.github.com/repos/anikchand461/AnyoneHere/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/anikchand461/AnyoneHere/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/anikchand461/AnyoneHere/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/anikchand461/AnyoneHere/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/anikchand461/AnyoneHere/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/anikchand461/AnyoneHere/merges",
+        "archive_url": "https://api.github.com/repos/anikchand461/AnyoneHere/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/anikchand461/AnyoneHere/downloads",
+        "issues_url": "https://api.github.com/repos/anikchand461/AnyoneHere/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/anikchand461/AnyoneHere/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/anikchand461/AnyoneHere/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/anikchand461/AnyoneHere/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/anikchand461/AnyoneHere/labels{/name}",
+        "releases_url": "https://api.github.com/repos/anikchand461/AnyoneHere/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/anikchand461/AnyoneHere/deployments",
+        "created_at": "2026-07-03T12:14:53Z",
+        "updated_at": "2026-07-03T14:54:45Z",
+        "pushed_at": "2026-07-03T14:51:46Z",
+        "git_url": "git://github.com/anikchand461/AnyoneHere.git",
+        "ssh_url": "git@github.com:anikchand461/AnyoneHere.git",
+        "clone_url": "https://github.com/anikchand461/AnyoneHere.git",
+        "svn_url": "https://github.com/anikchand461/AnyoneHere",
+        "homepage": "https://anyonehere.freehosting.dev/",
+        "size": 57,
+        "stargazers_count": 0,
+        "watchers_count": 0,
+        "language": "PHP",
+        "has_issues": true,
+        "has_projects": true,
+        "has_downloads": false,
+        "has_wiki": true,
+        "has_pages": false,
+        "has_discussions": false,
+        "forks_count": 0,
+        "mirror_url": null,
+        "archived": false,
+        "disabled": false,
+        "open_issues_count": 0,
+        "license": null,
+        "allow_forking": true,
+        "is_template": false,
+        "web_commit_signoff_required": false,
+        "has_pull_requests": true,
+        "pull_request_creation_policy": "all",
+        "topics": [
+            "chat-application",
+            "css",
+            "html",
+            "http-polling",
+            "javascript",
+            "messege-queue",
+            "mysql",
+            "php",
+            "real-time-chat",
+            "session-authentication"
+        ],
+        "visibility": "public",
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "default_branch": "main",
+        "permissions": {
+            "admin": false,
+            "maintain": false,
+            "push": false,
+            "triage": false,
+            "pull": true
+        },
+        "network_count": 0,
+        "subscribers_count": 0
+    },
+    "branch": "main",
+    "tree": [
+        {
+            "path": ".gitignore",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "4e9b47a3be3070600e566d7644be0ca3dc791c67",
+            "size": 10,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/4e9b47a3be3070600e566d7644be0ca3dc791c67"
+        },
+        {
+            "path": "README.md",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "9234fc2e0da869b5a04e1d0ec2176e0fcbdca28e",
+            "size": 5996,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/9234fc2e0da869b5a04e1d0ec2176e0fcbdca28e"
+        },
+        {
+            "path": "config.example.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "646210aac2b88c39ed3fa278984818959cc1d808",
+            "size": 270,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/646210aac2b88c39ed3fa278984818959cc1d808"
+        },
+        {
+            "path": "conversation.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "4f2b3b202b2565ab6c6a9444f2bf5406b18d9a48",
+            "size": 4358,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/4f2b3b202b2565ab6c6a9444f2bf5406b18d9a48"
+        },
+        {
+            "path": "dashboard.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "d2d187d330b8024de3d06f0660078891e8d901a3",
+            "size": 4165,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/d2d187d330b8024de3d06f0660078891e8d901a3"
+        },
+        {
+            "path": "database.sql",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "e0366cf3889d31bbc2dcf078ba337006803a594a",
+            "size": 428,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/e0366cf3889d31bbc2dcf078ba337006803a594a"
+        },
+        {
+            "path": "fetch-messages.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "1b89d387ce64cd3899ad4bd6f6e999c3a5831e8c",
+            "size": 1112,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/1b89d387ce64cd3899ad4bd6f6e999c3a5831e8c"
+        },
+        {
+            "path": "heartbeat.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "ac0145d7274ceaa08921cc51ba22479598b97db4",
+            "size": 294,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/ac0145d7274ceaa08921cc51ba22479598b97db4"
+        },
+        {
+            "path": "index.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "d3968ae89a81bececf52947fec324e29ef0c317f",
+            "size": 3966,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/d3968ae89a81bececf52947fec324e29ef0c317f"
+        },
+        {
+            "path": "login-screen.png",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "8124652beaaf429ae0a49e9b491213a92b40038c",
+            "size": 39334,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/8124652beaaf429ae0a49e9b491213a92b40038c"
+        },
+        {
+            "path": "register.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "3aebf93da6b22ca9cd3709cd9b8eed8259d9ce6f",
+            "size": 3037,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/3aebf93da6b22ca9cd3709cd9b8eed8259d9ce6f"
+        },
+        {
+            "path": "script.js",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "500fe401ce88eaf46712859c56cc96612696f523",
+            "size": 2521,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/500fe401ce88eaf46712859c56cc96612696f523"
+        },
+        {
+            "path": "send-message.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "23b649e96093fd2905f2b008fb22f63ef4cc98aa",
+            "size": 524,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/23b649e96093fd2905f2b008fb22f63ef4cc98aa"
+        },
+        {
+            "path": "style.css",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "5285dd089b0578684f762d2451bb1c58ea6cccd7",
+            "size": 12611,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/5285dd089b0578684f762d2451bb1c58ea6cccd7"
+        },
+        {
+            "path": "user-status.php",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "f884de57e8504f14437b224355c272dc66c41424",
+            "size": 582,
+            "url": "https://api.github.com/repos/anikchand461/AnyoneHere/git/blobs/f884de57e8504f14437b224355c272dc66c41424"
+        }
+    ],
+    "files": [
+        {
+            "path": "README.md",
+            "content": "<div align=\"center\">\n\n# 💬 AnyoneHere\n\n**A minimal, real-time-feeling chat app built with plain PHP, MySQL, and vanilla JS.**\n\nNo frameworks. No build step. Just clean code and live conversations.\n\n[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://anyonehere.freehosting.dev/index.php)\n[![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)\n[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)\n[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)\n\n**[🚀 Try the Live Demo →](https://anyonehere.freehosting.dev/index.php)**\n\n</div>\n\n<br>\n\n<div align=\"center\">\n  <img src=\"login-screen.png\" alt=\"AnyoneHere login screen\" width=\"750\">\n</div>\n\n<br>\n\n## ✨ Overview\n\n**AnyoneHere** is a lightweight one-to-one messaging app. Sign up, see who's online right now, and jump into a conversation — all wrapped in a clean, dark-and-white interface inspired by modern messaging apps.\n\nIt's built without any frameworks on purpose: just `mysqli` prepared statements, a sprinkle of `fetch()`, and old-fashioned short-polling to simulate real-time updates. A great reference project if you want to understand how chat apps work under the hood before reaching for sockets.\n\n## 🧩 Features\n\n| | |\n|---|---|\n| 🔐 **Secure Auth** | Passwords hashed with `password_hash()`, verified with `password_verify()` |\n| 🟢 **Live Presence** | Heartbeat pings every 5s mark users \"online\" for a 10-second window |\n| 👥 **Active Users List** | Dashboard shows everyone currently online, refreshed automatically |\n| 💬 **1-on-1 Conversations** | Clean chat bubbles with sender/receiver styling |\n| 🔄 **Auto-Refreshing Chat** | Messages poll every second — no page reloads needed |\n| 🧹 **Self-Cleaning** | Messages older than 24 hours are purged automatically |\n| 📱 **Responsive UI** | Mobile-friendly layout with safe-area support for notched devices |\n| 🛡️ **SQL Injection Safe** | Every query uses parameterized statements |\n\n## 🛠️ Tech Stack\n\n- **Backend:** PHP (`mysqli`, prepared statements)\n- **Database:** MySQL\n- **Frontend:** Vanilla HTML, CSS, JavaScript (no frameworks, no dependencies)\n- **Realtime simulation:** Client-side polling (`fetch` + `setInterval`)\n\n## 📁 Project Structure\n\n```\nanyonehere/\n├── index.php              # Login page\n├── register.php           # Account creation\n├── dashboard.php          # List of currently active users\n├── conversation.php       # 1-on-1 chat view\n├── send-message.php       # Handles new message submission\n├── fetch-messages.php     # Polled endpoint that renders message history\n├── heartbeat.php          # Updates last_seen timestamp for presence\n├── user-status.php        # Returns online/offline status for a user\n├── style.css              # Global styles (auth, dashboard, chat)\n├── script.js              # Polling, heartbeat, send/receive logic\n├── config.example.php     # Template for DB credentials\n├── config.php             # Your local DB credentials (gitignored)\n└── database.sql           # Database schema\n```\n\n## ⚙️ Getting Started\n\n### Prerequisites\n\n- PHP 7.4+ with the `mysqli` extension\n- MySQL / MariaDB\n- Any local server stack (XAMPP, MAMP, `php -S`, etc.)\n\n### Installation\n\n**1. Clone the repository**\n\n```bash\ngit clone https://github.com/your-username/anyonehere.git\ncd anyonehere\n```\n\n**2. Create the database**\n\n```bash\nmysql -u root -p < database.sql\n```\n\nThis creates the `chat` database along with the `users` and `messages` tables.\n\n**3. Configure your environment**\n\nCopy the example config and fill in your own credentials:\n\n```bash\ncp config.example.php config.php\n```\n\n```php\n$server   = \"localhost\";\n$username = \"YOUR_DB_USERNAME\";\n$password = \"YOUR_DB_PASSWORD\";\n$database = \"YOUR_DB_NAME\";\n```\n\n> ⚠️ **Never commit `config.php` with real credentials.** It's meant to stay local — keep it out of version control.\n\n**4. Run it**\n\n```bash\nphp -S localhost:8000\n```\n\nThen visit `http://localhost:8000` in your browser 🎉\n\n## 🗄️ Database Schema\n\n<details>\n<summary>Click to expand</summary>\n\n**`users`**\n\n| Column | Type | Notes |\n|---|---|---|\n| `id` | `INT` | Primary key, auto-increment |\n| `username` | `VARCHAR(50)` | Unique |\n| `password` | `VARCHAR(255)` | Hashed with `password_hash()` |\n| `last_seen` | `DATETIME` | Used to determine online status |\n\n**`messages`**\n\n| Column | Type | Notes |\n|---|---|---|\n| `id` | `INT` | Primary key, auto-increment |\n| `sender_id` | `INT` | FK → `users.id` |\n| `receiver_id` | `INT` | FK → `users.id` |\n| `message` | `TEXT` | Message content |\n| `created_at` | `TIMESTAMP` | Auto-purged after 24h |\n\n</details>\n\n## 🧠 How Presence & Polling Work\n\n- Every open session pings `heartbeat.php` every **5 seconds**, updating `last_seen`.\n- A user is considered **online** if their `last_seen` is within the last **10 seconds**.\n- The active chat polls `fetch-messages.php` every **1 second** to pull new messages, comparing the response against the last render to avoid unnecessary DOM updates.\n- `user-status.php` polls every **3 seconds** to reflect the other person going online/offline in real time.\n\n## 🌐 Live Demo\n\nGive it a spin here → **[anyonehere.freehosting.dev](https://anyonehere.freehosting.dev/index.php)**\n\nCreate an account, open a second browser (or incognito tab), sign in as someone else, and chat with yourself in real time. 👻\n\n## 🤝 Contributing\n\nPull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.\n\n## 📄 License\n\nThis project is open source and available under the [MIT License](LICENSE).\n\n---\n\n<div align=\"center\">\nMade with 🖤 and plain old PHP\n</div>"
+        },
+        {
+            "path": "config.example.php",
+            "content": "<?php\n\n$server = \"localhost\";\n$username = \"YOUR_DB_USERNAME\";\n$password = \"YOUR_DB_PASSWORD\";\n$database = \"YOUR_DB_NAME\";\n\n$conn = new mysqli($server, $username, $password, $database);\n\nif ($conn->connect_error) {\n    die(\"Connection failed: \" . $conn->connect_error);\n}"
+        },
+        {
+            "path": "conversation.php",
+            "content": "<?php\n\nsession_start();\n\nrequire \"config.php\";\n\nif (!isset($_SESSION[\"user_id\"])) {\n    header(\"Location: index.php\");\n    exit();\n}\n\nif (!isset($_GET[\"user_id\"])) {\n    header(\"Location: dashboard.php\");\n    exit();\n}\n\n$receiver_id = (int) $_GET[\"user_id\"];\n\n\n// Get the receiver's information\n\n$sql = \"SELECT username, last_seen\n        FROM users\n        WHERE id = ?\";\n\n$stmt = $conn->prepare($sql);\n$stmt->bind_param(\"i\", $receiver_id);\n$stmt->execute();\n\n$result = $stmt->get_result();\n\n$receiver = $result->fetch_assoc();\n\n\n// Check if receiver exists\n\nif (!$receiver) {\n    header(\"Location: dashboard.php\");\n    exit();\n}\n\n\n// Check online status\n\n$isOnline =\n    $receiver[\"last_seen\"] !== null &&\n    strtotime($receiver[\"last_seen\"]) >= time() - 10;\n\n\n// Get messages between these two users\n\n$current_user_id = $_SESSION[\"user_id\"];\n\n$sql = \"SELECT *\n        FROM messages\n        WHERE\n        (sender_id = ? AND receiver_id = ?)\n        OR\n        (sender_id = ? AND receiver_id = ?)\n        ORDER BY created_at ASC\";\n\n$stmt = $conn->prepare($sql);\n\n$stmt->bind_param(\n    \"iiii\",\n    $current_user_id,\n    $receiver_id,\n    $receiver_id,\n    $current_user_id\n);\n\n$stmt->execute();\n\n$messages = $stmt->get_result();\n\n?>\n\n<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n\n    <meta charset=\"UTF-8\">\n\n    <meta\n        name=\"viewport\"\n        content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"\n    >\n\n    <title>\n        Chat with <?php echo htmlspecialchars($receiver[\"username\"]); ?>\n    </title>\n\n    <link rel=\"stylesheet\" href=\"style.css?v=3\">\n\n</head>\n\n<body>\n\n    <div class=\"chat-page\">\n\n\n        <!-- HEADER -->\n\n        <header class=\"chat-header\">\n\n            <a\n                href=\"dashboard.php\"\n                class=\"back-button\"\n                aria-label=\"Go back\"\n            >\n                ←\n            </a>\n\n\n            <div class=\"avatar\">\n\n                <?php\n                echo strtoupper(\n                    substr($receiver[\"username\"], 0, 1)\n                );\n                ?>\n\n            </div>\n\n\n            <div class=\"user-info\">\n\n                <h2>\n                    <?php\n                    echo htmlspecialchars(\n                        $receiver[\"username\"]\n                    );\n                    ?>\n                </h2>\n\n\n                <span class=\"online-status <?php echo $isOnline ? 'online' : 'offline'; ?>\">\n                    <?php echo $isOnline ? \"Online\" : \"Offline\"; ?>\n                </span>\n\n            </div>\n\n        </header>\n\n\n\n        <!-- MESSAGES -->\n\n        <main\n            id=\"messages\"\n            class=\"messages\"\n\n            data-receiver-id=\"<?php echo $receiver_id; ?>\"\n\n            data-current-user-id=\"<?php echo $_SESSION[\"user_id\"]; ?>\"\n        >\n\n            <?php while ($message = $messages->fetch_assoc()) { ?>\n\n                <?php\n\n                $isMine =\n                    $message[\"sender_id\"]\n                    == $_SESSION[\"user_id\"];\n\n                ?>\n\n                <div\n                    class=\"message-row <?php echo $isMine ? \"mine\" : \"theirs\"; ?>\"\n                >\n\n                    <div class=\"message-bubble\">\n\n                        <?php\n                        echo htmlspecialchars(\n                            $message[\"message\"]\n                        );\n                        ?>\n\n                    </div>\n\n                </div>\n\n            <?php } ?>\n\n        </main>\n\n\n\n        <!-- MESSAGE INPUT -->\n\n        <form\n            method=\"POST\"\n            action=\"send-message.php\"\n            class=\"message-form\"\n            id=\"message-form\"\n        >\n\n            <input\n                type=\"hidden\"\n                name=\"receiver_id\"\n                value=\"<?php echo $receiver_id; ?>\"\n            >\n\n\n            <input\n                type=\"text\"\n                name=\"message\"\n                id=\"message-input\"\n                class=\"message-input\"\n                placeholder=\"Type a message...\"\n                autocomplete=\"off\"\n                autofocus\n                required\n            >\n\n\n            <button\n                type=\"submit\"\n                class=\"send-button\"\n                aria-label=\"Send message\"\n            >\n                ➤\n            </button>\n\n        </form>\n\n    </div>\n\n\n    <script src=\"script.js?v=2\"></script>\n\n</body>\n\n</html>"
+        },
+        {
+            "path": "dashboard.php",
+            "content": "<?php\n\nsession_start();\n\nrequire \"config.php\";\n\nif (!isset($_SESSION[\"user_id\"])) {\n    header(\"Location: index.php\");\n    exit();\n}\n\n\n// Current logged-in user\n$current_user_id = $_SESSION[\"user_id\"];\n\n\n// Get active users\n$sql = \"SELECT id, username\n        FROM users\n        WHERE last_seen >= NOW() - INTERVAL 10 SECOND\n        AND id != ?\";\n\n$stmt = $conn->prepare($sql);\n\n$stmt->bind_param(\n    \"i\",\n    $current_user_id\n);\n\n$stmt->execute();\n\n$result = $stmt->get_result();\n\n?>\n\n<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n\n    <meta charset=\"UTF-8\">\n\n    <meta\n        name=\"viewport\"\n        content=\"width=device-width, initial-scale=1.0\"\n    >\n\n    <title>Messages</title>\n\n    <link rel=\"stylesheet\" href=\"style.css\">\n\n</head>\n\n\n<body class=\"dashboard-body\">\n\n    <div class=\"dashboard-page\">\n\n\n        <!-- HEADER -->\n\n        <header class=\"dashboard-header\">\n\n            <div class=\"dashboard-heading\">\n\n                <h1>Messages</h1>\n\n                <p>\n                    Welcome back,\n                    <strong>\n                        <?php\n                        echo htmlspecialchars(\n                            $_SESSION[\"username\"]\n                        );\n                        ?>\n                    </strong>\n                </p>\n\n            </div>\n\n\n            <a\n                href=\"index.php?logout=true\"\n                class=\"logout-button\"\n            >\n                Logout\n            </a>\n\n        </header>\n\n\n\n        <!-- MAIN CONTENT -->\n\n        <main class=\"dashboard-content\">\n\n\n            <div class=\"users-title\">\n\n                <h2>Active now</h2>\n\n                <span class=\"active-count\">\n\n                    <?php\n                    echo $result->num_rows;\n                    ?>\n\n                    online\n\n                </span>\n\n            </div>\n\n\n\n            <!-- USERS -->\n\n            <div class=\"users-list\">\n\n                <?php if ($result->num_rows > 0) { ?>\n\n\n                    <?php while ($user = $result->fetch_assoc()) { ?>\n\n\n                        <a\n                            href=\"conversation.php?user_id=<?php echo $user[\"id\"]; ?>\"\n                            class=\"user-card\"\n                        >\n\n\n                            <!-- AVATAR -->\n\n                            <div class=\"user-avatar\">\n\n                                <?php\n\n                                echo strtoupper(\n                                    substr(\n                                        $user[\"username\"],\n                                        0,\n                                        1\n                                    )\n                                );\n\n                                ?>\n\n                                <span class=\"online-dot\"></span>\n\n                            </div>\n\n\n\n                            <!-- USER DETAILS -->\n\n                            <div class=\"user-details\">\n\n                                <strong>\n\n                                    <?php\n\n                                    echo htmlspecialchars(\n                                        $user[\"username\"]\n                                    );\n\n                                    ?>\n\n                                </strong>\n\n\n                                <span>\n                                    Online now\n                                </span>\n\n                            </div>\n\n\n\n                            <!-- ARROW -->\n\n                            <div class=\"user-arrow\">\n                                ›\n                            </div>\n\n\n                        </a>\n\n\n                    <?php } ?>\n\n\n                <?php } else { ?>\n\n\n                    <div class=\"no-users\">\n\n                        <div class=\"no-users-icon\">\n                            ◌\n                        </div>\n\n                        <h3>No one is online</h3>\n\n                        <p>\n                            Active users will appear here.\n                        </p>\n\n                    </div>\n\n\n                <?php } ?>\n\n            </div>\n\n\n        </main>\n\n\n    </div>\n\n\n    <script src=\"script.js?v=12\"></script>\n\n</body>\n\n</html>"
+        },
+        {
+            "path": "fetch-messages.php",
+            "content": "<?php\n\nsession_start();\n\nrequire \"config.php\";\n\nif (!isset($_SESSION[\"user_id\"])) {\n    exit();\n}\n\n\n// Delete messages older than 24 hours\n\n$sql = \"DELETE FROM messages\n        WHERE created_at < NOW() - INTERVAL 1 DAY\";\n\n$conn->query($sql);\n\n\nif (!isset($_GET[\"receiver_id\"])) {\n    exit();\n}\n\n$current_user_id = (int) $_SESSION[\"user_id\"];\n$receiver_id = (int) $_GET[\"receiver_id\"];\n\n$sql = \"SELECT *\n        FROM messages\n        WHERE\n            (sender_id = ? AND receiver_id = ?)\n            OR\n            (sender_id = ? AND receiver_id = ?)\n        ORDER BY created_at ASC\";\n\n$stmt = $conn->prepare($sql);\n\n$stmt->bind_param(\n    \"iiii\",\n    $current_user_id,\n    $receiver_id,\n    $receiver_id,\n    $current_user_id\n);\n\n$stmt->execute();\n\n$messages = $stmt->get_result();\n\nwhile ($message = $messages->fetch_assoc()) {\n\n    $isMine = $message[\"sender_id\"] == $current_user_id;\n\n    $class = $isMine ? \"mine\" : \"theirs\";\n\n    echo '<div class=\"message-row ' . $class . '\">';\n    echo '<div class=\"message-bubble\">';\n    echo htmlspecialchars($message[\"message\"]);\n    echo '</div>';\n    echo '</div>';\n}"
+        },
+        {
+            "path": "heartbeat.php",
+            "content": "<?php\n\nsession_start();\n\nrequire \"config.php\";\n\nif (!isset($_SESSION[\"user_id\"])) {\n    exit();\n}\n\n$user_id = $_SESSION[\"user_id\"];\n$sql = \"UPDATE users\n        SET last_seen = NOW()\n        WHERE id = ?\";\n\n$stmt = $conn->prepare($sql);\n$stmt->bind_param(\"i\", $user_id);\n$stmt->execute();\n\n?>\n\n"
+        },
+        {
+            "path": "index.php",
+            "content": "<?php\n\nsession_start();\n\nrequire \"config.php\";\n\n\n// LOGOUT\nif (isset($_GET[\"logout\"]) && $_GET[\"logout\"] === \"true\") {\n\n    if (isset($_SESSION[\"user_id\"])) {\n\n        $user_id = $_SESSION[\"user_id\"];\n\n        $sql = \"UPDATE users\n                SET last_seen = NULL\n                WHERE id = ?\";\n\n        $stmt = $conn->prepare($sql);\n        $stmt->bind_param(\"i\", $user_id);\n        $stmt->execute();\n    }\n\n    session_unset();\n    session_destroy();\n\n    header(\"Location: index.php\");\n    exit();\n}\n\n\n$error = \"\";\n\nif ($_SERVER[\"REQUEST_METHOD\"] == \"POST\") {\n\n    $username = trim($_POST[\"username\"]);\n    $password = $_POST[\"password\"];\n\n    $sql = \"SELECT id, username, password\n            FROM users\n            WHERE username = ?\";\n\n    $stmt = $conn->prepare($sql);\n    $stmt->bind_param(\"s\", $username);\n\n    $stmt->execute();\n\n    $result = $stmt->get_result();\n\n    if ($result->num_rows == 1) {\n\n        $user = $result->fetch_assoc();\n\n        if (password_verify($password, $user[\"password\"])) {\n\n            $_SESSION[\"user_id\"] = $user[\"id\"];\n            $_SESSION[\"username\"] = $user[\"username\"];\n\n            header(\"Location: dashboard.php\");\n            exit();\n\n        } else {\n\n            $error = \"Wrong password\";\n\n        }\n\n    } else {\n\n        $error = \"User not found\";\n\n    }\n}\n\n?>\n\n<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n\n    <meta charset=\"UTF-8\">\n\n    <meta\n        name=\"viewport\"\n        content=\"width=device-width, initial-scale=1.0\"\n    >\n\n    <title>Login</title>\n\n    <link rel=\"stylesheet\" href=\"style.css?v=20\">\n\n</head>\n\n\n<body class=\"auth-body\">\n\n\n    <main class=\"auth-page\">\n\n\n        <div class=\"auth-card\">\n\n\n            <!-- LOGO -->\n\n            <div class=\"auth-brand\">\n                <div class=\"auth-brand-icon\">A</div>\n                <div class=\"auth-brand-name\">AnyoneHere</div>\n            </div>\n\n\n            <!-- TITLE -->\n\n            <div class=\"auth-heading\">\n\n                <h1>Welcome back</h1>\n\n                <p>\n                    Sign in to continue to Messages\n                </p>\n\n            </div>\n\n\n\n            <!-- ERROR -->\n\n            <?php if ($error !== \"\") { ?>\n\n                <div class=\"auth-error\">\n\n                    <?php\n                    echo htmlspecialchars($error);\n                    ?>\n\n                </div>\n\n            <?php } ?>\n\n\n\n            <!-- FORM -->\n\n            <form\n                method=\"POST\"\n                class=\"auth-form\"\n            >\n\n\n                <div class=\"auth-field\">\n\n                    <label for=\"username\">\n                        Username\n                    </label>\n\n                    <input\n                        id=\"username\"\n                        type=\"text\"\n                        name=\"username\"\n                        placeholder=\"Enter your username\"\n                        autocomplete=\"username\"\n                        required\n                    >\n\n                </div>\n\n\n\n                <div class=\"auth-field\">\n\n                    <label for=\"password\">\n                        Password\n                    </label>\n\n                    <input\n                        id=\"password\"\n                        type=\"password\"\n                        name=\"password\"\n                        placeholder=\"Enter your password\"\n                        autocomplete=\"current-password\"\n                        required\n                    >\n\n                </div>\n\n\n\n                <button\n                    type=\"submit\"\n                    class=\"auth-button\"\n                >\n                    Sign in\n                </button>\n\n\n            </form>\n\n\n\n            <!-- REGISTER -->\n\n            <div class=\"auth-footer\">\n\n                <span>\n                    Don't have an account?\n                </span>\n\n                <a href=\"register.php\">\n                    Create account\n                </a>\n\n            </div>\n\n\n        </div>\n\n\n    </main>\n\n\n</body>\n\n</html>"
+        },
+        {
+            "path": "register.php",
+            "content": "<?php\n\nrequire \"config.php\";\n\n$message = \"\";\n\nif ($_SERVER[\"REQUEST_METHOD\"] == \"POST\") {\n\n    $username = $_POST[\"username\"];\n    $password = $_POST[\"password\"];\n\n    $hashed_password = password_hash(\n        $password,\n        PASSWORD_DEFAULT\n    );\n\n    $sql = \"INSERT INTO users (username, password)\n            VALUES (?, ?)\";\n\n    $stmt = $conn->prepare($sql);\n\n    $stmt->bind_param(\n        \"ss\",\n        $username,\n        $hashed_password\n    );\n\n    $stmt->execute();\n\n    $message = \"User registered successfully\";\n}\n\n?>\n\n<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n\n    <meta charset=\"UTF-8\">\n\n    <meta\n        name=\"viewport\"\n        content=\"width=device-width, initial-scale=1.0\"\n    >\n\n    <title>Register</title>\n\n    <link rel=\"stylesheet\" href=\"style.css?v=22\">\n\n</head>\n\n\n<body class=\"auth-body\">\n\n\n    <main class=\"auth-page\">\n\n\n        <div class=\"auth-card\">\n\n\n            <div class=\"auth-brand\">\n                <div class=\"auth-brand-icon\">A</div>\n                <div class=\"auth-brand-name\">AnyoneHere</div>\n            </div>\n\n\n            <div class=\"auth-heading\">\n\n                <h1>Create account</h1>\n\n                <p>\n                    Join Messages and start chatting\n                </p>\n\n            </div>\n\n\n            <?php if ($message !== \"\") { ?>\n\n                <div class=\"auth-success\">\n\n                    <?php\n                    echo htmlspecialchars($message);\n                    ?>\n\n                </div>\n\n            <?php } ?>\n\n\n            <form\n                method=\"POST\"\n                class=\"auth-form\"\n            >\n\n\n                <div class=\"auth-field\">\n\n                    <label for=\"username\">\n                        Username\n                    </label>\n\n                    <input\n                        id=\"username\"\n                        type=\"text\"\n                        name=\"username\"\n                        placeholder=\"Choose a username\"\n                        autocomplete=\"username\"\n                        required\n                    >\n\n                </div>\n\n\n                <div class=\"auth-field\">\n\n                    <label for=\"password\">\n                        Password\n                    </label>\n\n                    <input\n                        id=\"password\"\n                        type=\"password\"\n                        name=\"password\"\n                        placeholder=\"Create a password\"\n                        autocomplete=\"new-password\"\n                        required\n                    >\n\n                </div>\n\n\n                <button\n                    type=\"submit\"\n                    class=\"auth-button\"\n                >\n                    Create account\n                </button>\n\n\n            </form>\n\n\n            <div class=\"auth-footer\">\n\n                <span>\n                    Already have an account?\n                </span>\n\n                <a href=\"index.php\">\n                    Sign in\n                </a>\n\n            </div>\n\n\n        </div>\n\n\n    </main>\n\n\n</body>\n\n</html>"
+        },
+        {
+            "path": "script.js",
+            "content": "function sendHeartbeat() {\n    fetch(\"heartbeat.php\");\n}\n\nsendHeartbeat();\nsetInterval(sendHeartbeat, 5000);\n\n\nconst messagesBox = document.getElementById(\"messages\");\nconst messageInput = document.querySelector(\".message-input\");\n\nconst receiverId = messagesBox.dataset.receiverId;\n\nconst messageForm = document.querySelector(\".message-form\");\n\nmessageForm.addEventListener(\"submit\", async function (event) {\n    event.preventDefault();\n\n    const message = messageInput.value.trim();\n\n    if (message === \"\") return;\n\n    const formData = new FormData(messageForm);\n\n    try {\n        await fetch(\"send-message.php\", {\n            method: \"POST\",\n            body: formData\n        });\n\n        messageInput.value = \"\";\n\n        await loadMessages();\n\n        messagesBox.scrollTop = messagesBox.scrollHeight;\n\n        messageInput.focus();\n\n    } catch (error) {\n        console.error(\"Error sending message:\", error);\n    }\n});\n\nfunction scrollToBottom() {\n    messagesBox.scrollTop = messagesBox.scrollHeight;\n}\n\n\nlet lastMessagesHTML = \"\";\n\nfunction loadMessages() {\n    return fetch(`fetch-messages.php?receiver_id=${receiverId}`)\n        .then(response => response.text())\n        .then(data => {\n\n            if (data !== lastMessagesHTML) {\n\n                messagesBox.innerHTML = data;\n                lastMessagesHTML = data;\n\n                scrollToBottom();\n            }\n        });\n}\n\n\nloadMessages();\n\nsetInterval(loadMessages, 1000);\n\n\n/* Keep typing focus */\n\ndocument.addEventListener(\"keydown\", function (event) {\n\n    if (\n        document.activeElement !== messageInput &&\n        !event.metaKey &&\n        !event.ctrlKey &&\n        !event.altKey\n    ) {\n        messageInput.focus();\n    }\n\n});\n\n\nconst onlineStatus = document.querySelector(\".online-status\");\n\nfunction checkUserStatus() {\n\n    if (!onlineStatus || !receiverId) {\n        return;\n    }\n\n    fetch(`user-status.php?user_id=${receiverId}`)\n        .then(response => response.text())\n        .then(status => {\n\n            status = status.trim();\n\n            if (status === \"online\") {\n\n                onlineStatus.textContent = \"Online\";\n\n                onlineStatus.classList.add(\"online\");\n                onlineStatus.classList.remove(\"offline\");\n\n            } else {\n\n                onlineStatus.textContent = \"Offline\";\n\n                onlineStatus.classList.add(\"offline\");\n                onlineStatus.classList.remove(\"online\");\n\n            }\n\n        });\n\n}\n\ncheckUserStatus();\n\nsetInterval(checkUserStatus, 3000);"
+        },
+        {
+            "path": "send-message.php",
+            "content": "<?php\n\nsession_start();\n\nrequire \"config.php\";\n\nif (!isset($_SESSION[\"user_id\"])) {\n    header(\"Location: index.php\");\n    exit();\n}\n\n$sender_id = $_SESSION[\"user_id\"];\n$receiver_id = $_POST[\"receiver_id\"];\n$message = $_POST[\"message\"];\n\n$sql = \"INSERT INTO messages (sender_id, receiver_id, message)\n        VALUES (?, ?, ?)\";\n\n$stmt = $conn->prepare($sql);\n\n$stmt->bind_param(\n    \"iis\",\n    $sender_id,\n    $receiver_id,\n    $message\n);\n\n$stmt->execute();\n\nheader(\"Location: chat.php?user_id=\" . $receiver_id);\nexit();\n?>"
+        },
+        {
+            "path": "style.css",
+            "content": "* {\n    margin: 0;\n    padding: 0;\n    box-sizing: border-box;\n}\n\nhtml,\nbody {\n    width: 100%;\n    height: 100%;\n}\n\nbody {\n    overflow: hidden;\n\n    font-family:\n        -apple-system,\n        BlinkMacSystemFont,\n        \"Segoe UI\",\n        Roboto,\n        sans-serif;\n\n    background: #f5f6f8;\n}\n\n\n/* PAGE */\n\n.chat-page {\n    width: 100%;\n    height: 100dvh;\n\n    display: flex;\n    flex-direction: column;\n\n    background: #f5f6f8;\n}\n\n.online-status.online {\n    color: #00c853;\n}\n\n.online-status.offline {\n    color: #999;\n}\n\n/* HEADER */\n\n.chat-header {\n    height: 76px;\n\n    flex-shrink: 0;\n\n    display: flex;\n    align-items: center;\n\n    gap: 14px;\n\n    padding: 12px 24px;\n\n    background: rgba(255, 255, 255, 0.96);\n\n    border-bottom: 1px solid #e5e7eb;\n\n    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);\n\n    z-index: 10;\n}\n\n\n.back-button {\n    width: 40px;\n    height: 40px;\n\n    display: flex;\n    align-items: center;\n    justify-content: center;\n\n    flex-shrink: 0;\n\n    border-radius: 50%;\n\n    color: #18181b;\n\n    font-size: 26px;\n    text-decoration: none;\n\n    transition: background 0.2s;\n}\n\n\n.back-button:hover {\n    background: #f0f0f0;\n}\n\n\n.avatar {\n    width: 46px;\n    height: 46px;\n\n    flex-shrink: 0;\n\n    display: flex;\n    align-items: center;\n    justify-content: center;\n\n    border-radius: 50%;\n\n    background: #18181b;\n    color: white;\n\n    font-size: 18px;\n    font-weight: 600;\n}\n\n\n.user-info h2 {\n    margin: 0;\n\n    color: #18181b;\n\n    font-size: 17px;\n    font-weight: 650;\n}\n\n\n.user-info span {\n    display: block;\n\n    margin-top: 2px;\n\n    color: #16a34a;\n\n    font-size: 12px;\n    font-weight: 500;\n}\n\n\n/* MESSAGE AREA */\n\n.messages {\n    flex: 1;\n    min-height: 0;\n\n    overflow-y: auto;\n    overflow-x: hidden;\n\n    display: flex;\n    flex-direction: column;\n\n    gap: 5px;\n\n    padding: 28px max(24px, calc((100% - 900px) / 2));\n\n    scroll-behavior: smooth;\n\n    background:\n        radial-gradient(\n            circle at top left,\n            rgba(0, 0, 0, 0.025),\n            transparent 35%\n        ),\n        #f5f6f8;\n}\n\n\n/* MESSAGE ROW */\n\n.message-row {\n    width: 100%;\n\n    display: flex;\n\n    margin: 2px 0;\n}\n\n\n.message-row.mine {\n    justify-content: flex-end;\n}\n\n\n.message-row.theirs {\n    justify-content: flex-start;\n}\n\n\n/* BUBBLES */\n\n.message-bubble {\n    max-width: min(68%, 550px);\n\n    padding: 10px 15px;\n\n    font-size: 15px;\n    line-height: 1.45;\n\n    word-break: break-word;\n\n    animation: messageAppear 0.15s ease;\n}\n\n\n.mine .message-bubble {\n    background: #18181b;\n    color: white;\n\n    border-radius: 18px 18px 5px 18px;\n}\n\n\n.theirs .message-bubble {\n    background: white;\n    color: #18181b;\n\n    border: 1px solid #e5e7eb;\n\n    border-radius: 18px 18px 18px 5px;\n\n    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);\n}\n\n\n@keyframes messageAppear {\n\n    from {\n        opacity: 0;\n        transform: translateY(4px);\n    }\n\n    to {\n        opacity: 1;\n        transform: translateY(0);\n    }\n\n}\n\n\n/* INPUT AREA */\n\n.message-form {\n    flex-shrink: 0;\n\n    display: flex;\n    align-items: center;\n\n    gap: 10px;\n\n    padding:\n        12px\n        max(20px, calc((100% - 1000px) / 2))\n        calc(12px + env(safe-area-inset-bottom));\n\n    background: rgba(255, 255, 255, 0.96);\n\n    border-top: 1px solid #e5e7eb;\n\n    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03);\n}\n\n\n.message-input {\n    flex: 1;\n\n    min-width: 0;\n    height: 50px;\n\n    padding: 0 20px;\n\n    border: 1px solid #dfe1e5;\n    border-radius: 25px;\n\n    outline: none;\n\n    background: #f5f6f8;\n\n    color: #18181b;\n\n    font-size: 15px;\n\n    transition:\n        background 0.2s,\n        border-color 0.2s,\n        box-shadow 0.2s;\n}\n\n\n.message-input:focus {\n    background: white;\n\n    border-color: #b5b5b5;\n\n    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);\n}\n\n\n.send-button {\n    width: 50px;\n    height: 50px;\n\n    flex-shrink: 0;\n\n    display: flex;\n    align-items: center;\n    justify-content: center;\n\n    border: none;\n    border-radius: 50%;\n\n    background: #18181b;\n    color: white;\n\n    font-size: 17px;\n\n    cursor: pointer;\n\n    transition:\n        transform 0.15s,\n        background 0.15s;\n}\n\n\n.send-button:hover {\n    background: #303034;\n    transform: scale(1.04);\n}\n\n\n.send-button:active {\n    transform: scale(0.94);\n}\n\n\n/* SCROLLBAR */\n\n.messages::-webkit-scrollbar {\n    width: 5px;\n}\n\n\n.messages::-webkit-scrollbar-thumb {\n    background: #d4d4d4;\n    border-radius: 20px;\n}\n\n\n/* MOBILE */\n\n@media (max-width: 600px) {\n\n    .chat-header {\n        height: 66px;\n\n        gap: 10px;\n\n        padding: 8px 10px;\n    }\n\n\n    .back-button {\n        width: 36px;\n        height: 36px;\n\n        font-size: 23px;\n    }\n\n\n    .avatar {\n        width: 40px;\n        height: 40px;\n\n        font-size: 16px;\n    }\n\n\n    .user-info h2 {\n        font-size: 16px;\n    }\n\n\n    .messages {\n        padding: 16px 10px;\n    }\n\n\n    .message-bubble {\n        max-width: 82%;\n\n        padding: 9px 13px;\n\n        font-size: 14px;\n    }\n\n\n    .message-form {\n        gap: 8px;\n\n        padding:\n            9px\n            10px\n            calc(9px + env(safe-area-inset-bottom));\n    }\n\n\n    .message-input {\n        height: 46px;\n\n        padding: 0 16px;\n\n        font-size: 16px;\n    }\n\n\n    .send-button {\n        width: 46px;\n        height: 46px;\n    }\n\n}\n\n\n/* =========================\n   DASHBOARD\n========================= */\n\n.dashboard-body {\n    margin: 0;\n    min-height: 100vh;\n\n    background: #f4f5f7;\n\n    font-family:\n        -apple-system,\n        BlinkMacSystemFont,\n        \"Segoe UI\",\n        sans-serif;\n\n    color: #18181b;\n}\n\n\n.dashboard-page {\n    min-height: 100vh;\n}\n\n\n/* HEADER */\n\n.dashboard-header {\n    height: 80px;\n\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n\n    padding: 0 32px;\n\n    background: #ffffff;\n\n    border-bottom: 1px solid #e5e7eb;\n\n    box-sizing: border-box;\n}\n\n\n.dashboard-heading h1 {\n    margin: 0;\n\n    font-size: 22px;\n    font-weight: 700;\n}\n\n\n.dashboard-heading p {\n    margin: 4px 0 0;\n\n    color: #71717a;\n\n    font-size: 13px;\n}\n\n\n.logout-button {\n    padding: 9px 16px;\n\n    background: #18181b;\n    color: #ffffff;\n\n    border-radius: 10px;\n\n    text-decoration: none;\n\n    font-size: 14px;\n    font-weight: 600;\n\n    transition: 0.2s;\n}\n\n\n.logout-button:hover {\n    background: #2b2b2f;\n\n    transform: translateY(-1px);\n}\n\n\n/* CONTENT */\n\n.dashboard-content {\n    width: 100%;\n    max-width: 700px;\n\n    margin: 0 auto;\n\n    padding: 38px 20px;\n\n    box-sizing: border-box;\n}\n\n\n/* TITLE */\n\n.users-title {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n\n    margin-bottom: 14px;\n}\n\n\n.users-title h2 {\n    margin: 0;\n\n    font-size: 17px;\n}\n\n\n.active-count {\n    color: #71717a;\n\n    font-size: 13px;\n}\n\n\n/* USERS */\n\n.users-list {\n    display: flex;\n    flex-direction: column;\n\n    gap: 10px;\n}\n\n\n/* CARD */\n\n.user-card {\n    display: flex;\n    align-items: center;\n\n    gap: 14px;\n\n    padding: 14px 16px;\n\n    background: #ffffff;\n\n    border: 1px solid #e5e7eb;\n    border-radius: 16px;\n\n    color: inherit;\n    text-decoration: none;\n\n    transition:\n        transform 0.18s ease,\n        box-shadow 0.18s ease;\n}\n\n\n.user-card:hover {\n    transform: translateY(-2px);\n\n    box-shadow:\n        0 10px 30px rgba(0, 0, 0, 0.06);\n}\n\n\n/* AVATAR */\n\n.user-avatar {\n    position: relative;\n\n    width: 48px;\n    height: 48px;\n\n    flex-shrink: 0;\n\n    display: flex;\n    align-items: center;\n    justify-content: center;\n\n    background: #18181b;\n    color: white;\n\n    border-radius: 50%;\n\n    font-weight: 700;\n}\n\n\n/* ONLINE DOT */\n\n.online-dot {\n    position: absolute;\n\n    right: 0;\n    bottom: 1px;\n\n    width: 11px;\n    height: 11px;\n\n    background: #22c55e;\n\n    border: 2px solid white;\n    border-radius: 50%;\n}\n\n\n/* USER DETAILS */\n\n.user-details {\n    flex: 1;\n\n    display: flex;\n    flex-direction: column;\n\n    gap: 4px;\n}\n\n\n.user-details strong {\n    font-size: 15px;\n}\n\n\n.user-details span {\n    color: #22c55e;\n\n    font-size: 12px;\n}\n\n\n/* ARROW */\n\n.user-arrow {\n    color: #a1a1aa;\n\n    font-size: 26px;\n\n    transition: transform 0.2s ease;\n}\n\n\n.user-card:hover .user-arrow {\n    transform: translateX(4px);\n}\n\n\n/* EMPTY STATE */\n\n.no-users {\n    padding: 70px 20px;\n\n    text-align: center;\n\n    color: #71717a;\n}\n\n\n.no-users-icon {\n    margin-bottom: 10px;\n\n    font-size: 42px;\n}\n\n\n.no-users h3 {\n    margin: 0 0 6px;\n\n    color: #18181b;\n\n    font-size: 16px;\n}\n\n\n.no-users p {\n    margin: 0;\n\n    font-size: 13px;\n}\n\n\n/* MOBILE */\n\n@media (max-width: 600px) {\n\n    .dashboard-header {\n        height: 72px;\n\n        padding: 0 18px;\n    }\n\n\n    .dashboard-heading h1 {\n        font-size: 20px;\n    }\n\n\n    .dashboard-content {\n        padding: 26px 14px;\n    }\n\n\n    .user-card {\n        padding: 12px 14px;\n\n        border-radius: 14px;\n    }\n\n\n    .user-avatar {\n        width: 44px;\n        height: 44px;\n    }\n\n\n    .logout-button {\n        padding: 8px 13px;\n\n        font-size: 13px;\n    }\n\n}\n\n\n/* =========================\n   AUTH / LOGIN\n========================= */\n\n.auth-body {\n    margin: 0;\n    min-height: 100vh;\n\n    background: #f4f5f7;\n\n    font-family:\n        -apple-system,\n        BlinkMacSystemFont,\n        \"Segoe UI\",\n        sans-serif;\n\n    color: #18181b;\n}\n\n\n.auth-page {\n    min-height: 100vh;\n\n    display: flex;\n    align-items: center;\n    justify-content: center;\n\n    padding: 24px;\n\n    box-sizing: border-box;\n}\n\n\n.auth-card {\n    width: 100%;\n    max-width: 390px;\n\n    padding: 38px;\n\n    background: #ffffff;\n\n    border: 1px solid #e5e7eb;\n    border-radius: 24px;\n\n    box-shadow:\n        0 20px 60px rgba(0, 0, 0, 0.06);\n\n    box-sizing: border-box;\n}\n\n\n/* LOGO */\n\n.auth-brand {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n\n    margin-bottom: 26px;\n}\n\n.auth-brand-icon {\n    width: 52px;\n    height: 52px;\n\n    display: flex;\n    align-items: center;\n    justify-content: center;\n\n    background: #18181b;\n    color: white;\n\n    border-radius: 50%;\n\n    font-size: 20px;\n    font-weight: 700;\n\n    flex-shrink: 0;\n}\n\n.auth-brand-name {\n    font-size: 24px;\n    font-weight: 750;\n    letter-spacing: -0.8px;\n    color: #18181b;\n}\n\n/* HEADING */\n\n.auth-heading {\n    margin-bottom: 28px;\n}\n\n\n.auth-heading h1 {\n    margin: 0;\n\n    font-size: 28px;\n    font-weight: 700;\n\n    letter-spacing: -0.7px;\n}\n\n\n.auth-heading p {\n    margin: 8px 0 0;\n\n    color: #71717a;\n\n    font-size: 14px;\n    line-height: 1.5;\n}\n\n\n/* FORM */\n\n.auth-form {\n    display: flex;\n    flex-direction: column;\n\n    gap: 18px;\n}\n\n\n.auth-field {\n    display: flex;\n    flex-direction: column;\n\n    gap: 8px;\n}\n\n\n.auth-field label {\n    font-size: 13px;\n    font-weight: 600;\n}\n\n\n.auth-field input {\n    width: 100%;\n    height: 48px;\n\n    padding: 0 14px;\n\n    background: #ffffff;\n\n    border: 1px solid #d4d4d8;\n    border-radius: 12px;\n\n    outline: none;\n\n    font-size: 14px;\n\n    box-sizing: border-box;\n\n    transition:\n        border-color 0.2s ease,\n        box-shadow 0.2s ease;\n}\n\n\n.auth-field input::placeholder {\n    color: #a1a1aa;\n}\n\n\n.auth-field input:focus {\n    border-color: #18181b;\n\n    box-shadow:\n        0 0 0 3px rgba(24, 24, 27, 0.08);\n}\n\n\n/* BUTTON */\n\n.auth-button {\n    width: 100%;\n    height: 48px;\n\n    margin-top: 4px;\n\n    background: #18181b;\n    color: #ffffff;\n\n    border: none;\n    border-radius: 12px;\n\n    cursor: pointer;\n\n    font-size: 14px;\n    font-weight: 600;\n\n    transition:\n        transform 0.18s ease,\n        background 0.18s ease;\n}\n\n\n.auth-button:hover {\n    background: #2b2b2f;\n\n    transform: translateY(-1px);\n}\n\n\n.auth-button:active {\n    transform: translateY(0);\n}\n\n\n/* ERROR */\n\n.auth-error {\n    margin-bottom: 20px;\n\n    padding: 11px 13px;\n\n    background: #fef2f2;\n    color: #b91c1c;\n\n    border: 1px solid #fecaca;\n    border-radius: 10px;\n\n    font-size: 13px;\n}\n\n\n/* FOOTER */\n\n.auth-footer {\n    display: flex;\n    justify-content: center;\n\n    gap: 5px;\n\n    margin-top: 26px;\n\n    color: #71717a;\n\n    font-size: 13px;\n}\n\n\n.auth-footer a {\n    color: #18181b;\n\n    font-weight: 600;\n    text-decoration: none;\n}\n\n\n.auth-footer a:hover {\n    text-decoration: underline;\n}\n\n\n/* MOBILE */\n\n@media (max-width: 500px) {\n\n    .auth-page {\n        padding: 16px;\n    }\n\n\n    .auth-card {\n        padding: 30px 24px;\n\n        border-radius: 20px;\n    }\n\n\n    .auth-heading h1 {\n        font-size: 25px;\n    }\n\n}\n\n.auth-success {\n    padding: 12px 14px;\n    margin-bottom: 20px;\n\n    background: #f0fff4;\n    color: #16a34a;\n\n    border: 1px solid #bbf7d0;\n    border-radius: 10px;\n\n    font-size: 14px;\n}\n\n"
+        },
+        {
+            "path": "user-status.php",
+            "content": "<?php\n\nsession_start();\n\nrequire \"config.php\";\n\nif (!isset($_SESSION[\"user_id\"])) {\n    exit();\n}\n\nif (!isset($_GET[\"user_id\"])) {\n    exit();\n}\n\n$user_id = (int) $_GET[\"user_id\"];\n\n$sql = \"SELECT last_seen\n        FROM users\n        WHERE id = ?\";\n\n$stmt = $conn->prepare($sql);\n$stmt->bind_param(\"i\", $user_id);\n$stmt->execute();\n\n$result = $stmt->get_result();\n$user = $result->fetch_assoc();\n\nif (!$user || $user[\"last_seen\"] === null) {\n    echo \"offline\";\n    exit();\n}\n\n$isOnline =\n    strtotime($user[\"last_seen\"]) >= time() - 10;\n\necho $isOnline ? \"online\" : \"offline\";\n\n?>"
+        }
+    ],
+    "structure": {
+        ".gitignore": {
+            "type": "file"
+        },
+        "README.md": {
+            "type": "file"
+        },
+        "config.example.php": {
+            "type": "file"
+        },
+        "conversation.php": {
+            "type": "file"
+        },
+        "dashboard.php": {
+            "type": "file"
+        },
+        "database.sql": {
+            "type": "file"
+        },
+        "fetch-messages.php": {
+            "type": "file"
+        },
+        "heartbeat.php": {
+            "type": "file"
+        },
+        "index.php": {
+            "type": "file"
+        },
+        "login-screen.png": {
+            "type": "file"
+        },
+        "register.php": {
+            "type": "file"
+        },
+        "script.js": {
+            "type": "file"
+        },
+        "send-message.php": {
+            "type": "file"
+        },
+        "style.css": {
+            "type": "file"
+        },
+        "user-status.php": {
+            "type": "file"
+        }
+    }
+}

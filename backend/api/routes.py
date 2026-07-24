@@ -36,8 +36,18 @@ def analyze_default(
     result = {
         "repository": repo_info,
         "branch": branch,
-        "tree": get_tree(owner, repo, branch),
-        "files": get_all_files(owner, repo, branch),
+        "tree": get_tree(
+            owner,
+            repo,
+            branch,
+            github_token=github_token,
+        ),
+        "files": get_all_files(
+            owner,
+            repo,
+            branch,
+            github_token=github_token,
+        ),
     }
 
     filename = os.path.join(
@@ -55,8 +65,13 @@ def analyze_branch(
     owner: str,
     repo: str,
     branch: str,
+    github_token=None,
 ):
-    repo_info = get_repo(owner, repo)
+    repo_info = get_repo(
+        owner,
+        repo,
+        github_token=github_token,
+    )
 
     result = {
         "repository": repo_info,

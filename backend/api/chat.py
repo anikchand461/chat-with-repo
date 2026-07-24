@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from backend.database import Chat, User
+from backend.database import Chat, User, Message
 from backend.database.session import get_db
 from backend.auth import get_current_user
 
@@ -29,13 +29,13 @@ def create_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+
+    # --------------------------------------------------
+    # Create new chat
+    # --------------------------------------------------
     branch = req.branch or "main"
-
-    # --------------------------------------------------
-    # Prevent duplicate chats
-    # --------------------------------------------------
-
-    existing = (
+    
+    existing_chat = (
         db.query(Chat)
         .filter(
             Chat.user_id == current_user.id,
@@ -45,20 +45,16 @@ def create_chat(
         )
         .first()
     )
-
-    if existing:
+    
+    if existing_chat:
         return {
-            "chat_id": existing.id,
-            "title": existing.title,
-            "owner": existing.owner,
-            "repo": existing.repo,
-            "branch": existing.branch,
-            "collection_name": existing.collection_name,
+            "chat_id": existing_chat.id,
+            "title": existing_chat.title,
+            "owner": existing_chat.owner,
+            "repo": existing_chat.repo,
+            "branch": existing_chat.branch,
         }
-
-    # --------------------------------------------------
-    # Create new chat
-    # --------------------------------------------------
+    
 
     chat_key = uuid4().hex
     collection_name = f"chat_{current_user.id}_{chat_key}"
@@ -84,7 +80,12 @@ def create_chat(
         from backend.api.routes import analyze_branch
         from backend.rag.pipeline import RAGPipeline
 
-        analyze_branch(req.owner, req.repo, branch)
+        analyze_branch(
+            req.owner,
+            req.repo,
+            branch,
+            github_token=current_user.github_token,
+        )
 
         json_path = Path("data") / f"{req.owner}_{req.repo}_{branch}.json"
 
@@ -168,12 +169,59 @@ def ask(
         json_path,
         collection_name=chat.collection_name,
         persist_directory=str(
-            Path("chroma_db") / "chats" / chat.collection_name
+            Path("chroma_db") / "chats" / chat.collection_name.split("_", 2)[-1]
         ),
     )
 
     answer = rag.ask(req.question)
-
+    
+    db.add(
+        Message(
+            chat_id=chat.id,
+            role="user",
+            content=req.question,
+        )
+    )
+    
+    db.add(
+        Message(
+            chat_id=chat.id,
+            role="assistant",
+            content=answer,
+        )
+    )
+    
+    db.commit()
+    
     return {
-        "answer": answer,
+        "answer": answer
     }
+
+@router.get("/{chat_id}/messages")
+def get_messages(
+    chat_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    chat = db.query(Chat).filter(
+        Chat.id == chat_id,
+        Chat.user_id == current_user.id,
+    ).first()
+
+    if not chat:
+        raise HTTPException(404, "Chat not found")
+
+    messages = (
+        db.query(Message)
+        .filter(Message.chat_id == chat.id)
+        .order_by(Message.created_at)
+        .all()
+    )
+
+    return [
+        {
+            "role": m.role,
+            "content": m.content,
+        }
+        for m in messages
+    ]

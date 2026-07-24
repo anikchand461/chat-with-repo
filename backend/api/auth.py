@@ -38,7 +38,11 @@ def login(credentials: Credentials, db: Session = Depends(get_db)):
 
 @router.get("/me")
 def me(user: User = Depends(get_current_user)):
-    return {"id": user.id, "email": user.email}
+    return {
+        "id": user.id,
+        "email": user.email,
+        "has_github_token": bool(user.github_token),
+    }
 
 @router.post("/github-token")
 def save_github_token(

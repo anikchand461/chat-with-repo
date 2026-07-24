@@ -9,6 +9,7 @@ from rag.vector_store import VectorStore
 from rag.retriever import Retriever
 from rag.reranker import Reranker
 from rag.llm import LLM
+import time
 
 class RAGPipeline:
 
@@ -52,63 +53,131 @@ class RAGPipeline:
 
         print("Repository indexed successfully!")
 
+    # def ask(self, question):
+
+    #     # ---------------- Query Classification ----------------
+
+    #     try:
+    #         query_type = self.query_classifier.classify(question)
+    #     except Exception as e:
+    #         print(f"Query Classification Error: {e}")
+    #         query_type = "lookup"
+
+    #     retrieve_k = 30 if query_type == "analysis" else 20
+    #     rerank_k = 8 if query_type == "analysis" else 5
+
+    #     # print(f"\nQuery Type: {query_type}")
+
+    #     # ---------------- Multi Query Generation ----------------
+
+    #     try:
+    #         queries = self.multi_query.generate(question)
+
+    #         # print("\nGenerated Queries:")
+    #         # for i, query in enumerate(queries, start=1):
+    #         #     print(f"{i}. {query}")
+
+    #     except Exception as e:
+
+    #         print(f"\nMulti Query Error: {e}")
+
+    #         queries = [question]
+
+    #     # ---------------- Retrieval ----------------
+        
+    #     ranked_lists = self.retriever.retrieve(
+    #         queries=queries,
+    #         k=retrieve_k,
+    #     )
+        
+    #     docs = self.rrf.fuse(ranked_lists)
+
+    #     # print(f"\nRetrieved {len(docs)} unique documents")
+
+    #     # ---------------- Reranking ----------------
+
+    #     docs = docs[:30]
+        
+    #     docs = self.reranker.rerank(
+    #         query=question,
+    #         documents=docs,
+    #         top_k=rerank_k,
+    #     )
+
+    #     # print(f"Top {len(docs)} documents after reranking")
+
+    #     # ---------------- Answer Generation ----------------
+
+    #     return self.llm.generate(
+    #         question=question,
+    #         documents=docs,
+    #         repo_name=self.repo_name,
+    #     )
+    
     def ask(self, question):
-
+    
+        total = time.perf_counter()
+    
         # ---------------- Query Classification ----------------
-
+        t = time.perf_counter()
+    
         try:
             query_type = self.query_classifier.classify(question)
         except Exception as e:
             print(f"Query Classification Error: {e}")
             query_type = "lookup"
-
+    
+        print(f"Query Classification: {time.perf_counter()-t:.3f}s")
+    
         retrieve_k = 30 if query_type == "analysis" else 20
         rerank_k = 8 if query_type == "analysis" else 5
-
-        # print(f"\nQuery Type: {query_type}")
-
+    
         # ---------------- Multi Query Generation ----------------
-
+        t = time.perf_counter()
+    
         try:
             queries = self.multi_query.generate(question)
-
-            # print("\nGenerated Queries:")
-            # for i, query in enumerate(queries, start=1):
-            #     print(f"{i}. {query}")
-
         except Exception as e:
-
-            print(f"\nMulti Query Error: {e}")
-
+            print(f"Multi Query Error: {e}")
             queries = [question]
-
+    
+        print(f"Multi Query: {time.perf_counter()-t:.3f}s")
+    
         # ---------------- Retrieval ----------------
-        
+        t = time.perf_counter()
+    
         ranked_lists = self.retriever.retrieve(
             queries=queries,
             k=retrieve_k,
         )
-        
+    
         docs = self.rrf.fuse(ranked_lists)
-
-        # print(f"\nRetrieved {len(docs)} unique documents")
-
+    
+        print(f"Retrieval: {time.perf_counter()-t:.3f}s")
+    
         # ---------------- Reranking ----------------
-
+        t = time.perf_counter()
+    
         docs = docs[:30]
-        
+    
         docs = self.reranker.rerank(
             query=question,
             documents=docs,
             top_k=rerank_k,
         )
-
-        # print(f"Top {len(docs)} documents after reranking")
-
+    
+        print(f"Reranking: {time.perf_counter()-t:.3f}s")
+    
         # ---------------- Answer Generation ----------------
-
-        return self.llm.generate(
+        t = time.perf_counter()
+    
+        answer = self.llm.generate(
             question=question,
             documents=docs,
             repo_name=self.repo_name,
         )
+    
+        print(f"LLM: {time.perf_counter()-t:.3f}s")
+        print(f"TOTAL: {time.perf_counter()-total:.3f}s\n")
+    
+        return answer

@@ -8,15 +8,24 @@
   </head>
   <body>
     <main class="chat-layout">
-      <aside class="sidebar">
-        <a href="dashboard.html"><strong>Dev<span>Lens</span></strong></a>
-        <h2 id="title">Repository chat</h2>
-        <p id="branch"></p>
-        <a class="button" href="dashboard.html">+ New chat</a>
-        <h3>Previous chats</h3>
-        <div id="previous" class="chat-list"></div>
-        <a href="dashboard.html">Back to dashboard</a>
-      </aside>
+        <aside class="sidebar">
+            <a href="dashboard.html"><strong>Dev<span>Lens</span></strong></a>
+        
+            <h2 id="chat-title">Repository chat</h2>
+            <p id="branch"></p>
+        
+            <a class="button" href="dashboard.html">+ New chat</a>
+        
+            <button id="logout" class="button secondary">
+                Logout
+            </button>
+        
+            <h3>Previous chats</h3>
+        
+            <div id="chat-list" class="chat-list"></div>
+        
+            <a href="dashboard.html">Back to dashboard</a>
+        </aside>
 
       <section class="chat">
         <h2>Ask your repository</h2>
