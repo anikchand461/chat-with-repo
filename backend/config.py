@@ -1,10 +1,16 @@
 import os
-
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# GitHub
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+# Cohere
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+
+# Gemini (if using)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 BASE_URL = "https://api.github.com"
 
