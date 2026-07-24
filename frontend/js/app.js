@@ -13,7 +13,8 @@ async function request(path, options = {}) {
     },
   });
 
-  const data = await response.json();
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : {};
 
   if (!response.ok) {
     throw Error(data.detail || 'Request failed');
@@ -46,31 +47,46 @@ function setupAuth(kind) {
 function setupDashboard() {
   loadChats();
 
-  document.querySelector('#create').onclick = () => {
-    document.querySelector('#modal').hidden = false;
+  document.querySelector("#create").onclick = () => {
+    console.log("Open modal");
+    document.querySelector("#modal").hidden = false;
   };
 
-  document.querySelector('#cancel').onclick = () => {
-    document.querySelector('#modal').hidden = true;
+  document.querySelector("#cancel").onclick = () => {
+    document.querySelector("#modal").hidden = true;
   };
 
-  document.querySelector('#create-form').onsubmit = async (e) => {
+  const form = document.querySelector("#create-form");
+
+  form.onsubmit = async (e) => {
     e.preventDefault();
 
-    const error = document.querySelector('#form-error');
+    console.log("FORM SUBMITTED");
+
+    const error = document.querySelector("#form-error");
+    error.textContent = "";
 
     try {
-      const data = await request('/chat/create', {
-        method: 'POST',
+      console.log("Sending request...");
+
+      const data = await request("/chat/create", {
+        method: "POST",
         body: JSON.stringify({
-          owner: document.querySelector('#owner').value,
-          repo: document.querySelector('#repo').value,
-          branch: document.querySelector('#branch').value || 'main',
+          owner: document.querySelector("#owner").value.trim(),
+          repo: document.querySelector("#repo").value.trim(),
+          branch: document.querySelector("#branch").value.trim() || "main",
         }),
       });
 
+      console.log("SUCCESS", data);
+
+      await loadChats();
+
+      document.querySelector("#modal").hidden = true;
+
       location.href = `chat.html?id=${data.chat_id}`;
     } catch (err) {
+      console.error(err);
       error.textContent = err.message;
     }
   };
@@ -84,7 +100,10 @@ async function loadChats() {
       ? chats
           .map(
             (c) =>
-              `<a class="chat-link" href="chat.html?id=${c.chat_id}"><strong>${c.title}</strong><br><small>branch: ${c.branch}</small></a>`
+              `<a class="chat-link" href="chat.html?id=${c.chat_id}">
+                <strong>${c.title}</strong><br>
+                <small>branch: ${c.branch}</small>
+              </a>`
           )
           .join('')
       : '<p>No chats yet. Create one to index a repository.</p>';
@@ -96,9 +115,7 @@ async function loadChats() {
 async function setupChat() {
   const id = new URLSearchParams(location.search).get('id');
 
-  if (!id) {
-    return;
-  }
+  if (!id) return;
 
   const chats = await request('/chat/list');
   const chat = chats.find((item) => String(item.chat_id) === id);
@@ -112,7 +129,12 @@ async function setupChat() {
 
   if (previous) {
     previous.innerHTML = chats
-      .map((item) => `<a class="chat-link" href="chat.html?id=${item.chat_id}">${item.title}</a>`)
+      .map(
+        (item) =>
+          `<a class="chat-link" href="chat.html?id=${item.chat_id}">
+            ${item.title}
+          </a>`
+      )
       .join('');
   }
 
@@ -122,9 +144,7 @@ async function setupChat() {
     const input = document.querySelector('#question');
     const q = input.value.trim();
 
-    if (!q) {
-      return;
-    }
+    if (!q) return;
 
     addMessage(q, 'user');
     input.value = '';
@@ -132,7 +152,9 @@ async function setupChat() {
     try {
       const data = await request(`/chat/${id}/ask`, {
         method: 'POST',
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({
+          question: q,
+        }),
       });
 
       addMessage(data.answer, 'assistant');
@@ -146,7 +168,12 @@ function addMessage(text, role) {
   const node = document.createElement('div');
   node.className = `message ${role}`;
   node.textContent = text;
+
   document.querySelector('#messages').appendChild(node);
+  node.scrollIntoView({
+    behavior: 'smooth',
+    block: 'end',
+  });
 }
 
 function setupProfile() {

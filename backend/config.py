@@ -21,3 +21,5 @@ HEADERS = {
 
 if GITHUB_TOKEN:
     HEADERS["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+
+# print("GitHub Token:", GITHUB_TOKEN)

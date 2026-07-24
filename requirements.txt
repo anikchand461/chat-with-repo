@@ -11,3 +11,4 @@ langchain_groq
 langchain-text-splitters
 beautifulsoup4
 langchain-cohere
+langchain_core
