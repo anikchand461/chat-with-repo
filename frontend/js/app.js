@@ -23,6 +23,13 @@ async function request(path, options = {}) {
   return data;
 }
 
+// ====================== LOGOUT FUNCTION ======================
+function logout() {
+  localStorage.removeItem('devlens_token');
+  window.location.href = 'login.html';
+}
+// ============================================================
+
 function setupAuth(kind) {
   document.querySelector('#auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();

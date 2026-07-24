@@ -1,5 +1,8 @@
 from rag.vector_store import VectorStore
+from dotenv import load_dotenv
+import os
 
+load_dotenv()  # ← Add this line at the very top
 
 class Retriever:
 

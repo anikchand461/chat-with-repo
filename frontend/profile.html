@@ -16,14 +16,20 @@
       <section class="card narrow">
         <h1>Profile</h1>
         <p>Add a GitHub token to access private repositories and improve API limits.</p>
+        
         <form id="token-form">
           <label>
             GitHub access token
             <input id="token" type="password" required placeholder="ghp_...">
           </label>
           <p id="status"></p>
-          <button class="button">Save token</button>
+          <button type="submit" class="button">Save token</button>
         </form>
+
+        <!-- Logout Button -->
+        <button onclick="logout()" class="button secondary" style="background: #b33226; margin-top: 20px;">
+          Logout
+        </button>
       </section>
     </main>
 
