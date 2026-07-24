@@ -199,3 +199,21 @@ input {
     display: block;
   }
 }
+
+.github-warning {
+    margin: 24px 0;
+    padding: 16px 20px;
+    background: #fff8e5;
+    border: 1px solid #f4b400;
+    border-radius: 12px;
+    color: #5f4300;
+}
+
+.github-warning strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.github-warning a {
+    font-weight: 600;
+}

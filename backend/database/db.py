@@ -28,4 +28,15 @@ class Chat(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     user = relationship("User", back_populates="chats")
 
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"))
+    role = Column(String)          # user / assistant
+    content = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    chat = relationship("Chat")
+
 Base.metadata.create_all(bind=engine)

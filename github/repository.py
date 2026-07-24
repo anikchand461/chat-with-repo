@@ -1,9 +1,10 @@
 from .client import github_get
 
 
-def get_repo(owner, repo):
+def get_repo(owner, repo, github_token=None):
     return github_get(
-        f"/repos/{owner}/{repo}"
+        f"/repos/{owner}/{repo}",
+        github_token=github_token,
     )
 
 

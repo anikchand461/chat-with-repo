@@ -8,17 +8,36 @@
   </head>
   <body>
     <main class="page">
-      <nav>
-        <a href="dashboard.html"><strong>Dev<span>Lens</span></strong></a>
-        <a href="profile.html">Profile</a>
-      </nav>
+        <nav>
+            <a href="dashboard.html"><strong>Dev<span>Lens</span></strong></a>
+        
+            <div class="nav-right">
+                <a href="profile.html">Profile</a>
+                <button id="logout" class="logout-btn">Logout</button>
+            </div>
+        </nav>
 
       <section class="dashboard">
         <div>
-          <p>REPOSITORY INTELLIGENCE</p>
-          <h1>Your codebase, in conversation.</h1>
-          <p>Each chat indexes exactly one repository into its own Chroma collection.</p>
-          <button id="create" class="button">+ Create Chat</button>
+            <h5>REPOSITORY INTELLIGENCE</h5>
+            
+            <h1>Your codebase, in conversation.</h1>
+            
+            <p>
+                Each chat indexes exactly one repository into its own Chroma collection.
+            </p>
+            
+            <div id="github-warning" hidden class="warning">
+                <strong>⚠ GitHub Token Not Configured</strong>
+                <p>
+                    DevLens works without a GitHub token, but GitHub's public API has a much lower rate limit.
+                    Add your GitHub Personal Access Token from the
+                    <a href="profile.html">Profile</a>
+                    page for better performance.
+                </p>
+            </div>
+            
+            <button id="create">+ Create Chat</button>
         </div>
 
         <div>

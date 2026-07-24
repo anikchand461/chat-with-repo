@@ -54,8 +54,8 @@ def get_file(owner, repo, path, branch=None):
     }
 
 
-def get_all_files(owner, repo, branch=None):
-    tree = get_tree(owner, repo, branch)
+def get_all_files(owner, repo, branch=None, github_token=None):
+    tree = get_tree(owner, repo, branch, github_token=github_token)
 
     files = []
 
