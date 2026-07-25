@@ -1,0 +1,414 @@
+{
+    "repository": {
+        "id": 1254438769,
+        "node_id": "R_kgDOSsU3cQ",
+        "name": "crud-go",
+        "full_name": "anikchand461/crud-go",
+        "private": false,
+        "owner": {
+            "login": "anikchand461",
+            "id": 161185149,
+            "node_id": "U_kgDOCZt9fQ",
+            "avatar_url": "https://avatars.githubusercontent.com/u/161185149?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/anikchand461",
+            "html_url": "https://github.com/anikchand461",
+            "followers_url": "https://api.github.com/users/anikchand461/followers",
+            "following_url": "https://api.github.com/users/anikchand461/following{/other_user}",
+            "gists_url": "https://api.github.com/users/anikchand461/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/anikchand461/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/anikchand461/subscriptions",
+            "organizations_url": "https://api.github.com/users/anikchand461/orgs",
+            "repos_url": "https://api.github.com/users/anikchand461/repos",
+            "events_url": "https://api.github.com/users/anikchand461/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/anikchand461/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+        },
+        "html_url": "https://github.com/anikchand461/crud-go",
+        "description": "a simple CRUD project just to learn go backend with gin",
+        "fork": false,
+        "url": "https://api.github.com/repos/anikchand461/crud-go",
+        "forks_url": "https://api.github.com/repos/anikchand461/crud-go/forks",
+        "keys_url": "https://api.github.com/repos/anikchand461/crud-go/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/anikchand461/crud-go/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/anikchand461/crud-go/teams",
+        "hooks_url": "https://api.github.com/repos/anikchand461/crud-go/hooks",
+        "issue_events_url": "https://api.github.com/repos/anikchand461/crud-go/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/anikchand461/crud-go/events",
+        "assignees_url": "https://api.github.com/repos/anikchand461/crud-go/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/anikchand461/crud-go/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/anikchand461/crud-go/tags",
+        "blobs_url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/anikchand461/crud-go/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/anikchand461/crud-go/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/anikchand461/crud-go/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/anikchand461/crud-go/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/anikchand461/crud-go/languages",
+        "stargazers_url": "https://api.github.com/repos/anikchand461/crud-go/stargazers",
+        "contributors_url": "https://api.github.com/repos/anikchand461/crud-go/contributors",
+        "subscribers_url": "https://api.github.com/repos/anikchand461/crud-go/subscribers",
+        "subscription_url": "https://api.github.com/repos/anikchand461/crud-go/subscription",
+        "commits_url": "https://api.github.com/repos/anikchand461/crud-go/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/anikchand461/crud-go/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/anikchand461/crud-go/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/anikchand461/crud-go/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/anikchand461/crud-go/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/anikchand461/crud-go/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/anikchand461/crud-go/merges",
+        "archive_url": "https://api.github.com/repos/anikchand461/crud-go/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/anikchand461/crud-go/downloads",
+        "issues_url": "https://api.github.com/repos/anikchand461/crud-go/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/anikchand461/crud-go/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/anikchand461/crud-go/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/anikchand461/crud-go/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/anikchand461/crud-go/labels{/name}",
+        "releases_url": "https://api.github.com/repos/anikchand461/crud-go/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/anikchand461/crud-go/deployments",
+        "created_at": "2026-05-30T15:09:05Z",
+        "updated_at": "2026-06-16T12:59:43Z",
+        "pushed_at": "2026-05-30T16:24:31Z",
+        "git_url": "git://github.com/anikchand461/crud-go.git",
+        "ssh_url": "git@github.com:anikchand461/crud-go.git",
+        "clone_url": "https://github.com/anikchand461/crud-go.git",
+        "svn_url": "https://github.com/anikchand461/crud-go",
+        "homepage": "https://crud-go-psi.vercel.app",
+        "size": 13,
+        "stargazers_count": 1,
+        "watchers_count": 1,
+        "language": "Go",
+        "has_issues": true,
+        "has_projects": true,
+        "has_downloads": false,
+        "has_wiki": true,
+        "has_pages": false,
+        "has_discussions": false,
+        "forks_count": 0,
+        "mirror_url": null,
+        "archived": false,
+        "disabled": false,
+        "open_issues_count": 0,
+        "license": null,
+        "allow_forking": true,
+        "is_template": false,
+        "web_commit_signoff_required": false,
+        "has_pull_requests": true,
+        "pull_request_creation_policy": "all",
+        "topics": [
+            "golang",
+            "render",
+            "vercel"
+        ],
+        "visibility": "public",
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 1,
+        "default_branch": "main",
+        "permissions": {
+            "admin": false,
+            "maintain": false,
+            "push": false,
+            "triage": false,
+            "pull": true
+        },
+        "network_count": 0,
+        "subscribers_count": 0
+    },
+    "branch": "main",
+    "tree": [
+        {
+            "path": "README.md",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "9931474a5329a1931bf529dd349ff52b56ffa0d0",
+            "size": 646,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/9931474a5329a1931bf529dd349ff52b56ffa0d0"
+        },
+        {
+            "path": "backend",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "c2be973578f00a2937644857ffb00bf274c6474b",
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/trees/c2be973578f00a2937644857ffb00bf274c6474b"
+        },
+        {
+            "path": "backend/go.mod",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "71e2552558cd0240b023e61447babf00332388d0",
+            "size": 1577,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/71e2552558cd0240b023e61447babf00332388d0"
+        },
+        {
+            "path": "backend/go.sum",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "c0eb40959d65134c603aac038632fede2da75ccb",
+            "size": 7424,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/c0eb40959d65134c603aac038632fede2da75ccb"
+        },
+        {
+            "path": "backend/handlers",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "e3b0d8715655359da4c8f2990c21dd06c4839e4a",
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/trees/e3b0d8715655359da4c8f2990c21dd06c4839e4a"
+        },
+        {
+            "path": "backend/handlers/create_user.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "7c186cc09f362c187e6c3cf9cd86bcd3a3537b48",
+            "size": 333,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/7c186cc09f362c187e6c3cf9cd86bcd3a3537b48"
+        },
+        {
+            "path": "backend/handlers/delete_user.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "5b8f77204d89fce20a452557f74ad05067843ca4",
+            "size": 511,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/5b8f77204d89fce20a452557f74ad05067843ca4"
+        },
+        {
+            "path": "backend/handlers/get_user.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "bd21bf0cf64bba3c57d145329855be7eeccd4da3",
+            "size": 391,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/bd21bf0cf64bba3c57d145329855be7eeccd4da3"
+        },
+        {
+            "path": "backend/handlers/get_users.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "cf7343bf687b315ed3a9043b45314c3eaa76ea0c",
+            "size": 139,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/cf7343bf687b315ed3a9043b45314c3eaa76ea0c"
+        },
+        {
+            "path": "backend/handlers/update_user.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "e2cac8d5ea4dd94782cb45ef3fa22b1a7552f9a7",
+            "size": 783,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/e2cac8d5ea4dd94782cb45ef3fa22b1a7552f9a7"
+        },
+        {
+            "path": "backend/main.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "327846be450f596955bddffc20cdb0b89e0c1612",
+            "size": 506,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/327846be450f596955bddffc20cdb0b89e0c1612"
+        },
+        {
+            "path": "backend/models",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "b6e0185f12c91167f6451168ae50fab64a40e670",
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/trees/b6e0185f12c91167f6451168ae50fab64a40e670"
+        },
+        {
+            "path": "backend/models/user.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "7a4e9f4763d528a433b8762464fbcd3b26b0a9dd",
+            "size": 134,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/7a4e9f4763d528a433b8762464fbcd3b26b0a9dd"
+        },
+        {
+            "path": "backend/routes",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "ed90e647e2ca9d4210d635b8ce02b58854c65a4a",
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/trees/ed90e647e2ca9d4210d635b8ce02b58854c65a4a"
+        },
+        {
+            "path": "backend/routes/user_routes.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "0622beae6c5274dd9cd0f480916c30ace2c46a4e",
+            "size": 311,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/0622beae6c5274dd9cd0f480916c30ace2c46a4e"
+        },
+        {
+            "path": "backend/storage",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "895e3f9a60e8d8111a6af5dd7070418c2f42aad7",
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/trees/895e3f9a60e8d8111a6af5dd7070418c2f42aad7"
+        },
+        {
+            "path": "backend/storage/users.go",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "cbdc5f40d8358626820696532ac6b49ce64d787e",
+            "size": 69,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/cbdc5f40d8358626820696532ac6b49ce64d787e"
+        },
+        {
+            "path": "frontend",
+            "mode": "040000",
+            "type": "tree",
+            "sha": "aa2b2232b3c748a10e35bb89077ad19f19d401b2",
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/trees/aa2b2232b3c748a10e35bb89077ad19f19d401b2"
+        },
+        {
+            "path": "frontend/index.html",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "65fc021cbba3ac55fa86cdd5e14531d8a6558cb3",
+            "size": 803,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/65fc021cbba3ac55fa86cdd5e14531d8a6558cb3"
+        },
+        {
+            "path": "frontend/script.js",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "547026349f05cc34a6b0d275a015ce1315a529a2",
+            "size": 2864,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/547026349f05cc34a6b0d275a015ce1315a529a2"
+        },
+        {
+            "path": "frontend/style.css",
+            "mode": "100644",
+            "type": "blob",
+            "sha": "d21c8b12673e92a8142602fd77392a3ae80ef45e",
+            "size": 1459,
+            "url": "https://api.github.com/repos/anikchand461/crud-go/git/blobs/d21c8b12673e92a8142602fd77392a3ae80ef45e"
+        }
+    ],
+    "files": [
+        {
+            "path": "README.md",
+            "content": "# Go CRUD App\n\nSimple CRUD application built using:\n\n* Go\n* Gin\n* HTML\n* CSS\n* JavaScript\n\nThis project was created for learning Go backend development and basic full-stack concepts.\n\n---\n\n# Run Backend\n\nGo to backend folder:\n\n```bash\ncd backend\n```\n\nInstall dependencies:\n\n```bash\ngo mod tidy\n```\n\nRun server:\n\n```bash\ngo run .\n```\n\nBackend runs on:\n\n```text\nhttp://localhost:8080\n```\n\n---\n\n# Run Frontend\n\nOpen:\n\n```text\nfrontend/index.html\n```\n\nin your browser.\n\n---\n\n# Features\n\n* Add User\n* Show Users\n* Update User\n* Delete User\n\n---\n\n# Project Structure\n\n```text\ncrud-go/\n│\n├── backend/\n├── frontend/\n└── README.md\n```\n"
+        },
+        {
+            "path": "backend/handlers/create_user.go",
+            "content": "package handlers\n\nimport (\n\t\"backend/models\"\n\t\"backend/storage\"\n\n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc CreateUser(c *gin.Context) {\n\n\tvar user models.User\n\n\terr := c.BindJSON(&user)\n\n\tif err != nil {\n\n\t\tc.JSON(400, gin.H{\n\t\t\t\"error\": \"invalid json\",\n\t\t})\n\n\t\treturn\n\t}\n\n\tstorage.Users = append(storage.Users, user)\n\n\tc.JSON(201, user)\n}"
+        },
+        {
+            "path": "backend/handlers/delete_user.go",
+            "content": "package handlers\n\nimport (\n\t\"fmt\"\n\t\"backend/storage\"\n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc DeleteUser(c *gin.Context) {\n\tid := c.Param(\"id\")\n\n\t// loop over the users \n\tfor index, user := range storage.Users {\n\t\t// if found the id .. delete the user and return \n\t\tif fmt.Sprint(user.ID) == id {\n\t\t\tstorage.Users = append(storage.Users[:index], storage.Users[index+1:]...)\n\t\t}\n\t\tc.JSON(200, gin.H{\n\t\t\t\"messege\" : \"user successfully deleted\",\n\t\t})\n\t\treturn\n\t}\n\n\tc.JSON(400, gin.H{\n\t\t\"error\" : \"user not found\",\n\t})\n}"
+        },
+        {
+            "path": "backend/handlers/get_user.go",
+            "content": "package handlers\n\nimport (\n\t\"backend/storage\"\n\t\"fmt\"\n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc GetUser(c *gin.Context) {\n\tid := c.Param(\"id\")\n\t// loop over the users \n\tfor _, user := range storage.Users {\n\t\t// if id found show the user details \n\t\tif fmt.Sprint(user.ID) == id {\n\t\t\tc.JSON(200, user)\n\t\t}\n\t\treturn\n\t}\n\n\t// error - user not found \n\tc.JSON(400, gin.H{\n\t\t\"error\" : \"id not found\",\n\t})\n}"
+        },
+        {
+            "path": "backend/handlers/get_users.go",
+            "content": "package handlers\n\nimport (\n\t\"backend/storage\"\n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc GetUsers(c *gin.Context) {\n\tc.JSON(200, storage.Users)\n}\n"
+        },
+        {
+            "path": "backend/handlers/update_user.go",
+            "content": "package handlers\n\nimport (\n\t\"github.com/gin-gonic/gin\"\n\t\"backend/storage\"\n\t\"fmt\"\n\t\"backend/models\"\n)\n\nfunc UpdateUser(c *gin.Context) {\n\t// get the id of the user form the path params\n\tid := c.Param(\"id\")\n\n\t// create a user tye variable\n\tvar updateuser models.User\n\n\t// jsonify and error handling\n\terr := c.BindJSON(&updateuser)\n\tif err != nil {\n\t\tc.JSON(400, gin.H{\n\t\t\t\"error\" : \"wrong json format\",\n\t\t})\n\t\treturn\n\t}\n\n\t// loop over the users\n\tfor index, user := range storage.Users {\n\t\t// if the id found then update the user details and return\n\t\tif fmt.Sprint(user.ID) == id {\n\t\t\tstorage.Users[index].Name = updateuser.Name\n\t\t\tstorage.Users[index].Age = updateuser.Age\n\t\t\tc.JSON(200, storage.Users[index])\n\n\t\t\treturn\n\t\t}\n\t}\n\n\tc.JSON(400, gin.H{\n\t\t\"error\" : \"user not found\",\n\t})\n}\n"
+        },
+        {
+            "path": "backend/main.go",
+            "content": "package main\n\nimport (\n\t\"backend/routes\"\n\t\"os\"\n\n\t\"github.com/gin-contrib/cors\"\n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc main() {\n\n\tr := gin.Default()\n\n\tr.Use(cors.New(cors.Config{\n\t\tAllowOrigins: []string{\n\t\t\t\"https://crudgo.vercel.app\",\n\t\t},\n\n\t\tAllowMethods: []string{\n\t\t\t\"GET\",\n\t\t\t\"POST\",\n\t\t\t\"PUT\",\n\t\t\t\"DELETE\",\n\t\t\t\"OPTIONS\",\n\t\t},\n\n\t\tAllowHeaders: []string{\n\t\t\t\"Origin\",\n\t\t\t\"Content-Type\",\n\t\t},\n\t}))\n\n\troutes.UserRoutes(r)\n\n\tport := os.Getenv(\"PORT\")\n\n\tif port == \"\" {\n\t\tport = \"8080\"\n\t}\n\n\tr.Run(\":\" + port)\n}"
+        },
+        {
+            "path": "backend/models/user.go",
+            "content": "package models\n\n// models / schema\ntype User struct {\n\tID   int    `json:\"id\"`\n\tName string `json:\"name\"`\n\tAge  int    `json:\"age\"`\n}\n"
+        },
+        {
+            "path": "backend/routes/user_routes.go",
+            "content": "package routes\n\nimport (\n\t\"backend/handlers\"\n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc UserRoutes(r *gin.Engine) {\n\tr.GET(\"/users\", handlers.GetUsers)\n\tr.POST(\"/users\", handlers.CreateUser)\n\tr.GET(\"/users/:id\", handlers.GetUser)\n\tr.DELETE(\"/users/:id\", handlers.DeleteUser)\n\tr.PUT(\"/users/:id\", handlers.UpdateUser)\n}"
+        },
+        {
+            "path": "backend/storage/users.go",
+            "content": "package storage\nimport \"backend/models\"\n\nvar Users = []models.User{}\n"
+        },
+        {
+            "path": "frontend/index.html",
+            "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n\n  <title>Go CRUD App</title>\n\n  <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n\n  <div class=\"container\">\n\n    <h1>Go CRUD App</h1>\n\n    <div class=\"form-container\">\n\n      <input type=\"number\" id=\"id\" placeholder=\"Enter ID\">\n\n      <input type=\"text\" id=\"name\" placeholder=\"Enter Name\">\n\n      <input type=\"number\" id=\"age\" placeholder=\"Enter Age\">\n\n      <div class=\"button-group\">\n        <button onclick=\"addUser()\">Add User</button>\n        <button onclick=\"updateUser()\">Update User</button>\n      </div>\n\n      <p id=\"message\"></p>\n\n    </div>\n\n    <div id=\"users-container\"></div>\n\n  </div>\n\n  <script src=\"script.js\"></script>\n\n</body>\n</html>"
+        },
+        {
+            "path": "frontend/script.js",
+            "content": "const API_URL = \"https://crud-go-4nut.onrender.com/users\"\n\nfunction showMessage(text, color) {\n\n  const message = document.getElementById(\"message\")\n\n  message.innerText = text\n\n  message.style.color = color\n}\n\nasync function getUsers() {\n\n  const response = await fetch(API_URL)\n\n  const users = await response.json()\n\n  const container = document.getElementById(\"users-container\")\n\n  container.innerHTML = \"\"\n\n  users.forEach(user => {\n\n    container.innerHTML += `\n      <div class=\"user-card\">\n\n        <h2>${user.name}</h2>\n\n        <p><strong>ID:</strong> ${user.id}</p>\n\n        <p><strong>Age:</strong> ${user.age}</p>\n\n        <div class=\"card-buttons\">\n\n          <button \n            class=\"edit-btn\"\n            onclick=\"fillForm(${user.id}, '${user.name}', ${user.age})\"\n          >\n            Edit\n          </button>\n\n          <button\n            class=\"delete-btn\"\n            onclick=\"deleteUser(${user.id})\"\n          >\n            Delete\n          </button>\n\n        </div>\n\n      </div>\n    `\n  })\n}\n\nasync function addUser() {\n\n  const id = Number(document.getElementById(\"id\").value)\n\n  const name = document.getElementById(\"name\").value\n\n  const age = Number(document.getElementById(\"age\").value)\n\n  const user = {\n    id,\n    name,\n    age\n  }\n\n  const response = await fetch(API_URL, {\n    method: \"POST\",\n\n    headers: {\n      \"Content-Type\": \"application/json\"\n    },\n\n    body: JSON.stringify(user)\n  })\n\n  const data = await response.json()\n\n  if (!response.ok) {\n\n    showMessage(data.error, \"red\")\n\n    return\n  }\n\n  showMessage(\"User added successfully\", \"lightgreen\")\n\n  clearForm()\n\n  getUsers()\n}\n\nasync function deleteUser(id) {\n\n  const response = await fetch(`${API_URL}/${id}`, {\n    method: \"DELETE\"\n  })\n\n  const data = await response.json()\n\n  if (!response.ok) {\n\n    showMessage(data.error, \"red\")\n\n    return\n  }\n\n  showMessage(data.message, \"lightgreen\")\n\n  getUsers()\n}\n\nfunction fillForm(id, name, age) {\n\n  document.getElementById(\"id\").value = id\n\n  document.getElementById(\"name\").value = name\n\n  document.getElementById(\"age\").value = age\n}\n\nasync function updateUser() {\n\n  const id = document.getElementById(\"id\").value\n\n  const updatedUser = {\n    name: document.getElementById(\"name\").value,\n\n    age: Number(document.getElementById(\"age\").value)\n  }\n\n  const response = await fetch(`${API_URL}/${id}`, {\n    method: \"PUT\",\n\n    headers: {\n      \"Content-Type\": \"application/json\"\n    },\n\n    body: JSON.stringify(updatedUser)\n  })\n\n  const data = await response.json()\n\n  if (!response.ok) {\n\n    showMessage(data.error, \"red\")\n\n    return\n  }\n\n  showMessage(\"User updated successfully\", \"lightgreen\")\n\n  clearForm()\n\n  getUsers()\n}\n\nfunction clearForm() {\n\n  document.getElementById(\"id\").value = \"\"\n\n  document.getElementById(\"name\").value = \"\"\n\n  document.getElementById(\"age\").value = \"\"\n}\n\ngetUsers()"
+        },
+        {
+            "path": "frontend/style.css",
+            "content": "* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: Arial, sans-serif;\n  background: #0f172a;\n  color: white;\n  padding: 20px;\n}\n\n.container {\n  max-width: 900px;\n  margin: auto;\n}\n\nh1 {\n  text-align: center;\n  margin-bottom: 30px;\n}\n\n.form-container {\n  background: #1e293b;\n  padding: 20px;\n  border-radius: 12px;\n\n  display: flex;\n  flex-direction: column;\n  gap: 15px;\n\n  margin-bottom: 30px;\n}\n\ninput {\n  padding: 14px;\n  border: none;\n  border-radius: 8px;\n  outline: none;\n  font-size: 16px;\n}\n\n.button-group {\n  display: flex;\n  gap: 10px;\n}\n\nbutton {\n  flex: 1;\n  padding: 14px;\n  border: none;\n  border-radius: 8px;\n\n  background: #2563eb;\n  color: white;\n\n  font-size: 16px;\n\n  cursor: pointer;\n\n  transition: 0.2s;\n}\n\nbutton:hover {\n  background: #1d4ed8;\n}\n\n#message {\n  text-align: center;\n  font-weight: bold;\n  margin-top: 5px;\n}\n\n#users-container {\n  display: grid;\n  gap: 20px;\n}\n\n.user-card {\n  background: #1e293b;\n  padding: 20px;\n  border-radius: 12px;\n}\n\n.user-card h2 {\n  margin-bottom: 12px;\n}\n\n.user-card p {\n  margin-bottom: 8px;\n}\n\n.card-buttons {\n  margin-top: 15px;\n\n  display: flex;\n  gap: 10px;\n}\n\n.edit-btn {\n  background: #059669;\n}\n\n.edit-btn:hover {\n  background: #047857;\n}\n\n.delete-btn {\n  background: #dc2626;\n}\n\n.delete-btn:hover {\n  background: #b91c1c;\n}\n\n@media (max-width: 600px) {\n\n  .button-group {\n    flex-direction: column;\n  }\n\n  .card-buttons {\n    flex-direction: column;\n  }\n}"
+        }
+    ],
+    "structure": {
+        "README.md": {
+            "type": "file"
+        },
+        "backend": {
+            "type": "directory",
+            "children": {
+                "go.mod": {
+                    "type": "file"
+                },
+                "go.sum": {
+                    "type": "file"
+                },
+                "handlers": {
+                    "type": "directory",
+                    "children": {
+                        "create_user.go": {
+                            "type": "file"
+                        },
+                        "delete_user.go": {
+                            "type": "file"
+                        },
+                        "get_user.go": {
+                            "type": "file"
+                        },
+                        "get_users.go": {
+                            "type": "file"
+                        },
+                        "update_user.go": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "main.go": {
+                    "type": "file"
+                },
+                "models": {
+                    "type": "directory",
+                    "children": {
+                        "user.go": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "routes": {
+                    "type": "directory",
+                    "children": {
+                        "user_routes.go": {
+                            "type": "file"
+                        }
+                    }
+                },
+                "storage": {
+                    "type": "directory",
+                    "children": {
+                        "users.go": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "frontend": {
+            "type": "directory",
+            "children": {
+                "index.html": {
+                    "type": "file"
+                },
+                "script.js": {
+                    "type": "file"
+                },
+                "style.css": {
+                    "type": "file"
+                }
+            }
+        }
+    }
+}
