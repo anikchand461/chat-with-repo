@@ -72,6 +72,30 @@ def create_chat(
     db.commit()
     db.refresh(chat)
 
+    welcome_message = f"""
+    👋 Welcome to **ChatWithRepo**!
+    
+    I'm here to help you understand, navigate, and contribute to the **{chat.owner}/{chat.repo}** repository.
+    
+    You can ask me things like:
+    
+    • Explain the project architecture.
+    • Where is this feature implemented?
+    • How does this workflow work?
+    • Help me contribute to this repository.
+    • Summarize the project.
+    """
+    
+    db.add(
+        Message(
+            chat_id=chat.id,
+            role="assistant",
+            content=welcome_message,
+        )
+    )
+    
+    db.commit()
+
     # --------------------------------------------------
     # Build repository index
     # --------------------------------------------------
@@ -173,7 +197,25 @@ def ask(
         ),
     )
 
-    answer = rag.ask(req.question)
+    messages = (
+        db.query(Message)
+        .filter(Message.chat_id == chat.id)
+        .order_by(Message.id)
+        .all()
+    )
+    
+    history = [
+        {
+            "role": m.role,
+            "content": m.content,
+        }
+        for m in messages
+    ]
+    
+    answer = rag.ask(
+        question=req.question,
+        history=history,
+    )
     
     db.add(
         Message(
