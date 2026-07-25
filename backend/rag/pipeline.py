@@ -114,7 +114,7 @@ class RAGPipeline:
     #         repo_name=self.repo_name,
     #     )
     
-    def ask(self, question):
+    def ask(self, question, history=None):
     
         total = time.perf_counter()
     
@@ -134,13 +134,16 @@ class RAGPipeline:
     
         # ---------------- Multi Query Generation ----------------
         t = time.perf_counter()
-    
-        try:
-            queries = self.multi_query.generate(question)
-        except Exception as e:
-            print(f"Multi Query Error: {e}")
+        
+        if query_type == "lookup":
             queries = [question]
-    
+        else:
+            try:
+                queries = self.multi_query.generate(question)
+            except Exception as e:
+                print(f"Multi Query Error: {e}")
+                queries = [question]
+        
         print(f"Multi Query: {time.perf_counter()-t:.3f}s")
     
         # ---------------- Retrieval ----------------
@@ -173,6 +176,7 @@ class RAGPipeline:
     
         answer = self.llm.generate(
             question=question,
+            history=history,
             documents=docs,
             repo_name=self.repo_name,
         )
