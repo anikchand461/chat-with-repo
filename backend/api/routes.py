@@ -93,7 +93,7 @@ def analyze_branch(
     owner: str,
     repo: str,
     branch: str,
-    github_token: Optional[str] = None,
+    github_token= None,
 ):
     repo_info = get_repo(
         owner,

@@ -47,9 +47,23 @@ def me(user: User = Depends(get_current_user)):
 @router.post("/github-token")
 def save_github_token(
     request: GitHubToken,
-    user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    user.github_token = request.github_access_token
+    token = request.github_access_token.strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="GitHub token cannot be empty.")
+
+    # Load user in THIS session so the commit actually persists
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    user.github_token = token
     db.commit()
-    return {"saved": True}
+    db.refresh(user)
+
+    return {
+        "saved": True,
+        "has_github_token": bool(user.github_token),
+    }

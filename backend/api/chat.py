@@ -32,9 +32,6 @@ def create_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # --------------------------------------------------
-    # Create new chat
-    # --------------------------------------------------
     branch = req.branch or "main"
 
     current_month = datetime.now().strftime("%Y-%m")
@@ -49,15 +46,13 @@ def create_chat(
     print("Plan:", repr(current_user.plan))
     print("Used:", current_user.used_repo_count)
     print("Limit:", current_user.monthly_repo_limit)
-    print("Reset Month:", current_user.repo_reset_month)
-    print("Current Month:", current_month)
+    print("TOKEN ON USER:", bool(current_user.github_token))
     print("=" * 50)
 
     if (
         current_user.plan == "FREE"
         and current_user.used_repo_count >= current_user.monthly_repo_limit
     ):
-        print("🚫 REPOSITORY LIMIT HIT")
         return {
             "upgrade_required": True,
             "reason": "repo_limit",
@@ -76,8 +71,6 @@ def create_chat(
     )
 
     if existing_chat:
-        # FREE users cannot re-index.
-        # They simply continue using the existing index.
         if current_user.plan == "FREE":
             return {
                 "chat_id": existing_chat.id,
@@ -88,7 +81,6 @@ def create_chat(
                 "already_indexed": True,
             }
 
-        # PRO users can choose to re-index later.
         return {
             "chat_id": existing_chat.id,
             "title": existing_chat.title,
@@ -116,18 +108,18 @@ def create_chat(
     db.refresh(chat)
 
     welcome_message = f"""
-    👋 Welcome to **ChatWithRepo**!
-    
-    I'm here to help you understand, navigate, and contribute to the **{chat.owner}/{chat.repo}** repository.
-    
-    You can ask me things like:
-    
-    • Explain the project architecture.
-    • Where is this feature implemented?
-    • How does this workflow work?
-    • Help me contribute to this repository.
-    • Summarize the project.
-    """
+👋 Welcome to **ChatWithRepo**!
+
+I'm here to help you understand, navigate, and contribute to the **{chat.owner}/{chat.repo}** repository.
+
+You can ask me things like:
+
+• Explain the project architecture.
+• Where is this feature implemented?
+• How does this workflow work?
+• Help me contribute to this repository.
+• Summarize the project.
+"""
 
     db.add(
         Message(
@@ -136,12 +128,8 @@ def create_chat(
             content=welcome_message,
         )
     )
-
     db.commit()
 
-    # --------------------------------------------------
-    # Build repository index
-    # --------------------------------------------------
     try:
         from backend.api.routes import analyze_branch
         from backend.rag.pipeline import RAGPipeline
@@ -158,11 +146,8 @@ def create_chat(
         rag = RAGPipeline(
             str(json_path),
             collection_name=collection_name,
-            persist_directory=str(
-                Path("chroma_db") / "chats" / chat_key
-            ),
+            persist_directory=str(Path("chroma_db") / "chats" / chat_key),
         )
-
         rag.build_index()
 
         if current_user.plan == "FREE":
@@ -171,14 +156,9 @@ def create_chat(
 
     except Exception as e:
         traceback.print_exc()
-
         db.delete(chat)
         db.commit()
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e),
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
     return {
         "chat_id": chat.id,
@@ -188,6 +168,8 @@ def create_chat(
         "branch": chat.branch,
         "collection_name": collection_name,
     }
+
+
 @router.get("/list")
 def list_chats(
     current_user: User = Depends(get_current_user),
@@ -211,6 +193,7 @@ def list_chats(
         for chat in chats
     ]
 
+
 @router.post("/{chat_id}/ask")
 def ask(
     chat_id: int,
@@ -220,12 +203,12 @@ def ask(
 ):
     chat = (
         db.query(Chat)
-        .filter(
-            Chat.id == chat_id,
-            Chat.user_id == current_user.id,
-        )
+        .filter(Chat.id == chat_id, Chat.user_id == current_user.id)
         .first()
     )
+
+    if not chat:
+        raise HTTPException(404, "Chat not found")
 
     today = date.today()
 
@@ -274,47 +257,22 @@ def ask(
         .all()
     )
 
-    history = [
-        {
-            "role": m.role,
-            "content": m.content,
-        }
-        for m in messages
-    ]
+    history = [{"role": m.role, "content": m.content} for m in messages]
 
-    # Free users only receive the last 20 messages
     if current_user.plan == "FREE":
         history = history[-FREE_HISTORY_LIMIT:]
 
-    answer = rag.ask(
-        question=req.question,
-        history=history,
-    )
+    answer = rag.ask(question=req.question, history=history)
 
-    db.add(
-        Message(
-            chat_id=chat.id,
-            role="user",
-            content=req.question,
-        )
-    )
-
-    db.add(
-        Message(
-            chat_id=chat.id,
-            role="assistant",
-            content=answer,
-        )
-    )
+    db.add(Message(chat_id=chat.id, role="user", content=req.question))
+    db.add(Message(chat_id=chat.id, role="assistant", content=answer))
 
     if current_user.plan == "FREE":
         usage.questions_used += 1
 
     db.commit()
 
-    return {
-        "answer": answer,
-    }
+    return {"answer": answer}
 
 
 @router.get("/{chat_id}/messages")
@@ -325,10 +283,7 @@ def get_messages(
 ):
     chat = (
         db.query(Chat)
-        .filter(
-            Chat.id == chat_id,
-            Chat.user_id == current_user.id,
-        )
+        .filter(Chat.id == chat_id, Chat.user_id == current_user.id)
         .first()
     )
 
@@ -342,10 +297,4 @@ def get_messages(
         .all()
     )
 
-    return [
-        {
-            "role": m.role,
-            "content": m.content,
-        }
-        for m in messages
-    ]
+    return [{"role": m.role, "content": m.content} for m in messages]
