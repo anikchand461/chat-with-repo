@@ -1,17 +1,18 @@
 from pathlib import Path
 from uuid import uuid4
 import traceback
-
+from datetime import date, datetime
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from backend.database import Chat, User, Message
+from backend.database import Chat, User, Message, DailyUsage
 from backend.database.session import get_db
 from backend.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
+FREE_HISTORY_LIMIT = 20
 
 class CreateChatRequest(BaseModel):
     owner: str = Field(min_length=1, max_length=100)
@@ -35,6 +36,35 @@ def create_chat(
     # --------------------------------------------------
     branch = req.branch or "main"
     
+    current_month = datetime.now().strftime("%Y-%m")
+    
+    current_month = datetime.now().strftime("%Y-%m")
+    
+    if current_user.repo_reset_month != current_month:
+        current_user.used_repo_count = 0
+        current_user.repo_reset_month = current_month
+        db.commit()
+        db.refresh(current_user)
+    
+    print("=" * 50)
+    print("Plan:", repr(current_user.plan))
+    print("Used:", current_user.used_repo_count)
+    print("Limit:", current_user.monthly_repo_limit)
+    print("Reset Month:", current_user.repo_reset_month)
+    print("Current Month:", current_month)
+    print("=" * 50)
+    
+    if (
+        current_user.plan == "FREE"
+        and current_user.used_repo_count >= current_user.monthly_repo_limit
+    ):
+        print("🚫 REPOSITORY LIMIT HIT")
+        return {
+            "upgrade_required": True,
+            "reason": "repo_limit",
+            "message": "You've reached your monthly repository limit."
+        }
+    
     existing_chat = (
         db.query(Chat)
         .filter(
@@ -47,12 +77,28 @@ def create_chat(
     )
     
     if existing_chat:
+    
+        # FREE users cannot re-index.
+        # They simply continue using the existing index.
+        if current_user.plan == "FREE":
+            return {
+                "chat_id": existing_chat.id,
+                "title": existing_chat.title,
+                "owner": existing_chat.owner,
+                "repo": existing_chat.repo,
+                "branch": existing_chat.branch,
+                "already_indexed": True,
+            }
+    
+        # PRO users can choose to re-index later.
         return {
             "chat_id": existing_chat.id,
             "title": existing_chat.title,
             "owner": existing_chat.owner,
             "repo": existing_chat.repo,
             "branch": existing_chat.branch,
+            "already_indexed": True,
+            "can_reindex": True,
         }
     
 
@@ -121,6 +167,10 @@ def create_chat(
 
         rag.build_index()
 
+        if current_user.plan == "FREE":
+            current_user.used_repo_count += 1
+            db.commit()
+
     except Exception:
         traceback.print_exc()
 
@@ -182,8 +232,33 @@ def ask(
         .first()
     )
 
-    if chat is None:
-        raise HTTPException(status_code=404, detail="Chat not found")
+    today = date.today()
+    
+    usage = (
+        db.query(DailyUsage)
+        .filter(
+            DailyUsage.user_id == current_user.id,
+            DailyUsage.date == today,
+        )
+        .first()
+    )
+    
+    if usage is None:
+        usage = DailyUsage(
+            user_id=current_user.id,
+            date=today,
+            questions_used=0,
+        )
+        db.add(usage)
+        db.commit()
+        db.refresh(usage)
+    
+    if current_user.plan == "FREE" and usage.questions_used >= 10:
+        return {
+            "upgrade_required": True,
+            "reason": "daily_questions",
+            "message": "You have reached today's free question limit."
+        }
 
     from backend.rag.pipeline import RAGPipeline
 
@@ -212,6 +287,10 @@ def ask(
         for m in messages
     ]
     
+    # Free users only receive the last 20 messages
+    if current_user.plan == "FREE":
+        history = history[-FREE_HISTORY_LIMIT:]
+    
     answer = rag.ask(
         question=req.question,
         history=history,
@@ -233,12 +312,15 @@ def ask(
         )
     )
     
+    if current_user.plan == "FREE":
+        usage.questions_used += 1
+    
     db.commit()
     
     return {
         "answer": answer
     }
-
+    
 @router.get("/{chat_id}/messages")
 def get_messages(
     chat_id: int,

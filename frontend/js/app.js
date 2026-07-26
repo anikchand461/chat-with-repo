@@ -30,8 +30,11 @@ async function request(path, options = {}) {
   const data = text ? JSON.parse(text) : {};
 
   if (!response.ok) {
-    throw Error(data.detail || 'Request failed');
+      throw Error(data.detail || "Request failed");
   }
+  
+  // Don't throw for subscription limits.
+  // Let the caller handle them.
 
   return data;
 }
@@ -62,51 +65,68 @@ function setupAuth(kind) {
 }
 
 async function setupDashboard() {
-  // Check whether the user has configured a GitHub token
-  const user = await request("/auth/me");
+    // Check whether the user has configured a GitHub token
+    const user = await request("/auth/me");
 
-  if (!user.has_github_token) {
-    document.querySelector("#github-warning").hidden = false;
-  }
-
-  await loadChats();
-
-  document.querySelector("#create").onclick = () => {
-    document.querySelector("#modal").hidden = false;
-  };
-
-  document.querySelector("#cancel").onclick = () => {
-    document.querySelector("#modal").hidden = true;
-  };
-
-  const form = document.querySelector("#create-form");
-
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-
-    const error = document.querySelector("#form-error");
-    error.textContent = "";
-
-    try {
-      const data = await request("/chat/create", {
-        method: "POST",
-        body: JSON.stringify({
-          owner: document.querySelector("#owner").value.trim(),
-          repo: document.querySelector("#repo").value.trim(),
-          branch: document.querySelector("#branch").value.trim() || "main",
-        }),
-      });
-
-      await loadChats();
-
-      document.querySelector("#modal").hidden = true;
-
-      location.href = `chat.html?id=${data.chat_id}`;
-    } catch (err) {
-      console.error(err);
-      error.textContent = err.message;
+    if (!user.has_github_token) {
+        document.querySelector("#github-warning").hidden = false;
     }
-  };
+
+    await loadChats();
+    // await loadSubscription();
+
+    document.querySelector("#create").onclick = () => {
+        document.querySelector("#modal").hidden = false;
+    };
+
+    document.querySelector("#cancel").onclick = () => {
+        document.querySelector("#modal").hidden = true;
+    };
+
+    const form = document.querySelector("#create-form");
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const error = document.querySelector("#form-error");
+        error.textContent = "";
+
+        try {
+            const data = await request("/chat/create", {
+                method: "POST",
+                body: JSON.stringify({
+                    owner: document.querySelector("#owner").value.trim(),
+                    repo: document.querySelector("#repo").value.trim(),
+                    branch: document.querySelector("#branch").value.trim() || "main",
+                }),
+            });
+
+            // User hit free plan limit
+            if (data.upgrade_required) {
+                // Close Create Repository modal
+                document.querySelector("#modal").hidden = true;
+                // Show upgrade popup
+                showUpgradeModal(data.reason);
+            
+                return;
+            }
+
+            await loadChats();
+
+            document.querySelector("#modal").hidden = true;
+
+            location.href = `chat.html?id=${data.chat_id}`;
+        } catch (err) {
+            console.error(err);
+            error.textContent = err.message;
+        }
+    };
+
+    const upgradeBtn = document.getElementById("upgrade-now");
+    
+    if (upgradeBtn) {
+        upgradeBtn.addEventListener("click", startCheckout);
+    }
 }
 
 async function loadChats() {
@@ -210,7 +230,15 @@ async function setupChat() {
                         question: q,
                     }),
                 });
-
+                
+                if (data.upgrade_required) {
+                    addMessage(
+                        "⚠️ " + data.message + "\n\nUpgrade to Pro to continue chatting.",
+                        "assistant"
+                    );
+                    return;
+                }
+                
                 addMessage(data.answer, "assistant");
 
             } catch (error) {
@@ -219,74 +247,6 @@ async function setupChat() {
         };
     }
 }
-
-    // if (!id) return;
-
-    // // ... your existing code ...
-
-    // try {
-    //     const messages = await request(`/chat/${id}/messages`);
-
-    //     document.querySelector('#messages').innerHTML = "";
-
-    //     messages.forEach((m) => {
-    //         addMessage(m.content, m.role);
-    //     });
-    // } catch (err) {
-    //     console.error(err);
-    // }
-
-    // <-- MOVE THIS BLOCK HERE
-    // document.querySelector('#ask').onsubmit = async (e) => {
-    //     e.preventDefault();
-
-    //     const input = document.querySelector('#question');
-    //     const q = input.value.trim();
-
-    //     if (!q) return;
-
-    //     addMessage(q, 'user');
-    //     input.value = '';
-
-    //     try {
-    //         const data = await request(`/chat/${id}/ask`, {
-    //             method: 'POST',
-    //             body: JSON.stringify({
-    //                 question: q,
-    //             }),
-    //         });
-
-    //         addMessage(data.answer, 'assistant');
-    //     } catch (error) {
-    //         addMessage(error.message, 'assistant');
-    //     }
-    // };
-// }
-
-// document.querySelector('#ask').onsubmit = async (e) => {
-//     e.preventDefault();
-
-//     const input = document.querySelector('#question');
-//     const q = input.value.trim();
-
-//     if (!q) return;
-
-//     addMessage(q, 'user');
-//     input.value = '';
-
-//     try {
-//         const data = await request(`/chat/${id}/ask`, {
-//             method: 'POST',
-//             body: JSON.stringify({
-//                 question: q,
-//             }),
-//         });
-
-//         addMessage(data.answer, 'assistant');
-//     } catch (error) {
-//         addMessage(error.message, 'assistant');
-//     }
-// };
 
 function addMessage(text, role) {
   const node = document.createElement('div');
@@ -352,4 +312,83 @@ if (logoutBtn) {
 
         window.location.replace("login.html");
     });
+}
+
+async function upgradeToPro() {
+    try {
+
+        const data = await request("/payment/checkout", {
+            method: "POST",
+        });
+
+        window.location.href = data.checkout_url;
+
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+async function loadSubscription() {
+
+    try {
+
+        const status = await request("/payment/status");
+
+        const badge = document.querySelector("#plan");
+
+        if (!badge) return;
+
+        badge.textContent = status.plan;
+
+    } catch (err) {
+        console.error(err);
+    }
+
+}
+
+function showUpgradeModal(reason) {
+
+    const modal = document.getElementById("upgrade-modal");
+    const message = document.getElementById("upgrade-message");
+
+    switch (reason) {
+
+        case "repo_limit":
+            message.textContent =
+                "You've reached your monthly repository limit. Upgrade to Pro to create unlimited repository chats.";
+            break;
+
+        case "daily_limit":
+            message.textContent =
+                "You've reached today's question limit. Upgrade to Pro for unlimited questions.";
+            break;
+
+        default:
+            message.textContent =
+                "This feature requires DevLens Pro.";
+    }
+
+    modal.hidden = false;
+}
+
+function hideUpgradeModal() {
+    document.getElementById("upgrade-modal").hidden = true;
+}
+
+
+async function startCheckout() {
+    try {
+        const data = await request("/payment/checkout", {
+            method: "POST",
+        });
+
+        console.log("Backend response:", data);
+        console.log("Redirecting to:", data.checkout_url);
+
+        window.location.href = data.checkout_url;
+
+    } catch (err) {
+        console.error(err);
+        alert(err.message || "Unable to start checkout.");
+    }
 }

@@ -217,3 +217,67 @@ input {
 .github-warning a {
     font-weight: 600;
 }
+
+.upgrade-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:9999;
+}
+
+.upgrade-card{
+    width:min(500px,100%);
+    background:white;
+    border-radius:24px 24px 0 0;
+    padding:30px;
+    animation:slideUp .25s ease;
+}
+
+.hidden {
+    display:none;
+}
+
+.buttons{
+
+    display:flex;
+    gap:12px;
+    margin-top:24px;
+}
+
+#upgrade-now{
+
+    flex:1;
+    background:#ef5b37;
+    color:white;
+    border:none;
+
+    padding:14px;
+    border-radius:10px;
+
+    cursor:pointer;
+}
+
+#upgrade-close{
+
+    flex:1;
+
+    padding:14px;
+
+    border-radius:10px;
+}
+
+@keyframes slideUp{
+
+    from{
+
+        transform:translateY(100%);
+    }
+
+    to{
+
+        transform:translateY(0);
+    }
+}

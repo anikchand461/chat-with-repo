@@ -1,15 +1,16 @@
 import sys
 from pathlib import Path
-
+from backend.api.payment import router as payment_router
 BACKEND_ROOT = Path(__file__).resolve().parent
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import router
-from api.auth import router as auth_router
-from api.chat import router as chat_router
+from backend.api.routes import router
+from backend.api.auth import router as auth_router
+from backend.api.chat import router as chat_router
+from backend.api.payment import router as payment_router
 
 app = FastAPI(
     title="DevLens API",
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(router)
 app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(payment_router)
 
 @app.get("/")
 def home():

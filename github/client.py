@@ -1,6 +1,6 @@
 import requests
 
-from config import BASE_URL, HEADERS
+from backend.config import BASE_URL, HEADERS
 from copy import deepcopy
 
 def github_get(endpoint, params=None, github_token=None):
