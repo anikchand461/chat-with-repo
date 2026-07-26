@@ -9,7 +9,7 @@ from github import (
     get_all_files,
 )
 
-from storage.json_writer import save_json
+from backend.storage.json_writer import save_json
 
 router = APIRouter()
 
@@ -73,6 +73,19 @@ def analyze_branch(
         github_token=github_token,
     )
 
+    # Public repository check
+    if repo_info.get("private"):
+        raise Exception("Private repositories require a Pro plan.")
+    
+    # Repository size check (GitHub API reports size in KB)
+    repo_size_mb = repo_info.get("size", 0) / 1024
+    
+    if repo_size_mb > 20:
+        raise Exception(
+            f"Repository size is {repo_size_mb:.2f} MB. "
+            "Free plan supports repositories up to 20 MB."
+        )
+
     result = {
         "repository": repo_info,
         "branch": branch,
@@ -84,6 +97,14 @@ def analyze_branch(
         "data",
         f"{owner}_{repo}_{branch}.json",
     )
+
+    file_count = len(result["files"])
+    
+    if file_count > 300:
+        raise Exception(
+            f"Repository contains {file_count} files. "
+            "Free plan supports up to 300 files."
+        )
 
     save_json(result, filename)
 

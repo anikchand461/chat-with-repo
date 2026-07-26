@@ -11,8 +11,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from database import User
-from database.session import get_db
+from backend.database import User
+from backend.database.session import get_db
 
 _SECRET = os.getenv("JWT_SECRET", "devlens-change-this-secret")
 _bearer = HTTPBearer(auto_error=False)

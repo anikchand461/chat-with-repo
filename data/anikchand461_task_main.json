@@ -114,13 +114,7 @@
         "open_issues": 16,
         "watchers": 4,
         "default_branch": "main",
-        "permissions": {
-            "admin": false,
-            "maintain": false,
-            "push": false,
-            "triage": false,
-            "pull": true
-        },
+        "temp_clone_token": null,
         "network_count": 5,
         "subscribers_count": 0
     },
