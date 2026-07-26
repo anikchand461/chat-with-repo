@@ -1,76 +1,188 @@
 <!doctype html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard | DevLens</title>
     <link rel="stylesheet" href="css/app.css">
-  </head>
-  <body>
-    <main class="page">
-        <nav>
-            <a href="dashboard.html"><strong>Dev<span>Lens</span></strong></a>
-        
-            <div class="nav-right">
-                <a href="profile.html">Profile</a>
-                <button id="logout" class="logout-btn">Logout</button>
-            </div>
-        </nav>
+</head>
 
-      <section class="dashboard">
+<body>
+
+<main class="page">
+
+    <nav>
+        <a href="dashboard.html">
+            <strong>Dev<span>Lens</span></strong>
+        </a>
+
+        <div class="nav-right">
+            <a href="profile.html">Profile</a>
+            <button id="logout" class="logout-btn">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <section class="dashboard">
+
         <div>
+
             <h5>REPOSITORY INTELLIGENCE</h5>
-            
+
             <h1>Your codebase, in conversation.</h1>
-            
+
             <p>
-                Each chat indexes exactly one repository into its own Chroma collection.
+                Each chat indexes exactly one repository into its own
+                Chroma collection.
             </p>
-            
+
             <div id="github-warning" hidden class="warning">
+
                 <strong>⚠ GitHub Token Not Configured</strong>
+
                 <p>
-                    DevLens works without a GitHub token, but GitHub's public API has a much lower rate limit.
+                    DevLens works without a GitHub token, but GitHub's
+                    public API has a much lower rate limit.
+
                     Add your GitHub Personal Access Token from the
+
                     <a href="profile.html">Profile</a>
+
                     page for better performance.
+
                 </p>
+
             </div>
-            
-            <button id="create">+ Create Chat</button>
+
+            <button id="create">
+                + Create Chat
+            </button>
+
         </div>
 
         <div>
-          <h2>Previous chats</h2>
-          <div id="chats" class="chat-list"></div>
-        </div>
-      </section>
-    </main>
 
-    <div id="modal" class="modal" hidden>
-      <form id="create-form" class="card">
+            <h2>Previous chats</h2>
+
+            <div id="chats" class="chat-list"></div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ========================= -->
+<!-- Create Repository Modal -->
+<!-- ========================= -->
+
+<div id="modal" class="modal" hidden>
+
+    <form id="create-form" class="card">
+
         <h2>Create a repository chat</h2>
+
         <label>
-          GitHub username
-          <input id="owner" required placeholder="octocat">
+            GitHub username
+            <input
+                id="owner"
+                required
+                placeholder="octocat">
         </label>
+
         <label>
-          Repository name
-          <input id="repo" required placeholder="Hello-World">
+            Repository name
+            <input
+                id="repo"
+                required
+                placeholder="Hello-World">
         </label>
+
         <label>
-          Branch
-          <input id="branch" value="main" placeholder="main">
+            Branch
+            <input
+                id="branch"
+                value="main"
+                placeholder="main">
         </label>
+
         <p id="form-error" class="error"></p>
-        <button class="button">Analyze and open chat</button>
-        <button id="cancel" type="button" class="button secondary">Cancel</button>
-      </form>
+
+        <button class="button">
+            Analyze and open chat
+        </button>
+
+        <button
+            id="cancel"
+            type="button"
+            class="button secondary">
+
+            Cancel
+
+        </button>
+
+    </form>
+
+</div>
+
+<!-- ========================= -->
+<!-- Upgrade Modal -->
+<!-- ========================= -->
+
+<div id="upgrade-modal" class="modal" hidden>
+
+    <div class="card narrow">
+
+        <h2>🚀 Upgrade to DevLens Pro</h2>
+
+        <p id="upgrade-message">
+            You've reached your monthly repository limit.
+        </p>
+
+        <ul>
+            <li>✅ Unlimited repositories</li>
+            <li>✅ Unlimited questions</li>
+            <li>✅ Private repositories</li>
+            <li>✅ Re-index repositories</li>
+        </ul>
+
+        <div
+            style="
+                display:flex;
+                gap:12px;
+                margin-top:24px;
+            "
+        >
+
+            <button
+                id="upgrade-now"
+                class="button">
+
+                Upgrade to Pro
+
+            </button>
+
+            <button
+                type="button"
+                class="button secondary"
+                onclick="hideUpgradeModal()">
+
+                Maybe Later
+
+            </button>
+
+        </div>
+
     </div>
 
-    <script src="js/app.js"></script>
-    <script>
-      setupDashboard();
-    </script>
-  </body>
+</div>
+
+<script src="js/app.js"></script>
+
+<script>
+    setupDashboard();
+</script>
+
+</body>
 </html>
