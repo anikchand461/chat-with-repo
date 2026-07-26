@@ -1,27 +1,25 @@
-
-
-const API = 'http://127.0.0.1:8000';
+const API = "http://127.0.0.1:8000";
 const authToken = localStorage.getItem("devlens_token");
 
 const page = location.pathname.split("/").pop();
 
 if (
-    !authToken &&
-    page !== "login.html" &&
-    page !== "register.html"
+  !authToken &&
+  page !== "login.html" &&
+  page !== "register.html"
 ) {
-    location.href = "login.html";
+  location.href = "login.html";
 }
 
 function token() {
-  return localStorage.getItem('devlens_token') || '';
+  return localStorage.getItem("devlens_token") || "";
 }
 
 async function request(path, options = {}) {
   const response = await fetch(API + path, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
     },
   });
@@ -30,110 +28,117 @@ async function request(path, options = {}) {
   const data = text ? JSON.parse(text) : {};
 
   if (!response.ok) {
-      throw Error(data.detail || "Request failed");
+    throw Error(data.detail || "Request failed");
   }
-  
+
   // Don't throw for subscription limits.
   // Let the caller handle them.
 
   return data;
 }
 
-// ====================== LOGOUT FUNCTION ======================
-
-// ============================================================
-
 function setupAuth(kind) {
-  document.querySelector('#auth-form').addEventListener('submit', async (e) => {
+  document.querySelector("#auth-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     try {
       const data = await request(`/auth/${kind}`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({
-          email: document.querySelector('#email').value,
-          password: document.querySelector('#password').value,
+          email: document.querySelector("#email").value,
+          password: document.querySelector("#password").value,
         }),
       });
 
-      localStorage.setItem('devlens_token', data.access_token);
-      location.href = 'dashboard.html';
+      localStorage.setItem("devlens_token", data.access_token);
+      location.href = "dashboard.html";
     } catch (error) {
-      document.querySelector('#error').textContent = error.message;
+      document.querySelector("#error").textContent = error.message;
     }
   });
 }
 
 async function setupDashboard() {
-    // Check whether the user has configured a GitHub token
-    const user = await request("/auth/me");
+  // Attach UI handlers first so Create always works
+  const createBtn = document.querySelector("#create");
+  const cancelBtn = document.querySelector("#cancel");
+  const modal = document.querySelector("#modal");
+  const form = document.querySelector("#create-form");
 
-    if (!user.has_github_token) {
-        document.querySelector("#github-warning").hidden = false;
-    }
-
-    await loadChats();
-    // await loadSubscription();
-
-    document.querySelector("#create").onclick = () => {
-        document.querySelector("#modal").hidden = false;
+  if (createBtn) {
+    createBtn.onclick = () => {
+      if (modal) modal.hidden = false;
     };
+  }
 
-    document.querySelector("#cancel").onclick = () => {
-        document.querySelector("#modal").hidden = true;
+  if (cancelBtn) {
+    cancelBtn.onclick = () => {
+      if (modal) modal.hidden = true;
     };
+  }
 
-    const form = document.querySelector("#create-form");
-
+  if (form) {
     form.onsubmit = async (e) => {
-        e.preventDefault();
+      e.preventDefault();
 
-        const error = document.querySelector("#form-error");
-        error.textContent = "";
+      const error = document.querySelector("#form-error");
+      if (error) error.textContent = "";
 
-        try {
-            const data = await request("/chat/create", {
-                method: "POST",
-                body: JSON.stringify({
-                    owner: document.querySelector("#owner").value.trim(),
-                    repo: document.querySelector("#repo").value.trim(),
-                    branch: document.querySelector("#branch").value.trim() || "main",
-                }),
-            });
+      try {
+        const data = await request("/chat/create", {
+          method: "POST",
+          body: JSON.stringify({
+            owner: document.querySelector("#owner").value.trim(),
+            repo: document.querySelector("#repo").value.trim(),
+            branch:
+              document.querySelector("#branch").value.trim() || "main",
+          }),
+        });
 
-            // User hit free plan limit
-            if (data.upgrade_required) {
-                // Close Create Repository modal
-                document.querySelector("#modal").hidden = true;
-                // Show upgrade popup
-                showUpgradeModal(data.reason);
-            
-                return;
-            }
-
-            await loadChats();
-
-            document.querySelector("#modal").hidden = true;
-
-            location.href = `chat.html?id=${data.chat_id}`;
-        } catch (err) {
-            console.error(err);
-            error.textContent = err.message;
+        if (data.upgrade_required) {
+          if (modal) modal.hidden = true;
+          showUpgradeModal(data.reason);
+          return;
         }
-    };
 
-    const upgradeBtn = document.getElementById("upgrade-now");
-    
-    if (upgradeBtn) {
-        upgradeBtn.addEventListener("click", startCheckout);
+        await loadChats();
+        if (modal) modal.hidden = true;
+        location.href = `chat.html?id=${data.chat_id}`;
+      } catch (err) {
+        console.error(err);
+        if (error) error.textContent = err.message;
+      }
+    };
+  }
+
+  const upgradeBtn = document.getElementById("upgrade-now");
+  if (upgradeBtn) {
+    upgradeBtn.addEventListener("click", startCheckout);
+  }
+
+  // API calls after handlers are wired
+  try {
+    const user = await request("/auth/me");
+    if (!user.has_github_token) {
+      const warning = document.querySelector("#github-warning");
+      if (warning) warning.hidden = false;
     }
+  } catch (err) {
+    console.error("auth/me failed:", err);
+  }
+
+  try {
+    await loadChats();
+  } catch (err) {
+    console.error("loadChats failed:", err);
+  }
 }
 
 async function loadChats() {
   try {
-    const chats = await request('/chat/list');
+    const chats = await request("/chat/list");
 
-    document.querySelector('#chats').innerHTML = chats.length
+    document.querySelector("#chats").innerHTML = chats.length
       ? chats
           .map(
             (c) =>
@@ -142,143 +147,145 @@ async function loadChats() {
                 <small>branch: ${c.branch}</small>
               </a>`
           )
-          .join('')
-      : '<p>No chats yet. Create one to index a repository.</p>';
+          .join("")
+      : "<p>No chats yet. Create one to index a repository.</p>";
   } catch (error) {
-    location.href = 'login.html';
+    location.href = "login.html";
   }
 }
 
 async function setupChat() {
-    const id = new URLSearchParams(location.search).get("id");
+  const id = new URLSearchParams(location.search).get("id");
 
-    if (!id) return;
+  if (!id) return;
 
-    // Load all chats
-    const chats = await request("/chat/list");
+  // Load all chats
+  const chats = await request("/chat/list");
 
-    const list = document.querySelector("#chat-list");
-    list.innerHTML = "";
+  const list = document.querySelector("#chat-list");
+  list.innerHTML = "";
 
-    // Current chat
-    const current = chats.find(c => c.chat_id == id);
+  // Current chat
+  const current = chats.find((c) => c.chat_id == id);
 
-    if (current) {
-        document.querySelector("#chat-title").textContent = current.title;
-        document.querySelector("#branch").textContent =
-            `Branch: ${current.branch}`;
+  if (current) {
+    document.querySelector("#chat-title").textContent = current.title;
+    document.querySelector("#branch").textContent =
+      `Branch: ${current.branch}`;
+  }
+
+  // Show current chat first
+  const sorted = [
+    ...chats.filter((c) => c.chat_id == id),
+    ...chats.filter((c) => c.chat_id != id),
+  ];
+
+  sorted.forEach((chat) => {
+    const a = document.createElement("a");
+
+    a.href = `chat.html?id=${chat.chat_id}`;
+    a.className = "chat-item";
+
+    if (chat.chat_id == id) {
+      a.classList.add("active");
     }
 
-    // Show current chat first
-    const sorted = [
-        ...chats.filter(c => c.chat_id == id),
-        ...chats.filter(c => c.chat_id != id),
-    ];
-
-    sorted.forEach(chat => {
-        const a = document.createElement("a");
-
-        a.href = `chat.html?id=${chat.chat_id}`;
-        a.className = "chat-item";
-
-        if (chat.chat_id == id) {
-            a.classList.add("active");
-        }
-
-        a.innerHTML = `
+    a.innerHTML = `
             <strong>${chat.title}</strong>
             <small>branch: ${chat.branch}</small>
         `;
 
-        list.appendChild(a);
+    list.appendChild(a);
+  });
+
+  // Load old messages
+  try {
+    const messages = await request(`/chat/${id}/messages`);
+
+    const container = document.querySelector("#messages");
+    container.innerHTML = "";
+
+    messages.forEach((m) => {
+      addMessage(m.content, m.role);
     });
+  } catch (err) {
+    console.error(err);
+  }
 
-    // Load old messages
-    try {
-        const messages = await request(`/chat/${id}/messages`);
+  // Ask form
+  const askForm = document.querySelector("#ask");
 
-        const container = document.querySelector("#messages");
-        container.innerHTML = "";
+  if (askForm) {
+    askForm.onsubmit = async (e) => {
+      e.preventDefault();
 
-        messages.forEach(m => {
-            addMessage(m.content, m.role);
+      const input = document.querySelector("#question");
+      const q = input.value.trim();
+
+      if (!q) return;
+
+      addMessage(q, "user");
+      input.value = "";
+
+      try {
+        const data = await request(`/chat/${id}/ask`, {
+          method: "POST",
+          body: JSON.stringify({
+            question: q,
+          }),
         });
 
-    } catch (err) {
-        console.error(err);
-    }
+        if (data.upgrade_required) {
+          addMessage(
+            "⚠️ " +
+              data.message +
+              "\n\nUpgrade to Pro to continue chatting.",
+            "assistant"
+          );
+          return;
+        }
 
-    // Ask form
-    const askForm = document.querySelector("#ask");
-
-    if (askForm) {
-        askForm.onsubmit = async (e) => {
-            e.preventDefault();
-
-            const input = document.querySelector("#question");
-            const q = input.value.trim();
-
-            if (!q) return;
-
-            addMessage(q, "user");
-            input.value = "";
-
-            try {
-                const data = await request(`/chat/${id}/ask`, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        question: q,
-                    }),
-                });
-                
-                if (data.upgrade_required) {
-                    addMessage(
-                        "⚠️ " + data.message + "\n\nUpgrade to Pro to continue chatting.",
-                        "assistant"
-                    );
-                    return;
-                }
-                
-                addMessage(data.answer, "assistant");
-
-            } catch (error) {
-                addMessage(error.message, "assistant");
-            }
-        };
-    }
+        addMessage(data.answer, "assistant");
+      } catch (error) {
+        addMessage(error.message, "assistant");
+      }
+    };
+  }
 }
 
 function addMessage(text, role) {
-  const node = document.createElement('div');
+  const node = document.createElement("div");
   node.className = `message ${role}`;
   node.textContent = text;
 
-  document.querySelector('#messages').appendChild(node);
+  document.querySelector("#messages").appendChild(node);
   node.scrollIntoView({
-    behavior: 'smooth',
-    block: 'end',
+    behavior: "smooth",
+    block: "end",
   });
 }
 
 function setupProfile() {
-  document.querySelector('#token-form').onsubmit = async (e) => {
+  document.querySelector("#token-form").onsubmit = async (e) => {
     e.preventDefault();
 
     try {
-      await request('/auth/github-token', {
-        method: 'POST',
+      await request("/auth/github-token", {
+        method: "POST",
         body: JSON.stringify({
-          github_access_token: document.querySelector('#token').value,
+          github_access_token: document.querySelector("#token").value,
         }),
       });
 
-      document.querySelector('#status').textContent = 'Token saved.';
+      document.querySelector("#status").textContent = "Token saved.";
       e.target.reset();
     } catch (error) {
-      document.querySelector('#status').textContent = error.message;
+      document.querySelector("#status").textContent = error.message;
     }
   };
 }
+
+// ====================== INIT ======================
 
 if (document.querySelector("#auth-form")) {
   const page = location.pathname.split("/").pop();
@@ -290,11 +297,13 @@ if (document.querySelector("#auth-form")) {
   }
 }
 
-if (document.querySelector("#create-form")) {
+if (document.querySelector("#create-form") && !window.__dashboardSetupDone) {
+  window.__dashboardSetupDone = true;
   setupDashboard();
 }
 
-if (document.querySelector("#ask")) {
+if (document.querySelector("#ask") && !window.__chatSetupDone) {
+  window.__chatSetupDone = true;
   setupChat();
 }
 
@@ -305,90 +314,77 @@ if (document.querySelector("#token-form")) {
 const logoutBtn = document.querySelector("#logout");
 
 if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-        console.log("Logout clicked");
-
-        localStorage.removeItem("devlens_token");
-
-        window.location.replace("login.html");
-    });
+  logoutBtn.addEventListener("click", () => {
+    console.log("Logout clicked");
+    localStorage.removeItem("devlens_token");
+    window.location.replace("login.html");
+  });
 }
 
 async function upgradeToPro() {
-    try {
+  try {
+    const data = await request("/payment/checkout", {
+      method: "POST",
+    });
 
-        const data = await request("/payment/checkout", {
-            method: "POST",
-        });
-
-        window.location.href = data.checkout_url;
-
-    } catch (err) {
-        alert(err.message);
-    }
+    window.location.href = data.checkout_url;
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
 async function loadSubscription() {
+  try {
+    const status = await request("/payment/status");
 
-    try {
+    const badge = document.querySelector("#plan");
 
-        const status = await request("/payment/status");
+    if (!badge) return;
 
-        const badge = document.querySelector("#plan");
-
-        if (!badge) return;
-
-        badge.textContent = status.plan;
-
-    } catch (err) {
-        console.error(err);
-    }
-
+    badge.textContent = status.plan;
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function showUpgradeModal(reason) {
+  const modal = document.getElementById("upgrade-modal");
+  const message = document.getElementById("upgrade-message");
 
-    const modal = document.getElementById("upgrade-modal");
-    const message = document.getElementById("upgrade-message");
+  switch (reason) {
+    case "repo_limit":
+      message.textContent =
+        "You've reached your monthly repository limit. Upgrade to Pro to create unlimited repository chats.";
+      break;
 
-    switch (reason) {
+    case "daily_limit":
+      message.textContent =
+        "You've reached today's question limit. Upgrade to Pro for unlimited questions.";
+      break;
 
-        case "repo_limit":
-            message.textContent =
-                "You've reached your monthly repository limit. Upgrade to Pro to create unlimited repository chats.";
-            break;
+    default:
+      message.textContent = "This feature requires DevLens Pro.";
+  }
 
-        case "daily_limit":
-            message.textContent =
-                "You've reached today's question limit. Upgrade to Pro for unlimited questions.";
-            break;
-
-        default:
-            message.textContent =
-                "This feature requires DevLens Pro.";
-    }
-
-    modal.hidden = false;
+  modal.hidden = false;
 }
 
 function hideUpgradeModal() {
-    document.getElementById("upgrade-modal").hidden = true;
+  document.getElementById("upgrade-modal").hidden = true;
 }
 
-
 async function startCheckout() {
-    try {
-        const data = await request("/payment/checkout", {
-            method: "POST",
-        });
+  try {
+    const data = await request("/payment/checkout", {
+      method: "POST",
+    });
 
-        console.log("Backend response:", data);
-        console.log("Redirecting to:", data.checkout_url);
+    console.log("Backend response:", data);
+    console.log("Redirecting to:", data.checkout_url);
 
-        window.location.href = data.checkout_url;
-
-    } catch (err) {
-        console.error(err);
-        alert(err.message || "Unable to start checkout.");
-    }
+    window.location.href = data.checkout_url;
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Unable to start checkout.");
+  }
 }

@@ -29,11 +29,7 @@
 
       <section class="chat">
         <h2>Ask your repository</h2>
-        <div id="messages" class="messages">
-          <div class="message assistant">
-            This chat is isolated to the selected repository. Ask about its architecture, files, or behavior.
-          </div>
-        </div>
+        <div id="messages" class="messages"></div>
 
         <form id="ask" class="composer">
           <input id="question" required placeholder="Ask a question...">
@@ -43,8 +39,5 @@
     </main>
 
     <script src="js/app.js"></script>
-    <script>
-      setupChat();
-    </script>
   </body>
 </html>
