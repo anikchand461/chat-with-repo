@@ -1,13 +1,13 @@
 const API = "http://127.0.0.1:8000";
+
+// Change this to your repository (username/repo)
+const GITHUB_REPO = "username/repo";
+
 const authToken = localStorage.getItem("devlens_token");
 
 const page = location.pathname.split("/").pop();
 
-if (
-  !authToken &&
-  page !== "login.html" &&
-  page !== "register.html"
-) {
+if (!authToken && page !== "login.html" && page !== "register.html" && page !== "index.html" && page !== "") {
   location.href = "login.html";
 }
 
@@ -37,9 +37,81 @@ async function request(path, options = {}) {
   return data;
 }
 
+/* ==================== UI: theme, nav, drawer ==================== */
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("devlens_theme", theme);
+}
+
+function setupTheme() {
+  const stored =
+    localStorage.getItem("devlens_theme") ||
+    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+  applyTheme(stored);
+
+  document.querySelectorAll(".theme-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const next =
+        document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(next);
+    });
+  });
+}
+
+function setupNav() {
+  document.querySelectorAll(".github-link").forEach((el) => {
+    el.href = `https://github.com/${GITHUB_REPO}`;
+  });
+
+  const nav = document.querySelector(".nav");
+  const burger = document.querySelector(".hamburger");
+
+  if (nav && burger) {
+    burger.addEventListener("click", () => {
+      const open = nav.classList.toggle("open");
+      burger.setAttribute("aria-expanded", String(open));
+    });
+  }
+
+  const drawerBtn = document.querySelector(".chat-drawer-btn");
+  const backdrop = document.querySelector(".sidebar-backdrop");
+
+  if (drawerBtn) {
+    drawerBtn.addEventListener("click", () =>
+      document.body.classList.toggle("drawer-open")
+    );
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener("click", () =>
+      document.body.classList.remove("drawer-open")
+    );
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    document.body.classList.remove("drawer-open");
+    nav?.classList.remove("open");
+  });
+}
+
+setupTheme();
+document.addEventListener("DOMContentLoaded", setupNav);
+
+/* ==================== auth ==================== */
+
 function setupAuth(kind) {
   document.querySelector("#auth-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    const button = e.target.querySelector("button");
+    const original = button ? button.textContent : "";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Please wait...";
+    }
 
     try {
       const data = await request(`/auth/${kind}`, {
@@ -54,9 +126,16 @@ function setupAuth(kind) {
       location.href = "dashboard.html";
     } catch (error) {
       document.querySelector("#error").textContent = error.message;
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = original;
+      }
     }
   });
 }
+
+/* ==================== dashboard ==================== */
 
 async function setupDashboard() {
   // Attach UI handlers first so Create always works
@@ -84,14 +163,20 @@ async function setupDashboard() {
       const error = document.querySelector("#form-error");
       if (error) error.textContent = "";
 
+      const button = form.querySelector('button[type="submit"]');
+      const original = button ? button.textContent : "";
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Analyzing...";
+      }
+
       try {
         const data = await request("/chat/create", {
           method: "POST",
           body: JSON.stringify({
             owner: document.querySelector("#owner").value.trim(),
             repo: document.querySelector("#repo").value.trim(),
-            branch:
-              document.querySelector("#branch").value.trim() || "main",
+            branch: document.querySelector("#branch").value.trim() || "main",
           }),
         });
 
@@ -107,6 +192,11 @@ async function setupDashboard() {
       } catch (err) {
         console.error(err);
         if (error) error.textContent = err.message;
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = original;
+        }
       }
     };
   }
@@ -143,7 +233,7 @@ async function loadChats() {
           .map(
             (c) =>
               `<a class="chat-link" href="chat.html?id=${c.chat_id}">
-                <strong>${c.title}</strong><br>
+                <strong>${c.title}</strong>
                 <small>branch: ${c.branch}</small>
               </a>`
           )
@@ -153,6 +243,8 @@ async function loadChats() {
     location.href = "login.html";
   }
 }
+
+/* ==================== chat ==================== */
 
 async function setupChat() {
   const id = new URLSearchParams(location.search).get("id");
@@ -170,8 +262,9 @@ async function setupChat() {
 
   if (current) {
     document.querySelector("#chat-title").textContent = current.title;
-    document.querySelector("#branch").textContent =
-      `Branch: ${current.branch}`;
+    document.querySelector("#branch").textContent = `Branch: ${current.branch}`;
+    const header = document.querySelector("#chat-header-title");
+    if (header) header.textContent = current.title;
   }
 
   // Show current chat first
@@ -205,6 +298,11 @@ async function setupChat() {
     const container = document.querySelector("#messages");
     container.innerHTML = "";
 
+    if (!messages.length) {
+      container.innerHTML =
+        '<div class="empty"><h2>Ask your repository</h2><p>Ask anything about the indexed codebase — architecture, files, functions or bugs.</p></div>';
+    }
+
     messages.forEach((m) => {
       addMessage(m.content, m.role);
     });
@@ -224,8 +322,12 @@ async function setupChat() {
 
       if (!q) return;
 
+      document.querySelector(".empty")?.remove();
+
       addMessage(q, "user");
       input.value = "";
+
+      const typing = showTyping();
 
       try {
         const data = await request(`/chat/${id}/ask`, {
@@ -235,11 +337,11 @@ async function setupChat() {
           }),
         });
 
+        typing.remove();
+
         if (data.upgrade_required) {
           addMessage(
-            "⚠️ " +
-              data.message +
-              "\n\nUpgrade to Pro to continue chatting.",
+            "⚠️ " + data.message + "\n\nUpgrade to Pro to continue chatting.",
             "assistant"
           );
           return;
@@ -247,10 +349,24 @@ async function setupChat() {
 
         addMessage(data.answer, "assistant");
       } catch (error) {
+        typing.remove();
         addMessage(error.message, "assistant");
       }
     };
   }
+}
+
+function showTyping() {
+  const node = document.createElement("div");
+  node.className = "typing";
+  node.setAttribute("aria-label", "Assistant is typing");
+  node.innerHTML = "<i></i><i></i><i></i>";
+
+  const container = document.querySelector("#messages");
+  container.appendChild(node);
+  container.scrollTop = container.scrollHeight;
+
+  return node;
 }
 
 function addMessage(text, role) {
@@ -258,12 +374,12 @@ function addMessage(text, role) {
   node.className = `message ${role}`;
   node.textContent = text;
 
-  document.querySelector("#messages").appendChild(node);
-  node.scrollIntoView({
-    behavior: "smooth",
-    block: "end",
-  });
+  const container = document.querySelector("#messages");
+  container.appendChild(node);
+  container.scrollTop = container.scrollHeight;
 }
+
+/* ==================== profile ==================== */
 
 function setupProfile() {
   document.querySelector("#token-form").onsubmit = async (e) => {
@@ -288,9 +404,9 @@ function setupProfile() {
 // ====================== INIT ======================
 
 if (document.querySelector("#auth-form")) {
-  const page = location.pathname.split("/").pop();
+  const currentPage = location.pathname.split("/").pop();
 
-  if (page === "register.html") {
+  if (currentPage === "register.html") {
     setupAuth("register");
   } else {
     setupAuth("login");
@@ -311,15 +427,14 @@ if (document.querySelector("#token-form")) {
   setupProfile();
 }
 
-const logoutBtn = document.querySelector("#logout");
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    console.log("Logout clicked");
-    localStorage.removeItem("devlens_token");
-    window.location.replace("login.html");
-  });
+function logout() {
+  localStorage.removeItem("devlens_token");
+  window.location.replace("login.html");
 }
+
+document.querySelectorAll("#logout, .logout-btn").forEach((btn) => {
+  btn.addEventListener("click", logout);
+});
 
 async function upgradeToPro() {
   try {
@@ -363,7 +478,7 @@ function showUpgradeModal(reason) {
       break;
 
     default:
-      message.textContent = "This feature requires DevLens Pro.";
+      message.textContent = "This feature requires Chat WithRepo Pro.";
   }
 
   modal.hidden = false;
@@ -378,9 +493,6 @@ async function startCheckout() {
     const data = await request("/payment/checkout", {
       method: "POST",
     });
-
-    console.log("Backend response:", data);
-    console.log("Redirecting to:", data.checkout_url);
 
     window.location.href = data.checkout_url;
   } catch (err) {
