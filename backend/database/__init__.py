@@ -1,4 +1,12 @@
-from .db import Base, Chat, Message, SessionLocal, User, engine
+from .db import (
+    Base,
+    Chat,
+    Message,
+    SessionLocal,
+    User,
+    DailyUsage,
+    engine,
+)
 
 __all__ = [
     "Base",
@@ -6,5 +14,6 @@ __all__ = [
     "Message",
     "SessionLocal",
     "User",
+    "DailyUsage",
     "engine",
 ]
