@@ -2,6 +2,7 @@ from pathlib import Path
 from uuid import uuid4
 import traceback
 from datetime import date, datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -13,6 +14,7 @@ from backend.auth import get_current_user
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 FREE_HISTORY_LIMIT = 20
+
 
 class CreateChatRequest(BaseModel):
     owner: str = Field(min_length=1, max_length=100)
@@ -30,22 +32,19 @@ def create_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-
     # --------------------------------------------------
     # Create new chat
     # --------------------------------------------------
     branch = req.branch or "main"
-    
+
     current_month = datetime.now().strftime("%Y-%m")
-    
-    current_month = datetime.now().strftime("%Y-%m")
-    
+
     if current_user.repo_reset_month != current_month:
         current_user.used_repo_count = 0
         current_user.repo_reset_month = current_month
         db.commit()
         db.refresh(current_user)
-    
+
     print("=" * 50)
     print("Plan:", repr(current_user.plan))
     print("Used:", current_user.used_repo_count)
@@ -53,7 +52,7 @@ def create_chat(
     print("Reset Month:", current_user.repo_reset_month)
     print("Current Month:", current_month)
     print("=" * 50)
-    
+
     if (
         current_user.plan == "FREE"
         and current_user.used_repo_count >= current_user.monthly_repo_limit
@@ -62,9 +61,9 @@ def create_chat(
         return {
             "upgrade_required": True,
             "reason": "repo_limit",
-            "message": "You've reached your monthly repository limit."
+            "message": "You've reached your monthly repository limit.",
         }
-    
+
     existing_chat = (
         db.query(Chat)
         .filter(
@@ -75,9 +74,8 @@ def create_chat(
         )
         .first()
     )
-    
+
     if existing_chat:
-    
         # FREE users cannot re-index.
         # They simply continue using the existing index.
         if current_user.plan == "FREE":
@@ -89,7 +87,7 @@ def create_chat(
                 "branch": existing_chat.branch,
                 "already_indexed": True,
             }
-    
+
         # PRO users can choose to re-index later.
         return {
             "chat_id": existing_chat.id,
@@ -100,7 +98,6 @@ def create_chat(
             "already_indexed": True,
             "can_reindex": True,
         }
-    
 
     chat_key = uuid4().hex
     collection_name = f"chat_{current_user.id}_{chat_key}"
@@ -131,7 +128,7 @@ def create_chat(
     • Help me contribute to this repository.
     • Summarize the project.
     """
-    
+
     db.add(
         Message(
             chat_id=chat.id,
@@ -139,13 +136,12 @@ def create_chat(
             content=welcome_message,
         )
     )
-    
+
     db.commit()
 
     # --------------------------------------------------
     # Build repository index
     # --------------------------------------------------
-
     try:
         from backend.api.routes import analyze_branch
         from backend.rag.pipeline import RAGPipeline
@@ -162,7 +158,9 @@ def create_chat(
         rag = RAGPipeline(
             str(json_path),
             collection_name=collection_name,
-            persist_directory=str(Path("chroma_db") / "chats" / chat_key),
+            persist_directory=str(
+                Path("chroma_db") / "chats" / chat_key
+            ),
         )
 
         rag.build_index()
@@ -171,7 +169,7 @@ def create_chat(
             current_user.used_repo_count += 1
             db.commit()
 
-    except Exception:
+    except Exception as e:
         traceback.print_exc()
 
         db.delete(chat)
@@ -179,7 +177,7 @@ def create_chat(
 
         raise HTTPException(
             status_code=500,
-            detail="Repository indexing failed.",
+            detail=str(e),
         )
 
     return {
@@ -190,8 +188,6 @@ def create_chat(
         "branch": chat.branch,
         "collection_name": collection_name,
     }
-
-
 @router.get("/list")
 def list_chats(
     current_user: User = Depends(get_current_user),
@@ -215,7 +211,6 @@ def list_chats(
         for chat in chats
     ]
 
-
 @router.post("/{chat_id}/ask")
 def ask(
     chat_id: int,
@@ -233,7 +228,7 @@ def ask(
     )
 
     today = date.today()
-    
+
     usage = (
         db.query(DailyUsage)
         .filter(
@@ -242,7 +237,7 @@ def ask(
         )
         .first()
     )
-    
+
     if usage is None:
         usage = DailyUsage(
             user_id=current_user.id,
@@ -252,12 +247,12 @@ def ask(
         db.add(usage)
         db.commit()
         db.refresh(usage)
-    
+
     if current_user.plan == "FREE" and usage.questions_used >= 10:
         return {
             "upgrade_required": True,
             "reason": "daily_questions",
-            "message": "You have reached today's free question limit."
+            "message": "You have reached today's free question limit.",
         }
 
     from backend.rag.pipeline import RAGPipeline
@@ -278,7 +273,7 @@ def ask(
         .order_by(Message.id)
         .all()
     )
-    
+
     history = [
         {
             "role": m.role,
@@ -286,16 +281,16 @@ def ask(
         }
         for m in messages
     ]
-    
+
     # Free users only receive the last 20 messages
     if current_user.plan == "FREE":
         history = history[-FREE_HISTORY_LIMIT:]
-    
+
     answer = rag.ask(
         question=req.question,
         history=history,
     )
-    
+
     db.add(
         Message(
             chat_id=chat.id,
@@ -303,7 +298,7 @@ def ask(
             content=req.question,
         )
     )
-    
+
     db.add(
         Message(
             chat_id=chat.id,
@@ -311,26 +306,31 @@ def ask(
             content=answer,
         )
     )
-    
+
     if current_user.plan == "FREE":
         usage.questions_used += 1
-    
+
     db.commit()
-    
+
     return {
-        "answer": answer
+        "answer": answer,
     }
-    
+
+
 @router.get("/{chat_id}/messages")
 def get_messages(
     chat_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    chat = db.query(Chat).filter(
-        Chat.id == chat_id,
-        Chat.user_id == current_user.id,
-    ).first()
+    chat = (
+        db.query(Chat)
+        .filter(
+            Chat.id == chat_id,
+            Chat.user_id == current_user.id,
+        )
+        .first()
+    )
 
     if not chat:
         raise HTTPException(404, "Chat not found")

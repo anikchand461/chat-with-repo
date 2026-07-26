@@ -25,7 +25,7 @@ SOURCE_EXTENSIONS = (
 )
 
 
-def get_file(owner, repo, path, branch=None):
+def get_file(owner, repo, path, branch=None, github_token=None):
     path = quote(path, safe="/")
 
     params = {}
@@ -35,7 +35,8 @@ def get_file(owner, repo, path, branch=None):
 
     data = github_get(
         f"/repos/{owner}/{repo}/contents/{path}",
-        params,
+        params=params,
+        github_token=github_token,
     )
 
     if data.get("type") != "file":
@@ -55,7 +56,12 @@ def get_file(owner, repo, path, branch=None):
 
 
 def get_all_files(owner, repo, branch=None, github_token=None):
-    tree = get_tree(owner, repo, branch, github_token=github_token)
+    tree = get_tree(
+        owner,
+        repo,
+        branch,
+        github_token=github_token,
+    )
 
     files = []
 
@@ -71,6 +77,7 @@ def get_all_files(owner, repo, branch=None, github_token=None):
                 repo,
                 path,
                 branch,
+                github_token=github_token,
             )
 
             if file:
