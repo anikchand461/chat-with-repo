@@ -55,7 +55,7 @@
 
             </div>
 
-            <button id="create">
+            <button id="create" type="button">
                 + Create Chat
             </button>
 
@@ -73,10 +73,7 @@
 
 </main>
 
-<!-- ========================= -->
 <!-- Create Repository Modal -->
-<!-- ========================= -->
-
 <div id="modal" class="modal" hidden>
 
     <form id="create-form" class="card">
@@ -109,7 +106,7 @@
 
         <p id="form-error" class="error"></p>
 
-        <button class="button">
+        <button class="button" type="submit">
             Analyze and open chat
         </button>
 
@@ -126,10 +123,7 @@
 
 </div>
 
-<!-- ========================= -->
 <!-- Upgrade Modal -->
-<!-- ========================= -->
-
 <div id="upgrade-modal" class="modal" hidden>
 
     <div class="card narrow">
@@ -157,6 +151,7 @@
 
             <button
                 id="upgrade-now"
+                type="button"
                 class="button">
 
                 Upgrade to Pro
@@ -179,10 +174,6 @@
 </div>
 
 <script src="js/app.js"></script>
-
-<script>
-    setupDashboard();
-</script>
 
 </body>
 </html>
