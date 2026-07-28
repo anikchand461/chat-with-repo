@@ -484,6 +484,17 @@
         .composer { padding: 12px 14px 16px; }
       }
     </style>
+
+    <!-- Syntax highlighting for fenced code blocks in chat replies -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    />
+
+    <!-- Renders **bold**, `inline code`, ```fenced code```, lists, and
+         headings inside assistant replies. Must load after the theme
+         <style> block above so it can pick up --ink / --brand-500 / --line. -->
+    <link rel="stylesheet" href="css/markdown.css" />
   </head>
   <body>
     <div class="sidebar-backdrop"></div>
@@ -609,6 +620,7 @@
         }
       });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>
