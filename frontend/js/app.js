@@ -207,15 +207,7 @@ async function setupDashboard() {
   }
 
   // API calls after handlers are wired
-  try {
-    const user = await request("/auth/me");
-    if (!user.has_github_token) {
-      const warning = document.querySelector("#github-warning");
-      if (warning) warning.hidden = false;
-    }
-  } catch (err) {
-    console.error("auth/me failed:", err);
-  }
+  await refreshGithubWarning();
 
   try {
     await loadChats();
@@ -223,6 +215,34 @@ async function setupDashboard() {
     console.error("loadChats failed:", err);
   }
 }
+
+// Shows/hides the "GitHub token not configured" banner based on the
+// user's current state. Explicitly sets `hidden` both ways (not just
+// "show if missing") so a token saved on the Profile page correctly
+// clears the banner here too.
+async function refreshGithubWarning() {
+  const warning = document.querySelector("#github-warning");
+  if (!warning) return;
+
+  try {
+    const user = await request("/auth/me");
+    warning.hidden = !!user.has_github_token;
+  } catch (err) {
+    console.error("auth/me failed:", err);
+  }
+}
+
+// Browsers can restore this page from the back/forward cache (bfcache)
+// when navigating "back" from Profile instead of doing a fresh load —
+// in that case none of the script above re-runs, so a token saved on
+// Profile would never clear the banner. Re-check whenever the page
+// becomes visible again, which covers both bfcache restores and users
+// switching back to this tab.
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted && document.querySelector("#create-form")) {
+    refreshGithubWarning();
+  }
+});
 
 async function loadChats() {
   try {
@@ -369,15 +389,176 @@ function showTyping() {
   return node;
 }
 
+/* ---- lightweight markdown rendering for chat messages ---- */
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderMarkdown(raw) {
+  // 1. Pull out fenced code blocks first so nothing inside them gets
+  //    touched by the inline/list formatting passes below.
+  const codeBlocks = [];
+  let text = raw.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
+    codeBlocks.push({ lang: (lang || "").trim(), code: code.replace(/\n$/, "") });
+    return `\u0000CODEBLOCK${codeBlocks.length - 1}\u0000`;
+  });
+
+  // 2. Escape everything else so raw HTML in repo content can't leak in.
+  text = escapeHtml(text);
+
+  // 3. Inline code spans.
+  text = text.replace(/`([^`\n]+)`/g, (_, code) => `<code>${code}</code>`);
+
+  // 4. Bold, then italic (order matters so **x** isn't eaten by *x*).
+  text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+  text = text.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+  text = text.replace(/(^|[^_])_([^_\n]+)_(?!_)/g, "$1<em>$2</em>");
+
+  // 5. Walk line by line to build paragraphs / bullet / numbered lists.
+  const lines = text.split("\n");
+  let html = "";
+  let inUl = false;
+  let inOl = false;
+  let para = [];
+
+  const closeLists = () => {
+    if (inUl) { html += "</ul>"; inUl = false; }
+    if (inOl) { html += "</ol>"; inOl = false; }
+  };
+  const flushPara = () => {
+    if (para.length) {
+      html += `<p>${para.join("<br>")}</p>`;
+      para = [];
+    }
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    const codeBlockMatch = /^\u0000CODEBLOCK(\d+)\u0000$/.exec(trimmed);
+    const heading = /^(#{1,6})\s+(.*)/.exec(trimmed);
+    const bullet = /^[*\-•]\s+(.*)/.exec(trimmed);
+    const numbered = /^\d+\.\s+(.*)/.exec(trimmed);
+
+    if (codeBlockMatch) {
+      closeLists();
+      flushPara();
+      html += trimmed;
+    } else if (heading) {
+      closeLists();
+      flushPara();
+      const level = Math.min(heading[1].length, 6);
+      html += `<h${level}>${heading[2]}</h${level}>`;
+    } else if (bullet) {
+      flushPara();
+      if (inOl) { html += "</ol>"; inOl = false; }
+      if (!inUl) { html += "<ul>"; inUl = true; }
+      html += `<li>${bullet[1]}</li>`;
+    } else if (numbered) {
+      flushPara();
+      if (inUl) { html += "</ul>"; inUl = false; }
+      if (!inOl) { html += "<ol>"; inOl = true; }
+      html += `<li>${numbered[1]}</li>`;
+    } else if (trimmed === "") {
+      closeLists();
+      flushPara();
+    } else {
+      closeLists();
+      para.push(trimmed);
+    }
+  });
+  closeLists();
+  flushPara();
+
+  // 6. Re-insert the fenced code blocks as proper <pre><code> panels.
+  html = html.replace(/\u0000CODEBLOCK(\d+)\u0000/g, (_, idx) => {
+    const block = codeBlocks[Number(idx)];
+    const label = block.lang || "text";
+    const escaped = escapeHtml(block.code);
+    const encoded = encodeURIComponent(block.code);
+    return (
+      `<div class="code-block">` +
+        `<div class="code-block-head">` +
+          `<span class="code-block-lang">${escapeHtml(label)}</span>` +
+          `<button type="button" class="copy-btn" data-code="${encoded}">Copy</button>` +
+        `</div>` +
+        `<pre><code data-lang="${escapeHtml(block.lang)}">${escaped}</code></pre>` +
+      `</div>`
+    );
+  });
+
+  return html;
+}
+
+// Syntax-highlights every fenced code block inside `scope` using highlight.js
+// (loaded via CDN in chat.html). If a language was given in the fence
+// (```go, ```js, ...) and hljs recognizes it, that's used; otherwise hljs
+// auto-detects, and — if the fence had no language at all — the detected
+// name is written into the little header label too.
+function highlightCodeBlocks(scope) {
+  if (!window.hljs) return;
+
+  scope.querySelectorAll("pre code[data-lang]").forEach((block) => {
+    const requested = block.dataset.lang;
+    const known = requested && hljs.getLanguage(requested);
+    const result = known
+      ? hljs.highlight(block.textContent, { language: requested })
+      : hljs.highlightAuto(block.textContent);
+
+    block.innerHTML = result.value;
+    block.classList.add("hljs");
+
+    const detected = known ? requested : result.language;
+    if (detected) {
+      block.classList.add(`language-${detected}`);
+      if (!requested) {
+        const label = block.closest(".code-block")?.querySelector(".code-block-lang");
+        if (label) label.textContent = detected;
+      }
+    }
+  });
+}
+
 function addMessage(text, role) {
   const node = document.createElement("div");
   node.className = `message ${role}`;
-  node.textContent = text;
+  node.innerHTML = role === "user" ? `<p>${escapeHtml(text)}</p>` : renderMarkdown(text);
+
+  highlightCodeBlocks(node);
 
   const container = document.querySelector("#messages");
   container.appendChild(node);
   container.scrollTop = container.scrollHeight;
 }
+
+// One delegated listener handles every "Copy" button, including ones
+// added to messages long after page load.
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".copy-btn");
+  if (!btn) return;
+
+  const code = decodeURIComponent(btn.dataset.code || "");
+  navigator.clipboard
+    .writeText(code)
+    .then(() => {
+      const original = btn.textContent;
+      btn.textContent = "Copied!";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove("copied");
+      }, 1500);
+    })
+    .catch(() => {
+      btn.textContent = "Failed";
+    });
+});
 
 /* ==================== profile ==================== */
 
