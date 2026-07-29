@@ -226,11 +226,26 @@ async function refreshGithubWarning() {
 
   try {
     const user = await request("/auth/me");
-    warning.hidden = !!user.has_github_token;
+    // Explicit both ways so a saved token always hides the banner
+    warning.hidden = Boolean(user && user.has_github_token);
   } catch (err) {
     console.error("auth/me failed:", err);
+    // On error, leave the banner as-is (don't force-show)
   }
 }
+
+// Re-check when returning from Profile (bfcache + normal navigation)
+window.addEventListener("pageshow", () => {
+  if (document.querySelector("#github-warning")) {
+    refreshGithubWarning();
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && document.querySelector("#github-warning")) {
+    refreshGithubWarning();
+  }
+});
 
 // Browsers can restore this page from the back/forward cache (bfcache)
 // when navigating "back" from Profile instead of doing a fresh load —
@@ -563,21 +578,71 @@ document.addEventListener("click", (e) => {
 /* ==================== profile ==================== */
 
 function setupProfile() {
-  document.querySelector("#token-form").onsubmit = async (e) => {
+  const form = document.querySelector("#token-form");
+  if (!form) return;
+
+  form.onsubmit = async (e) => {
     e.preventDefault();
+
+    const status = document.querySelector("#status");
+    const input = document.querySelector("#token");
+    const button = form.querySelector('button[type="submit"]');
+    const original = button ? button.textContent : "";
+
+    if (status) {
+      status.textContent = "";
+      status.className = "";
+    }
+
+    if (!input || !input.value.trim()) {
+      if (status) {
+        status.textContent = "Please enter a GitHub token.";
+        status.className = "err";
+      }
+      return;
+    }
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Saving...";
+    }
 
     try {
       await request("/auth/github-token", {
         method: "POST",
         body: JSON.stringify({
-          github_access_token: document.querySelector("#token").value,
+          github_access_token: input.value.trim(),
         }),
       });
 
-      document.querySelector("#status").textContent = "Token saved.";
-      e.target.reset();
+      if (status) {
+        status.textContent = "Token saved. Dashboard warning will clear.";
+        status.className = "ok";
+      }
+      form.reset();
+
+      // Optional: confirm backend now reports the token
+      try {
+        const me = await request("/auth/me");
+        if (status && me.has_github_token) {
+          status.textContent = "Token saved and verified ✓";
+          status.className = "ok";
+        } else if (status) {
+          status.textContent =
+            "Token sent, but /auth/me still reports no token. Check backend.";
+          status.className = "err";
+        }
+      } catch (_) {}
     } catch (error) {
-      document.querySelector("#status").textContent = error.message;
+      if (status) {
+        status.textContent = error.message || "Failed to save token.";
+        status.className = "err";
+      }
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = original;
+      }
     }
   };
 }
