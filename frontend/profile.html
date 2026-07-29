@@ -8,16 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/app.css" />
     <script>
       document.documentElement.setAttribute(
         "data-theme",
-        localStorage.getItem("Chat With Repo_theme") ||
+        localStorage.getItem("devlens_theme") ||
           (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       );
     </script>
     <style>
-      /* Same token system as register.html / dashboard.html / chat.html / index.html */
       :root {
         --brand-900: #063a2b;
         --brand-700: #0b6e4f;
@@ -33,7 +31,10 @@
         --danger: #e5484d;
         --danger-soft: rgba(229, 72, 77, 0.1);
         --ok: #17b57f;
-        --ok-soft: rgba(23, 181, 127, 0.1);
+        --ok-soft: rgba(23, 181, 127, 0.12);
+        --warn-bg: rgba(180, 120, 20, 0.1);
+        --warn-border: rgba(180, 120, 20, 0.35);
+        --warn-text: #a16207;
         --shadow-soft: 0 20px 45px -25px rgba(6, 58, 43, 0.45);
         --shadow-lift: 0 16px 32px -18px rgba(6, 58, 43, 0.5);
         --radius-lg: 18px;
@@ -48,6 +49,10 @@
         --ink: #eaf7f1;
         --ink-soft: #9fc2b3;
         --line: rgba(159, 234, 208, 0.14);
+        --ok-soft: rgba(23, 181, 127, 0.18);
+        --warn-bg: rgba(180, 120, 20, 0.18);
+        --warn-border: rgba(234, 179, 8, 0.45);
+        --warn-text: #fbbf24;
         --shadow-soft: 0 25px 60px -25px rgba(0, 0, 0, 0.65);
         --shadow-lift: 0 18px 34px -18px rgba(0, 0, 0, 0.6);
         color-scheme: dark;
@@ -90,7 +95,7 @@
         .brand-dot, .card { animation: none; }
       }
 
-      /* ---------------- Navbar (shared with dashboard.html) ---------------- */
+      /* Navbar */
       .nav {
         position: sticky; top: 0; z-index: 30;
         height: var(--nav-h);
@@ -110,9 +115,13 @@
         padding: 9px 14px; border-radius: var(--radius-sm);
         transition: background-color 0.15s ease, color 0.15s ease;
       }
-      .nav-links a:hover, .nav-links .logout-btn:hover { background: var(--brand-300); color: var(--brand-900); }
+      .nav-links a:hover, .nav-links .logout-btn:hover {
+        background: var(--brand-300); color: var(--brand-900);
+      }
       html[data-theme="dark"] .nav-links a:hover,
-      html[data-theme="dark"] .nav-links .logout-btn:hover { background: rgba(85, 214, 164, 0.14); color: var(--brand-400); }
+      html[data-theme="dark"] .nav-links .logout-btn:hover {
+        background: rgba(85, 214, 164, 0.14); color: var(--brand-400);
+      }
       .nav-links .logout-btn { color: var(--danger); }
 
       .icon-btn {
@@ -142,10 +151,10 @@
 
       .page { min-height: calc(100vh - var(--nav-h)); display: flex; }
 
-      /* ---------------- Profile card ---------------- */
+      /* Profile card */
       .card.narrow {
         width: 100%;
-        max-width: 420px;
+        max-width: 440px;
         display: flex;
         flex-direction: column;
         gap: 18px;
@@ -163,59 +172,140 @@
         to { opacity: 1; transform: translateY(0) scale(1); }
       }
       .card.narrow h1 {
+        margin: 0;
         font-family: "Plus Jakarta Sans", sans-serif;
         font-weight: 700; font-size: 28px; letter-spacing: -0.01em;
       }
-      .card.narrow > p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; }
+      .card.narrow > p.lead {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 14.5px;
+        line-height: 1.55;
+      }
 
+      /* Token status banner */
+      .token-status {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        transition: background 0.25s ease, border-color 0.25s ease;
+      }
+      .token-status.configured {
+        background: var(--ok-soft);
+        border-color: color-mix(in srgb, var(--ok) 35%, transparent);
+      }
+      .token-status.missing {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .token-status .icon {
+        flex-shrink: 0;
+        width: 22px; height: 22px;
+        margin-top: 1px;
+      }
+      .token-status.configured .icon { color: var(--ok); }
+      .token-status.missing .icon { color: var(--warn-text); }
+      .token-status .text strong {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .token-status.configured .text strong { color: var(--ok); }
+      .token-status.missing .text strong { color: var(--warn-text); }
+      .token-status .text p {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        line-height: 1.45;
+      }
+
+      /* Form */
       .field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-      .field input {
-  width: 100%;
-  padding: 13px 14px;
-  font: inherit;
-  font-size: 15px;
-  color: var(--ink);
-  background: var(--paper);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-sm);
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-      .field input:focus {
-  border-color: var(--brand-500);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 18%, transparent);
-}
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
       .field > label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-soft);
-  position: static;
-  transform: none;
-  pointer-events: auto;
-}
-.field input:focus {
-  border-color: var(--brand-500);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 18%, transparent);
-}
-      .field input:focus + label,
-      .field input:not(:placeholder-shown) + label {
-        top: 7px; transform: scale(0.72); color: var(--brand-600);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink-soft);
+      }
+      .input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .field input {
+        width: 100%;
+        padding: 13px 44px 13px 14px;
+        font: inherit;
+        font-size: 15px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        letter-spacing: 0.02em;
+        color: var(--ink);
+        background: var(--paper);
+        border: 1.5px solid var(--line);
+        border-radius: var(--radius-sm);
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .field input:focus {
+        border-color: var(--brand-500);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 18%, transparent);
       }
       .field input.invalid {
-  border-color: var(--danger);
-  animation: shake 0.32s ease;
-}
+        border-color: var(--danger);
+        animation: shake 0.32s ease;
+      }
+      @keyframes shake {
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+      }
+      .toggle-vis {
+        position: absolute;
+        right: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px; height: 34px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+      .toggle-vis:hover {
+        color: var(--brand-600);
+        background: color-mix(in srgb, var(--brand-500) 10%, transparent);
+      }
+      .toggle-vis svg { width: 18px; height: 18px; }
+      .toggle-vis .eye-off { display: none; }
+      .toggle-vis.show .eye-on { display: none; }
+      .toggle-vis.show .eye-off { display: block; }
 
-      @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+      .hint {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        line-height: 1.45;
+      }
+      .hint a {
+        color: var(--brand-600);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
 
       #status {
         min-height: 18px;
         font-size: 13.5px;
+        font-weight: 500;
         transition: opacity 0.2s ease;
       }
       #status:empty { opacity: 0; }
@@ -240,15 +330,22 @@
       .button.secondary {
         background: transparent; color: var(--ink); border: 1.5px solid var(--line);
       }
-      .button.secondary:hover { border-color: var(--brand-500); color: var(--brand-600); transform: translateY(-2px); }
+      .button.secondary:hover {
+        border-color: var(--brand-500); color: var(--brand-600); transform: translateY(-2px);
+      }
       .button.secondary.danger {
-        color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+        color: var(--danger);
+        border-color: color-mix(in srgb, var(--danger) 45%, transparent);
       }
       .button.secondary.danger:hover {
         border-color: var(--danger); color: var(--danger);
         background: var(--danger-soft);
       }
-      .button:disabled { cursor: not-allowed; filter: grayscale(0.3) brightness(0.95); transform: none; }
+      .button:disabled {
+        cursor: not-allowed;
+        filter: grayscale(0.3) brightness(0.95);
+        transform: none;
+      }
       .button .spinner { display: none; }
       .button.loading .label { visibility: hidden; }
       .button.loading .spinner {
@@ -261,7 +358,13 @@
       }
       @keyframes spin { to { transform: rotate(360deg); } }
 
-      /* ---------------- Mobile ---------------- */
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* Mobile */
       @media (max-width: 760px) {
         .hamburger { display: inline-flex; }
         .nav-links {
@@ -290,7 +393,7 @@
         <a class="brand" href="dashboard.html"><span class="brand-dot"></span>Chat<span>WithRepo</span></a>
 
         <div class="nav-actions">
-          <a class="icon-btn github-link" href="https://github.com/username/repo" target="_blank" rel="noopener" aria-label="View on GitHub">
+          <a class="icon-btn github-link" href="https://github.com/shreyaghorui222004" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.28 5.69.42.36.8 1.08.8 2.18v3.23c0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg>
           </a>
           <button class="icon-btn theme-toggle" type="button" aria-label="Toggle theme">
@@ -305,34 +408,79 @@
         <div class="nav-links" id="primary-nav-links">
           <a href="dashboard.html">Dashboard</a>
           <a href="profile.html">Profile</a>
-          <button class="logout-btn" type="button">Logout</button>
+          <button class="logout-btn" type="button" id="logout">Logout</button>
         </div>
       </nav>
 
       <section class="page">
         <div class="card narrow">
           <h1>Profile</h1>
-          <p>Add a GitHub token to access private repositories and improve API limits.</p>
+          <p class="lead">Add a GitHub Personal Access Token to access private repos and raise API rate limits. The dashboard warning will disappear once a token is saved.</p>
+
+          <!-- Live status banner -->
+          <div id="token-status" class="token-status missing" role="status">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div class="text">
+              <strong id="status-title">GitHub token not configured</strong>
+              <p id="status-desc">Public API limits apply. Add a token for better performance.</p>
+            </div>
+          </div>
 
           <form id="token-form" style="display: grid; gap: 14px">
             <div class="field">
-              <input id="token" type="password" required placeholder=" " />
               <label for="token">GitHub access token</label>
+              <div class="input-wrap">
+                <input
+                  id="token"
+                  type="password"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                  required
+                />
+                <button type="button" class="toggle-vis" id="toggle-vis" aria-label="Show token" title="Show / hide">
+                  <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="hint">
+                Create a token with <strong>repo</strong> scope at
+                <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">github.com/settings/tokens</a>
+              </p>
             </div>
+
             <p id="status" role="status" aria-live="polite"></p>
-            <button type="submit" class="button block">
-              <span class="label">Save token</span>
-              <span class="spinner" aria-hidden="true"></span>
-            </button>
+
+            <div class="actions">
+              <button type="submit" class="button block" id="save-btn">
+                <span class="label">Save token</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="button secondary danger block" id="remove-token" hidden>
+                Remove token
+              </button>
+            </div>
           </form>
 
-          <button class="button secondary danger block" type="button" onclick="logout()">Logout</button>
+          <button class="button secondary danger block" type="button" id="logout-bottom">Logout</button>
         </div>
       </section>
     </main>
 
     <script>
-      // Theme toggle (shared with other pages)
+      /* ---------- Shared key used by dashboard warning ---------- */
+      var TOKEN_KEY = "chatwithrepo_github_token";
+
+      /* Theme toggle */
       var themeBtn = document.querySelector(".theme-toggle");
       themeBtn.addEventListener("click", function () {
         var root = document.documentElement;
@@ -343,7 +491,7 @@
         setTimeout(function () { themeBtn.classList.remove("spin"); }, 400);
       });
 
-      // Mobile nav drawer — UI only
+      /* Mobile nav */
       var hamburger = document.querySelector(".hamburger");
       var navLinks = document.getElementById("primary-nav-links");
       hamburger.addEventListener("click", function () {
@@ -351,7 +499,7 @@
         hamburger.setAttribute("aria-expanded", String(open));
       });
       navLinks.addEventListener("click", function (e) {
-        if (e.target.tagName === "A" || e.target.classList.contains("logout-btn")) {
+        if (e.target.tagName === "A" || e.target.classList.contains("logout-btn") || e.target.id === "logout") {
           navLinks.classList.remove("open");
           hamburger.setAttribute("aria-expanded", "false");
         }
@@ -363,24 +511,123 @@
         }
       });
 
-      // Loading-button + success/error state layered on top of the existing
-      // form handling in js/app.js. Never calls preventDefault(), so the
-      // real token-save logic is untouched.
-      var tokenForm = document.getElementById("token-form");
-      var saveBtn = tokenForm.querySelector('button[type="submit"]');
+      /* Show / hide token */
+      var toggleVis = document.getElementById("toggle-vis");
       var tokenInput = document.getElementById("token");
-      var statusEl = document.getElementById("status");
-
-      tokenForm.addEventListener("submit", function () {
-        tokenInput.classList.toggle("invalid", !tokenInput.checkValidity());
-        if (tokenForm.checkValidity()) {
-          saveBtn.classList.add("loading");
-          saveBtn.disabled = true;
-        }
+      toggleVis.addEventListener("click", function () {
+        var showing = tokenInput.type === "text";
+        tokenInput.type = showing ? "password" : "text";
+        toggleVis.classList.toggle("show", !showing);
+        toggleVis.setAttribute("aria-label", showing ? "Show token" : "Hide token");
       });
 
-      // Once js/app.js writes a result into #status, resolve the loading
-      // state and clor it based on wording (best-effort, non-blocking).
+      /* Status banner helpers */
+      var statusBanner = document.getElementById("token-status");
+      var statusTitle = document.getElementById("status-title");
+      var statusDesc = document.getElementById("status-desc");
+      var removeBtn = document.getElementById("remove-token");
+      var statusEl = document.getElementById("status");
+      var saveBtn = document.getElementById("save-btn");
+
+      function updateBanner(hasToken) {
+        if (hasToken) {
+          statusBanner.className = "token-status configured";
+          statusBanner.querySelector(".icon").innerHTML =
+            '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+          statusTitle.textContent = "GitHub token configured";
+          statusDesc.textContent = "Private repos and higher rate limits are available. The dashboard warning is hidden.";
+          removeBtn.hidden = false;
+        } else {
+          statusBanner.className = "token-status missing";
+          statusBanner.querySelector(".icon").innerHTML =
+            '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+          statusTitle.textContent = "GitHub token not configured";
+          statusDesc.textContent = "Public API limits apply. Add a token for better performance.";
+          removeBtn.hidden = true;
+        }
+      }
+
+      function getToken() {
+        return (localStorage.getItem(TOKEN_KEY) || "").trim();
+      }
+
+      /* Init from localStorage */
+      (function init() {
+        var existing = getToken();
+        updateBanner(!!existing);
+        if (existing) {
+          // Mask for display only — never put the real value in a visible field by default
+          tokenInput.placeholder = "••••••••••••••••••••••••";
+          tokenInput.removeAttribute("required"); // allow empty to keep current
+        }
+      })();
+
+      /* Save token */
+      var tokenForm = document.getElementById("token-form");
+      tokenForm.addEventListener("submit", function (e) {
+        e.preventDefault(); // we handle storage here so dashboard warning works immediately
+
+        var value = tokenInput.value.trim();
+        tokenInput.classList.toggle("invalid", !value && !getToken());
+
+        if (!value && !getToken()) {
+          statusEl.textContent = "Please enter a GitHub token.";
+          statusEl.className = "err";
+          return;
+        }
+
+        if (!value) {
+          // User left field empty but already had a token → keep it
+          statusEl.textContent = "Token already saved.";
+          statusEl.className = "ok";
+          return;
+        }
+
+        saveBtn.classList.add("loading");
+        saveBtn.disabled = true;
+
+        // Simulate short save delay for UX (real app.js may still run afterwards)
+        setTimeout(function () {
+          localStorage.setItem(TOKEN_KEY, value);
+          // Also write common alternate keys so existing app.js keeps working
+          localStorage.setItem("github_token", value);
+          localStorage.setItem("gh_token", value);
+
+          updateBanner(true);
+          statusEl.textContent = "Token saved successfully. Dashboard warning is now hidden.";
+          statusEl.className = "ok";
+          tokenInput.value = "";
+          tokenInput.placeholder = "••••••••••••••••••••••••";
+          tokenInput.removeAttribute("required");
+
+          saveBtn.classList.remove("loading");
+          saveBtn.disabled = false;
+        }, 450);
+      });
+
+      /* Remove token */
+      removeBtn.addEventListener("click", function () {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem("github_token");
+        localStorage.removeItem("gh_token");
+        updateBanner(false);
+        tokenInput.value = "";
+        tokenInput.placeholder = "ghp_xxxxxxxxxxxxxxxxxxxx";
+        tokenInput.setAttribute("required", "");
+        statusEl.textContent = "Token removed. Dashboard warning will appear again.";
+        statusEl.className = "ok";
+      });
+
+      /* Logout helpers (UI only — real logout lives in app.js) */
+      function doLogout() {
+        // Optional: clear token on logout if that’s desired
+        // localStorage.removeItem(TOKEN_KEY);
+        window.location.href = "index.html";
+      }
+      document.getElementById("logout").addEventListener("click", doLogout);
+      document.getElementById("logout-bottom").addEventListener("click", doLogout);
+
+      /* If app.js later writes into #status, sync our loading / color state */
       new MutationObserver(function () {
         var text = statusEl.textContent.trim();
         if (!text) return;
@@ -389,6 +636,7 @@
         var looksLikeError = /fail|error|invalid|denied|expired/i.test(text);
         statusEl.classList.toggle("err", looksLikeError);
         statusEl.classList.toggle("ok", !looksLikeError);
+        if (!looksLikeError && getToken()) updateBanner(true);
       }).observe(statusEl, { childList: true, characterData: true, subtree: true });
     </script>
     <script src="js/app.js"></script>
