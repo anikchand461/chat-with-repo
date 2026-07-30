@@ -121,7 +121,13 @@
         "open_issues": 0,
         "watchers": 2,
         "default_branch": "main",
-        "temp_clone_token": null,
+        "permissions": {
+            "admin": false,
+            "maintain": false,
+            "push": false,
+            "triage": false,
+            "pull": true
+        },
         "network_count": 0,
         "subscribers_count": 0
     },

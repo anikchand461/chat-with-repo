@@ -293,6 +293,48 @@
         color: var(--ink-muted);
         line-height: 1.5;
       }
+      /* ---- Bottom status notice ---- */
+      .status-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-top: 48px;
+        padding: 16px 18px;
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--brand-bright) 7%, transparent);
+        border: 1px solid color-mix(in srgb, var(--brand-bright) 22%, var(--line));
+      }
+      .status-notice .dot-pulse {
+        flex: none;
+        width: 8px; height: 8px;
+        margin-top: 6px;
+        border-radius: 50%;
+        background: var(--brand-bright);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-bright) 55%, transparent);
+        animation: status-pulse 2.2s ease-in-out infinite;
+      }
+      @keyframes status-pulse {
+        0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-bright) 45%, transparent); }
+        70%  { box-shadow: 0 0 0 7px color-mix(in srgb, var(--brand-bright) 0%, transparent); }
+        100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-bright) 0%, transparent); }
+      }
+      .status-notice strong {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 2px;
+      }
+      .status-notice p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--ink-muted);
+      }
+      @media (max-width: 760px) {
+        .status-notice { margin-top: 32px; padding: 14px; }
+      }
+
       .warning a {
         color: var(--brand-bright);
         font-weight: 600;
@@ -696,7 +738,7 @@
           <div class="nav-actions">
             <a
               class="icon-btn github-link"
-              href="https://github.com/shreyaghorui222004"
+              href="https://github.com/shreyaghorui222004/chat-with-repo"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub — shreyaghorui222004"
@@ -787,6 +829,14 @@
           <p class="sub">Jump back into a repository you’ve already indexed.</p>
           <div id="chats" class="chat-list"></div>
         </section>
+
+        <div class="status-notice">
+          <span class="dot-pulse" aria-hidden="true"></span>
+          <div>
+            <strong>Some UI issues are known and being worked on</strong>
+            <p>A few small interface quirks are still present — we're aware of them and they'll be ironed out in an upcoming update.</p>
+          </div>
+        </div>
       </main>
     </div>
 
