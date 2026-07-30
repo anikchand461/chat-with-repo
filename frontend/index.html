@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Log in | Chat WithRepo</title>
+    <title>ChatWithRepo — Chat with your GitHub repository</title>
     <link rel="icon" type="image/png" href="assets/logo-chatwithrepo.png">
-    <meta name="description" content="Log in to ChatWithRepo to chat with your indexed GitHub repositories." />
+    <meta name="description" content="ChatWithRepo indexes any GitHub repository so you can ask questions about your codebase in plain language and get answers grounded in the real code." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,7 +18,7 @@
       );
     </script>
     <style>
-      /* Same token system as register.html / dashboard.html / chat.html / index.html / profile.html */
+      /* Same token system as register.html / dashboard.html / chat.html / login.html / profile.html */
       :root {
         --brand-900: #063a2b;
         --brand-700: #0b6e4f;
@@ -31,11 +31,12 @@
         --ink: #0c211b;
         --ink-soft: #4b6058;
         --line: rgba(11, 40, 30, 0.12);
-        --danger: #e5484d;
         --shadow-soft: 0 20px 45px -25px rgba(6, 58, 43, 0.45);
-        --radius-lg: 18px;
+        --shadow-lift: 0 16px 32px -18px rgba(6, 58, 43, 0.5);
+        --radius-lg: 20px;
         --radius-md: 14px;
         --radius-sm: 10px;
+        --nav-h: 72px;
         color-scheme: light;
       }
       html[data-theme="dark"] {
@@ -45,262 +46,565 @@
         --ink-soft: #9fc2b3;
         --line: rgba(159, 234, 208, 0.14);
         --shadow-soft: 0 25px 60px -25px rgba(0, 0, 0, 0.65);
+        --shadow-lift: 0 18px 34px -18px rgba(0, 0, 0, 0.6);
         color-scheme: dark;
       }
 
-      * { box-sizing: border-box; }
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
       body {
-        margin: 0;
         font-family: "Inter", system-ui, sans-serif;
         color: var(--ink);
         background: var(--paper);
         transition: background-color 0.4s ease, color 0.4s ease;
-        min-height: 100vh;
+        overflow-x: hidden;
       }
+      a { color: inherit; text-decoration: none; }
+      a:focus-visible, button:focus-visible, input:focus-visible {
+        outline: 2px solid var(--brand-500);
+        outline-offset: 2px;
+      }
+      ::selection { background: color-mix(in srgb, var(--brand-500) 30%, transparent); }
 
-      .auth {
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 24px;
+      /* ---- Page backdrop: soft glow + faint grid ---- */
+      .page {
         position: relative;
-        overflow: hidden;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background:
+          radial-gradient(ellipse 80% 50% at 15% 0%, color-mix(in srgb, var(--brand-500) 14%, transparent), transparent 55%),
+          radial-gradient(ellipse 60% 40% at 92% 12%, color-mix(in srgb, var(--brand-300) 16%, transparent), transparent 50%),
+          var(--paper);
       }
-      .auth::before, .auth::after {
+      .page::before {
         content: "";
         position: absolute;
-        border-radius: 50%;
-        filter: blur(70px);
-        opacity: 0.35;
+        inset: 0;
+        height: 900px;
+        background-image:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(ellipse 70% 60% at 50% 10%, black 20%, transparent 75%);
         pointer-events: none;
-        animation: drift 16s ease-in-out infinite alternate;
-      }
-      .auth::before {
-        width: 480px; height: 480px; top: -160px; left: -120px;
-        background: radial-gradient(circle, var(--brand-500), transparent 70%);
-      }
-      .auth::after {
-        width: 420px; height: 420px; bottom: -140px; right: -100px;
-        background: radial-gradient(circle, var(--brand-300), transparent 70%);
-        animation-delay: -8s;
-      }
-      @keyframes drift {
-        from { transform: translate(0, 0) scale(1); }
-        to { transform: translate(30px, 20px) scale(1.08); }
+        opacity: 0.7;
       }
       @media (prefers-reduced-motion: reduce) {
-        .auth::before, .auth::after { animation: none; }
+        .brand-dot, .demo-dot, .icon-orbit { animation: none !important; }
       }
 
-      .card {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: 400px;
+      /* ---- Pill navbar (shared pattern with dashboard.html) ---- */
+      .nav-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        padding: 16px clamp(16px, 4vw, 40px) 0;
+      }
+      .nav {
+        max-width: 1140px;
+        margin: 0 auto;
+        height: 60px;
         display: flex;
-        flex-direction: column;
-        gap: 18px;
-        padding: 36px 32px;
-        border-radius: var(--radius-lg);
-        background: color-mix(in srgb, var(--paper-raised) 78%, transparent);
-        backdrop-filter: blur(18px) saturate(140%);
-        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 10px 0 18px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--paper-raised) 82%, transparent);
         border: 1px solid var(--line);
-        box-shadow: var(--shadow-soft);
-        animation: card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        box-shadow: 0 8px 32px -14px rgba(6, 58, 43, 0.28);
       }
-      @keyframes card-in {
-        from { opacity: 0; transform: translateY(14px) scale(0.98); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-      }
-
       .brand {
-        display: inline-flex; align-items: center; gap: 8px;
-        font-family: "Plus Jakarta Sans", "Inter", sans-serif;
-        font-weight: 700; font-size: 19px; letter-spacing: -0.01em;
-        color: var(--ink); text-decoration: none; width: fit-content;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 800;
+        font-size: 16.5px;
+        letter-spacing: -0.02em;
       }
       .brand span { color: var(--brand-600); }
+      .brand-logo { width: 30px; height: 30px; flex: none; border-radius: 8px; object-fit: contain; }
       .brand-dot {
-        width: 10px; height: 10px; border-radius: 50%;
+        width: 8px; height: 8px; border-radius: 50%;
         background: var(--brand-500);
         box-shadow: 0 0 0 0 rgba(23, 181, 127, 0.55);
         animation: pulse 2.4s ease-in-out infinite;
       }
       @keyframes pulse {
-        0%   { box-shadow: 0 0 0 0 rgba(23, 181, 127, 0.55); }
-        70%  { box-shadow: 0 0 0 8px rgba(23, 181, 127, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(23, 181, 127, 0.55); }
+        70% { box-shadow: 0 0 0 8px rgba(23, 181, 127, 0); }
         100% { box-shadow: 0 0 0 0 rgba(23, 181, 127, 0); }
       }
 
-      /* Large centered wordmark that sits above the card, mid-top of the page */
-      .auth-inner {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: 400px;
+      .nav-center {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 22px;
+        gap: 2px;
       }
-      .brand-hero {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        text-decoration: none;
-        text-align: center;
-        animation: card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      .nav-center a {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink-soft);
+        padding: 8px 14px;
+        border-radius: 999px;
+        transition: background 0.15s ease, color 0.15s ease;
       }
-      .brand-hero-logo {
-          width: 136px;
-          height: 136px;
-        border-radius: 20px;
-        object-fit: contain;
-        filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--brand-600) 45%, transparent));
-      }
-      .brand-hero-text {
-        font-family: "Plus Jakarta Sans", "Inter", sans-serif;
-        font-weight: 800;
-        font-size: 24px;
-        letter-spacing: -0.01em;
-        color: var(--ink);
-      }
-      .brand-hero-text span { color: var(--brand-600); }
-      @media (max-width: 420px) {
-        .brand-hero-logo { width: 60px; height: 60px; border-radius: 16px; }
-        .brand-hero-text { font-size: 20px; }
-      }
+      .nav-center a:hover { color: var(--ink); background: color-mix(in srgb, var(--brand-500) 10%, transparent); }
 
-      .card h1 {
-        font-family: "Plus Jakarta Sans", sans-serif;
-        font-weight: 700; font-size: 26px; letter-spacing: -0.01em; margin: 4px 0 0;
-      }
-      .card > p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; }
-
-      .field { margin-top: -15px; }
-      .field label {
-        display: block; margin-bottom: 6px;
-        font-size: 13.5px; font-weight: 600; color: var(--ink-soft);
-      }
-      .field input {
-        width: 100%; padding: 13px 14px; font: inherit; font-size: 15px;
-        color: var(--ink); background: var(--paper);
-        border: 1.5px solid var(--line); border-radius: var(--radius-sm);
-        outline: none;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.4s ease;
-      }
-      .field input::placeholder { color: var(--ink-soft); opacity: 0.55; }
-      .field input:focus {
-        border-color: var(--brand-500);
-        box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 18%, transparent);
-      }
-      .field input.invalid { border-color: var(--danger); animation: shake 0.32s ease; }
-      @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-
-      .error {
-        margin: -6px 0 0; min-height: 18px; font-size: 13px;
-        color: var(--danger); transition: opacity 0.2s ease;
-      }
-      .error:empty { opacity: 0; }
-
-      .button {
-        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        font: inherit; font-weight: 600; font-size: 15px;
-        border: none; border-radius: var(--radius-sm); cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-      }
-      .button.block {
-        width: 100%; padding: 13px 16px; color: #05261c;
-        background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
-        box-shadow: 0 12px 24px -12px color-mix(in srgb, var(--brand-600) 70%, transparent);
-      }
-      .button.block:hover { transform: translateY(-2px); filter: brightness(1.04); }
-      .button.block:active { transform: translateY(0); }
-      .button.block:disabled { cursor: not-allowed; filter: grayscale(0.3) brightness(0.95); transform: none; }
-      .button.block .spinner { display: none; }
-      .button.block.loading .label { visibility: hidden; }
-      .button.block.loading .spinner {
-        display: block; position: absolute;
-        width: 18px; height: 18px;
-        border: 2px solid rgba(5, 38, 28, 0.35);
-        border-top-color: #05261c;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-
-      a { color: var(--brand-600); }
-      a:focus-visible, button:focus-visible, input:focus-visible {
-        outline: 2px solid var(--brand-500);
-        outline-offset: 2px;
-      }
-
-      .nav-actions { display: flex; gap: 10px; align-items: center; }
+      .nav-actions { display: flex; align-items: center; gap: 8px; }
       .icon-btn {
         display: inline-flex; align-items: center; justify-content: center;
-        width: 38px; height: 38px;
+        width: 36px; height: 36px;
         border-radius: 50%; border: 1px solid var(--line);
-        background: var(--paper); color: var(--ink-soft); cursor: pointer;
+        background: transparent; color: var(--ink-soft); cursor: pointer;
         transition: transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
       }
-      .icon-btn:hover { transform: translateY(-2px); color: var(--brand-600); border-color: var(--brand-400); }
-      .icon-btn svg { width: 18px; height: 18px; }
+      .icon-btn:hover { transform: translateY(-1px); color: var(--brand-600); border-color: var(--brand-400); }
+      .icon-btn svg { width: 17px; height: 17px; }
       .theme-toggle .sun { display: none; }
       html[data-theme="dark"] .theme-toggle .moon { display: none; }
       html[data-theme="dark"] .theme-toggle .sun { display: block; }
       .theme-toggle svg { transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
       .theme-toggle.spin svg { transform: rotate(180deg); }
 
-      @media (max-width: 420px) {
-        .card { padding: 28px 20px; border-radius: var(--radius-md); }
+      .nav-links { display: flex; align-items: center; gap: 6px; margin-left: 4px; }
+      .nav-links a.login { font-size: 13.5px; font-weight: 600; color: var(--ink-soft); padding: 8px 12px; border-radius: 999px; }
+      .nav-links a.login:hover { color: var(--ink); }
+
+      .hamburger { display: none; }
+      .hamburger-lines { display: flex; flex-direction: column; gap: 4px; width: 16px; }
+      .hamburger-lines i { display: block; height: 2px; background: currentColor; border-radius: 2px; transition: transform 0.25s ease, opacity 0.2s ease; }
+      .hamburger[aria-expanded="true"] .hamburger-lines i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+      .hamburger[aria-expanded="true"] .hamburger-lines i:nth-child(2) { opacity: 0; }
+      .hamburger[aria-expanded="true"] .hamburger-lines i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+      /* ---- Buttons ---- */
+      .button {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        font: inherit; font-weight: 600; font-size: 14.5px;
+        border: none; border-radius: var(--radius-sm); cursor: pointer;
+        padding: 12px 20px;
+        color: #05261c;
+        background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
+        box-shadow: var(--shadow-lift);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        white-space: nowrap;
+      }
+      .button:hover { transform: translateY(-2px); filter: brightness(1.04); }
+      .button:active { transform: translateY(0); }
+      .button.secondary { background: transparent; color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
+      .button.secondary:hover { border-color: var(--brand-500); color: var(--brand-600); }
+      .button.sm { padding: 9px 16px; font-size: 13.5px; }
+
+      /* ---- Hero ---- */
+      .hero {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: clamp(48px, 9vw, 96px) clamp(20px, 4vw, 40px) clamp(40px, 7vw, 72px);
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+        gap: clamp(28px, 5vw, 56px);
+        align-items: center;
+      }
+      .badge {
+        display: inline-flex; align-items: center; gap: 7px;
+        font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em;
+        color: var(--brand-700);
+        background: color-mix(in srgb, var(--brand-500) 12%, transparent);
+        border: 1px solid color-mix(in srgb, var(--brand-500) 30%, transparent);
+        padding: 6px 12px 6px 9px;
+        border-radius: 999px;
+        width: fit-content;
+      }
+      html[data-theme="dark"] .badge { color: var(--brand-300); }
+      .badge svg { width: 13px; height: 13px; }
+
+      .hero-copy { display: flex; flex-direction: column; gap: 18px; animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+      @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+      .hero-copy h1 {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 800;
+        font-size: clamp(32px, 4.6vw, 52px);
+        letter-spacing: -0.03em;
+        line-height: 1.08;
+        margin: 0;
+      }
+      .hero-copy h1 .accent { color: var(--brand-600); }
+      .hero-copy > p.lead {
+        margin: 0;
+        max-width: 46ch;
+        color: var(--ink-soft);
+        font-size: 16.5px;
+        line-height: 1.65;
+      }
+      .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 4px; }
+      .hint { font-size: 13px; color: var(--ink-soft); }
+      .hero-repo-form {
+        display: flex; align-items: center; gap: 8px;
+        margin-top: 6px;
+        padding: 6px 6px 6px 14px;
+        border: 1.5px solid var(--line);
+        border-radius: 999px;
+        background: var(--paper-raised);
+        max-width: 480px;
+      }
+      .hero-repo-form input {
+        flex: 1; border: none; outline: none; background: transparent;
+        font: inherit; font-size: 14px; color: var(--ink); min-width: 0;
+      }
+      .hero-repo-form input::placeholder { color: var(--ink-soft); opacity: 0.7; }
+      .hero-repo-form .button { padding: 10px 16px; font-size: 13.5px; }
+      .hero-stats { display: flex; gap: 22px; margin-top: 8px; flex-wrap: wrap; }
+      .hero-stats div strong { display: block; font-family: "Plus Jakarta Sans", sans-serif; font-size: 20px; letter-spacing: -0.01em; }
+      .hero-stats div span { font-size: 12.5px; color: var(--ink-soft); }
+
+      /* ---- Decorative demo chat card ---- */
+      .hero-demo { position: relative; z-index: 1; animation: rise 0.7s 0.05s cubic-bezier(0.22, 1, 0.36, 1) both; }
+      .demo-card {
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--paper-raised) 88%, transparent);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+      }
+      .demo-top {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 18px; border-bottom: 1px solid var(--line);
+        font-size: 13px; color: var(--ink-soft);
+      }
+      .demo-repo strong { color: var(--ink); font-weight: 600; }
+      .demo-badge {
+        font-size: 11.5px; font-weight: 700; color: var(--brand-700);
+        background: color-mix(in srgb, var(--brand-500) 14%, transparent);
+        padding: 4px 9px; border-radius: 999px;
+      }
+      html[data-theme="dark"] .demo-badge { color: var(--brand-300); }
+      .demo-body { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+      .demo-msg { max-width: 84%; padding: 10px 13px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; }
+      .demo-msg.user { align-self: flex-end; background: linear-gradient(135deg, var(--brand-400), var(--brand-600)); color: #05261c; border-bottom-right-radius: 4px; }
+      .demo-msg.bot { align-self: flex-start; background: var(--paper); border: 1px solid var(--line); color: var(--ink); border-bottom-left-radius: 4px; }
+      .demo-msg code { font-family: "SFMono-Regular", Consolas, monospace; background: color-mix(in srgb, var(--brand-500) 12%, transparent); padding: 1px 5px; border-radius: 5px; font-size: 12.5px; }
+      .demo-foot { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+      .demo-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line); padding: 5px 10px; border-radius: 999px; }
+      .demo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-500); animation: pulse 2.4s ease-in-out infinite; }
+
+      /* ---- Shared section styling ---- */
+      .section {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: clamp(36px, 6vw, 64px) clamp(20px, 4vw, 40px);
+        position: relative;
+        z-index: 1;
+      }
+      .section-head { max-width: 640px; margin: 0 0 34px; }
+      .section-head .eyebrow {
+        font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        color: var(--brand-600); margin: 0 0 10px;
+      }
+      .section-head h2 {
+        font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700;
+        font-size: clamp(24px, 3.2vw, 32px); letter-spacing: -0.02em; margin: 0 0 10px;
+      }
+      .section-head p { margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
+
+      /* ---- Feature grid ---- */
+      .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+      .feature-card {
+        padding: 24px; border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--paper-raised) 70%, transparent);
+        display: flex; flex-direction: column; gap: 12px;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .feature-card:hover { transform: translateY(-3px); border-color: var(--brand-400); box-shadow: 0 18px 40px -26px rgba(6, 58, 43, 0.4); }
+      .feature-icon {
+        width: 38px; height: 38px; border-radius: 11px;
+        display: grid; place-items: center;
+        background: linear-gradient(135deg, color-mix(in srgb, var(--brand-400) 30%, transparent), color-mix(in srgb, var(--brand-600) 22%, transparent));
+        color: var(--brand-700);
+      }
+      html[data-theme="dark"] .feature-icon { color: var(--brand-300); }
+      .feature-icon svg { width: 19px; height: 19px; }
+      .feature-card h3 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 16.5px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+      .feature-card p { margin: 0; font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
+
+      /* ---- How it works ---- */
+      .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; counter-reset: step; }
+      .step { position: relative; padding: 26px 22px 22px; border-radius: var(--radius-md); border: 1px solid var(--line); background: color-mix(in srgb, var(--paper-raised) 60%, transparent); }
+      .step .step-num {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 30px; height: 30px; border-radius: 50%;
+        font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-size: 13px;
+        background: linear-gradient(135deg, var(--brand-400), var(--brand-600)); color: #05261c;
+        margin-bottom: 14px;
+      }
+      .step h3 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+      .step p { margin: 0; font-size: 13.75px; color: var(--ink-soft); line-height: 1.55; }
+      .step-connector { position: absolute; top: 40px; left: calc(100% - 4px); width: calc(22px + 8px); height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px); }
+      @media (max-width: 860px) { .step-connector { display: none; } }
+
+      /* ---- CTA banner ---- */
+      .cta-banner {
+        max-width: 1140px; margin: 0 auto clamp(48px, 8vw, 88px);
+        padding: clamp(32px, 5vw, 48px) clamp(24px, 5vw, 56px);
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, var(--brand-700), var(--brand-900));
+        color: #f2fbf6;
+        display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+        position: relative; overflow: hidden; z-index: 1;
+      }
+      .cta-banner::before {
+        content: ""; position: absolute; inset: 0;
+        background: radial-gradient(circle at 85% 20%, rgba(255,255,255,0.14), transparent 55%);
+        pointer-events: none;
+      }
+      .cta-banner h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(20px, 2.6vw, 26px); font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; position: relative; }
+      .cta-banner p { margin: 0; color: rgba(242, 251, 246, 0.78); font-size: 14.5px; max-width: 44ch; position: relative; }
+      .cta-banner .button { background: #f2fbf6; color: var(--brand-900); box-shadow: none; position: relative; }
+      .cta-banner .button:hover { filter: none; background: #ffffff; }
+
+      /* ---- Footer ---- */
+      footer {
+        max-width: 1140px; margin: 0 auto; padding: 24px clamp(20px, 4vw, 40px) 40px;
+        display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+        border-top: 1px solid var(--line);
+        position: relative; z-index: 1;
+      }
+      footer .brand { font-size: 14.5px; }
+      footer .foot-links { display: flex; gap: 18px; align-items: center; }
+      footer .foot-links a { font-size: 13px; color: var(--ink-soft); }
+      footer .foot-links a:hover { color: var(--brand-600); }
+      footer .foot-note { font-size: 12.5px; color: var(--ink-soft); width: 100%; text-align: center; opacity: 0.8; margin-top: 6px; }
+
+      /* ---- Responsive ---- */
+      @media (max-width: 900px) {
+        .hero { grid-template-columns: 1fr; }
+        .hero-demo { order: -1; max-width: 520px; margin: 0 auto; width: 100%; }
+        .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .steps { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 720px) {
+        .nav-center { display: none; }
+        .hamburger { display: inline-flex; }
+        .nav-links a.login { display: none; }
+      }
+      @media (max-width: 560px) {
+        .feature-grid { grid-template-columns: 1fr; }
+        .hero-stats { gap: 16px; }
+        .cta-banner { flex-direction: column; align-items: flex-start; }
+        .hero-repo-form { flex-wrap: wrap; padding: 10px; border-radius: var(--radius-md); }
+        .hero-repo-form input { width: 100%; padding: 6px 4px; }
+        .hero-repo-form .button { width: 100%; }
       }
     </style>
   </head>
   <body>
-    <main class="auth">
-      <div class="auth-inner">
-        <a class="brand-hero" href="index.html">
-          <img class="brand-hero-logo" src="assets/logo-chatwithrepo.png" alt="ChatWithRepo logo" />
-          <span class="brand-hero-text">Chat<span>WithRepo</span></span>
-        </a>
+    <div class="page">
+      <div class="nav-wrap">
+        <nav class="nav">
+          <a class="brand" href="index.html">
+            <img class="brand-logo" src="assets/logo-chatwithrepo.png" alt="ChatWithRepo logo" />
+            Chat<span>WithRepo</span>
+          </a>
 
-        <form id="auth-form" class="card" novalidate>
-          <h1>Welcome back</h1>
-          <p>Log in to continue to your repository chats.</p>
-
-          <div class="field">
-            <label for="email">Email</label>
-            <input id="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          <div class="nav-center">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
           </div>
 
-          <div class="field">
-            <label for="password">Password</label>
-            <input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="8" required />
-          </div>
-
-          <p id="error" class="error" role="alert" aria-live="polite"></p>
-
-          <button class="button block" type="submit">
-            <span class="label">Continue</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
-
-          <a href="register.html" style="font-size: 14px; text-align: center">Create an account</a>
-
-          <div class="nav-actions" style="justify-content: center">
-            <a class="icon-btn github-link" href="https://github.com/shreyaghorui222004/chat-with-repo" target="_blank" rel="noopener" aria-label="View on GitHub">
+          <div class="nav-actions">
+            <a
+              class="icon-btn github-link"
+              href="https://github.com/shreyaghorui222004/chat-with-repo"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View on GitHub"
+            >
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.28 5.69.42.36.8 1.08.8 2.18v3.23c0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg>
             </a>
             <button class="icon-btn theme-toggle" type="button" aria-label="Toggle theme">
               <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
               <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
             </button>
+            <button class="icon-btn hamburger" type="button" aria-label="Open menu" aria-expanded="false">
+              <span class="hamburger-lines"><i></i><i></i><i></i></span>
+            </button>
+
+            <div class="nav-links">
+              <a class="login" href="login.html">Log in</a>
+              <a class="button sm" href="register.html">Get started</a>
+            </div>
           </div>
-        </form>
+        </nav>
       </div>
-    </main>
+
+      <!-- Hero -->
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <div class="badge">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+              Repository intelligence
+            </div>
+            <h1>Your codebase,<br /><span class="accent">in conversation.</span></h1>
+            <p class="lead">
+              Point ChatWithRepo at any public GitHub repository and it indexes the
+              whole thing into its own collection — so you can ask questions in plain
+              language and get answers grounded in the actual code.
+            </p>
+
+            <div class="hero-repo-form">
+              <input type="text" placeholder="github.com/owner/repository" aria-label="Repository URL" />
+              <a class="button" href="register.html">
+                Analyze repo
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </a>
+            </div>
+            <span class="hint">No credit card required · works with public repos out of the box</span>
+
+            <div class="hero-stats">
+              <div><strong>1:1</strong><span>Repo → collection</span></div>
+              <div><strong>0</strong><span>Setup steps to ask a question</span></div>
+              <div><strong>Any</strong><span>Language or framework</span></div>
+            </div>
+          </div>
+
+          <!-- Decorative demo (not wired to API) -->
+          <div class="hero-demo" aria-hidden="true">
+            <div class="demo-card">
+              <div class="demo-top">
+                <div class="demo-repo"><strong>octocat/Hello-World</strong> · main</div>
+                <span class="demo-badge">Indexed</span>
+              </div>
+              <div class="demo-body">
+                <div class="demo-msg user">Where is the rate limiter configured?</div>
+                <div class="demo-msg bot">
+                  It's set in <code>middleware/limiter.py</code>, using a token-bucket at
+                  60 req/min per user.
+                </div>
+                <div class="demo-msg user">Show me the auth flow entry point</div>
+                <div class="demo-foot">
+                  <span class="demo-chip"><span class="demo-dot"></span> Live</span>
+                  <span class="demo-chip">Answers grounded in real code</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Features -->
+        <section class="section" id="features">
+          <div class="section-head">
+            <p class="eyebrow">Why ChatWithRepo</p>
+            <h2>Everything you need to understand a codebase fast</h2>
+            <p>No cloning, no grepping, no reading a README written for someone else's mental model.</p>
+          </div>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              <h3>Index any public repo</h3>
+              <p>Give an owner, repo, and branch. ChatWithRepo pulls the files and builds a dedicated vector collection for that codebase.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <h3>Ask in plain language</h3>
+              <p>Skip the grep. Ask where something lives, how a flow works, or why a decision was made, and get a direct answer.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+              </div>
+              <h3>Grounded in real code</h3>
+              <p>Answers are retrieved from the indexed source, not guessed — so you get file paths and logic that actually exist in the repo.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18 22 12 16 6"/><path d="M8 6 2 12 8 18"/></svg>
+              </div>
+              <h3>Works with any stack</h3>
+              <p>Python, TypeScript, Go, Rust — if it's committed to the repo, it can be indexed and asked about.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 10 0v3"/></svg>
+              </div>
+              <h3>Bring your own token</h3>
+              <p>Add a personal access token from your profile for higher GitHub API rate limits and access to more repos.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>
+              </div>
+              <h3>Pick up where you left off</h3>
+              <p>Every indexed repository stays on your dashboard, so you can jump back into a past conversation any time.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- How it works -->
+        <section class="section" id="how-it-works">
+          <div class="section-head">
+            <p class="eyebrow">How it works</p>
+            <h2>From repo link to answer in three steps</h2>
+            <p>The indexing happens once per repository — every question after that is instant.</p>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <span class="step-num">1</span>
+              <h3>Connect a repository</h3>
+              <p>Enter the owner, repository name, and branch you want to explore. Public repos work immediately.</p>
+              <div class="step-connector" aria-hidden="true"></div>
+            </div>
+            <div class="step">
+              <span class="step-num">2</span>
+              <h3>We index the code</h3>
+              <p>Files are pulled, chunked, and embedded into a dedicated collection built just for that repository.</p>
+              <div class="step-connector" aria-hidden="true"></div>
+            </div>
+            <div class="step">
+              <span class="step-num">3</span>
+              <h3>Start asking questions</h3>
+              <p>Chat naturally about the codebase and get answers pulled from the parts of the repo that actually matter.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="section" style="padding-bottom: 0">
+          <div class="cta-banner">
+            <div>
+              <h2>Ready to talk to your codebase?</h2>
+              <p>Create a free account and index your first repository in under a minute.</p>
+            </div>
+            <a class="button" href="register.html">Create free account</a>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <a class="brand" href="index.html">
+          <img class="brand-logo" src="assets/logo-chatwithrepo.png" alt="ChatWithRepo logo" />
+          Chat<span>WithRepo</span>
+        </a>
+        <div class="foot-links">
+          <a href="login.html">Log in</a>
+          <a href="register.html">Create account</a>
+          <a href="https://github.com/shreyaghorui222004/chat-with-repo" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <span class="foot-note">© 2026 ChatWithRepo. Repository intelligence for developers.</span>
+      </footer>
+    </div>
 
     <script>
       // --- Theme spin only — actual toggle + persistence is handled by js/app.js ---
@@ -315,28 +619,29 @@
         });
       }
 
-      var form = document.getElementById("auth-form");
-      var submitBtn = form.querySelector('button[type="submit"]');
-      var emailInput = document.getElementById("email");
-      var passInput = document.getElementById("password");
-
-      form.addEventListener("submit", function () {
-        [emailInput, passInput].forEach(function (input) {
-          input.classList.toggle("invalid", !input.checkValidity());
+      // --- Mobile nav toggle ---
+      var nav = document.querySelector(".nav");
+      var hamburger = document.querySelector(".hamburger");
+      if (hamburger) {
+        hamburger.addEventListener("click", function () {
+          var open = nav.classList.toggle("open");
+          hamburger.setAttribute("aria-expanded", String(open));
         });
-        if (form.checkValidity()) {
-          submitBtn.classList.add("loading");
-          submitBtn.disabled = true;
-        }
-      });
+      }
 
-      var errorEl = document.getElementById("error");
-      new MutationObserver(function () {
-        if (errorEl.textContent.trim()) {
-          submitBtn.classList.remove("loading");
-          submitBtn.disabled = false;
-        }
-      }).observe(errorEl, { childList: true, characterData: true, subtree: true });
+      // --- Hero "Analyze repo" quick entry: send owner/repo through to register ---
+      var heroForm = document.querySelector(".hero-repo-form");
+      if (heroForm) {
+        var heroInput = heroForm.querySelector("input");
+        var heroCta = heroForm.querySelector("a.button");
+        heroCta.addEventListener("click", function (e) {
+          var val = (heroInput.value || "").trim();
+          if (!val) return;
+          e.preventDefault();
+          var match = val.replace(/^https?:\/\/(www\.)?github\.com\//i, "").replace(/\/$/, "");
+          window.location.href = "register.html?repo=" + encodeURIComponent(match);
+        });
+      }
     </script>
     <script src="js/app.js"></script>
   </body>
