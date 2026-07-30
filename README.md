@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="Chat With Repo logo" width="180"/>
+<img src="frontend/assets/logo-chatwithrepo.png" alt="Chat With Repo logo" width="180"/>
 
 # Chat With Repo
 
