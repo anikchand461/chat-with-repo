@@ -21,9 +21,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://chatwithrepo.vercel.app/",
         "http://localhost:5500",
-        "null",
+        "http://127.0.0.1:5500",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "https://chatwithrepo.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
