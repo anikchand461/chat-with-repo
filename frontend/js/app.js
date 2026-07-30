@@ -1,7 +1,7 @@
 const API = "http://127.0.0.1:8000";
 
 // Change this to your repository (username/repo)
-const GITHUB_REPO = "username/repo";
+const GITHUB_REPO = "shreyaghorui222004/chat-with-repo";
 
 const authToken = localStorage.getItem("devlens_token");
 
