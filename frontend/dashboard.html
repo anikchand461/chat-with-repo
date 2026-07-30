@@ -429,6 +429,16 @@
         width: 18px;
         height: 18px;
         flex-shrink: 0;
+        transform-origin: center;
+        animation: sparkle-twinkle 2.4s ease-in-out infinite;
+      }
+      #create:hover svg { animation-duration: 0.9s; }
+      @keyframes sparkle-twinkle {
+        0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        50% { transform: scale(1.2) rotate(15deg); opacity: 0.8; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #create svg { animation: none; }
       }
 
       #create:disabled {
@@ -798,8 +808,8 @@
 
             <div class="hero-actions">
               <button id="create" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 5v14M5 12h14"/>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
                 </svg>
                 Create Chat
               </button>
