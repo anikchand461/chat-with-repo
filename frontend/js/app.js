@@ -7,8 +7,8 @@ const authToken = localStorage.getItem("devlens_token");
 
 const page = location.pathname.split("/").pop();
 
-if (!authToken && page !== "index.html" && page !== "register.html" && page !== "index.html" && page !== "") {
-  location.href = "index.html";
+if (!authToken && page !== "login.html" && page !== "register.html" && page !== "login.html" && page !== "") {
+  location.href = "login.html";
 }
 
 function token() {
@@ -275,7 +275,7 @@ async function loadChats() {
           .join("")
       : "<p>No chats yet. Create one to index a repository.</p>";
   } catch (error) {
-    location.href = "index.html";
+    location.href = "login.html";
   }
 }
 
@@ -675,7 +675,7 @@ if (document.querySelector("#token-form")) {
 
 function logout() {
   localStorage.removeItem("devlens_token");
-  window.location.replace("index.html");
+  window.location.replace("login.html");
 }
 
 document.querySelectorAll("#logout, .logout-btn").forEach((btn) => {
