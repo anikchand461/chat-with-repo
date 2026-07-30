@@ -12,3 +12,5 @@ langchain-text-splitters
 beautifulsoup4
 langchain-cohere
 langchain_core
+psycopg[binary]
+psycopg2
