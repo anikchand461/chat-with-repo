@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Create account | Chat WithRepo</title>
+    <title>Log in | Chat WithRepo</title>
     <link rel="icon" type="image/png" href="assets/logo-chatwithrepo.png">
-    <meta name="description" content="Create a Chat WithRepo account and start chatting with any GitHub repository." />
+    <meta name="description" content="Log in to ChatWithRepo to chat with your indexed GitHub repositories." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,13 +18,7 @@
       );
     </script>
     <style>
-      /* ============================================================
-         Page-level redesign for register.html
-         Tokens below are scoped so this page reads consistently even
-         before these values are folded into the shared css/app.css.
-         Palette: forest / emerald / mint. Display face: Plus Jakarta
-         Sans (used only for the wordmark + heading). Body/UI face: Inter.
-      ============================================================ */
+      /* Same token system as register.html / dashboard.html / chat.html / index.html / profile.html */
       :root {
         --brand-900: #063a2b;
         --brand-700: #0b6e4f;
@@ -38,7 +32,6 @@
         --ink-soft: #4b6058;
         --line: rgba(11, 40, 30, 0.12);
         --danger: #e5484d;
-        --ok: #17b57f;
         --shadow-soft: 0 20px 45px -25px rgba(6, 58, 43, 0.45);
         --radius-lg: 18px;
         --radius-md: 14px;
@@ -56,7 +49,6 @@
       }
 
       * { box-sizing: border-box; }
-
       body {
         margin: 0;
         font-family: "Inter", system-ui, sans-serif;
@@ -74,10 +66,7 @@
         position: relative;
         overflow: hidden;
       }
-
-      /* Ambient backdrop: soft emerald mesh glow, restrained, on-brand */
-      .auth::before,
-      .auth::after {
+      .auth::before, .auth::after {
         content: "";
         position: absolute;
         border-radius: 50%;
@@ -87,17 +76,11 @@
         animation: drift 16s ease-in-out infinite alternate;
       }
       .auth::before {
-        width: 480px;
-        height: 480px;
-        top: -160px;
-        left: -120px;
+        width: 480px; height: 480px; top: -160px; left: -120px;
         background: radial-gradient(circle, var(--brand-500), transparent 70%);
       }
       .auth::after {
-        width: 420px;
-        height: 420px;
-        bottom: -140px;
-        right: -100px;
+        width: 420px; height: 420px; bottom: -140px; right: -100px;
         background: radial-gradient(circle, var(--brand-300), transparent 70%);
         animation-delay: -8s;
       }
@@ -132,22 +115,14 @@
       }
 
       .brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        display: inline-flex; align-items: center; gap: 8px;
         font-family: "Plus Jakarta Sans", "Inter", sans-serif;
-        font-weight: 700;
-        font-size: 19px;
-        letter-spacing: -0.01em;
-        color: var(--ink);
-        text-decoration: none;
-        width: fit-content;
+        font-weight: 700; font-size: 19px; letter-spacing: -0.01em;
+        color: var(--ink); text-decoration: none; width: fit-content;
       }
       .brand span { color: var(--brand-600); }
       .brand-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
+        width: 10px; height: 10px; border-radius: 50%;
         background: var(--brand-500);
         box-shadow: 0 0 0 0 rgba(23, 181, 127, 0.55);
         animation: pulse 2.4s ease-in-out infinite;
@@ -200,101 +175,55 @@
 
       .card h1 {
         font-family: "Plus Jakarta Sans", sans-serif;
-        font-weight: 700;
-        font-size: 26px;
-        letter-spacing: -0.01em;
-        margin: 4px 0 0;
+        font-weight: 700; font-size: 26px; letter-spacing: -0.01em; margin: 4px 0 0;
       }
-      .card > p {
-        margin: 0;
-        color: var(--ink-soft);
-        font-size: 14.5px;
-        line-height: 1.5;
-      }
+      .card > p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; }
 
-      /* Floating label fields */
-      .field {
-        margin-top: -15px;
-      }
+      .field { margin-top: -15px; }
       .field label {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 13.5px;
-        font-weight: 600;
-        color: var(--ink-soft);
+        display: block; margin-bottom: 6px;
+        font-size: 13.5px; font-weight: 600; color: var(--ink-soft);
       }
       .field input {
-        width: 100%;
-        padding: 13px 14px;
-        font: inherit;
-        font-size: 15px;
-        color: var(--ink);
-        background: var(--paper);
-        border: 1.5px solid var(--line);
-        border-radius: var(--radius-sm);
+        width: 100%; padding: 13px 14px; font: inherit; font-size: 15px;
+        color: var(--ink); background: var(--paper);
+        border: 1.5px solid var(--line); border-radius: var(--radius-sm);
         outline: none;
         transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.4s ease;
       }
-      .field input::placeholder {
-        color: var(--ink-soft);
-        opacity: 0.55;
-      }
+      .field input::placeholder { color: var(--ink-soft); opacity: 0.55; }
       .field input:focus {
         border-color: var(--brand-500);
         box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 18%, transparent);
       }
-      .field input.invalid {
-        border-color: var(--danger);
-        animation: shake 0.32s ease;
-      }
-      @keyframes shake {
-        25% { transform: translateX(-4px); }
-        75% { transform: translateX(4px); }
-      }
+      .field input.invalid { border-color: var(--danger); animation: shake 0.32s ease; }
+      @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
       .error {
-        margin: -6px 0 0;
-        min-height: 18px;
-        font-size: 13px;
-        color: var(--danger);
-        transition: opacity 0.2s ease;
+        margin: -6px 0 0; min-height: 18px; font-size: 13px;
+        color: var(--danger); transition: opacity 0.2s ease;
       }
       .error:empty { opacity: 0; }
 
       .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font: inherit;
-        font-weight: 600;
-        font-size: 15px;
-        border: none;
-        border-radius: var(--radius-sm);
-        cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        font: inherit; font-weight: 600; font-size: 15px;
+        border: none; border-radius: var(--radius-sm); cursor: pointer;
         transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
       }
       .button.block {
-        width: 100%;
-        padding: 13px 16px;
-        color: #05261c;
+        width: 100%; padding: 13px 16px; color: #05261c;
         background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
         box-shadow: 0 12px 24px -12px color-mix(in srgb, var(--brand-600) 70%, transparent);
       }
       .button.block:hover { transform: translateY(-2px); filter: brightness(1.04); }
       .button.block:active { transform: translateY(0); }
-      .button.block:disabled {
-        cursor: not-allowed;
-        filter: grayscale(0.3) brightness(0.95);
-        transform: none;
-      }
+      .button.block:disabled { cursor: not-allowed; filter: grayscale(0.3) brightness(0.95); transform: none; }
       .button.block .spinner { display: none; }
       .button.block.loading .label { visibility: hidden; }
       .button.block.loading .spinner {
-        display: block;
-        position: absolute;
-        width: 18px;
-        height: 18px;
+        display: block; position: absolute;
+        width: 18px; height: 18px;
         border: 2px solid rgba(5, 38, 28, 0.35);
         border-top-color: #05261c;
         border-radius: 50%;
@@ -303,34 +232,21 @@
       @keyframes spin { to { transform: rotate(360deg); } }
 
       a { color: var(--brand-600); }
-      a:focus-visible,
-      button:focus-visible,
-      input:focus-visible {
+      a:focus-visible, button:focus-visible, input:focus-visible {
         outline: 2px solid var(--brand-500);
         outline-offset: 2px;
       }
 
-      .nav-actions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
+      .nav-actions { display: flex; gap: 10px; align-items: center; }
       .icon-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        border: 1px solid var(--line);
-        background: var(--paper);
-        color: var(--ink-soft);
-        cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 38px; height: 38px;
+        border-radius: 50%; border: 1px solid var(--line);
+        background: var(--paper); color: var(--ink-soft); cursor: pointer;
         transition: transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
       }
       .icon-btn:hover { transform: translateY(-2px); color: var(--brand-600); border-color: var(--brand-400); }
       .icon-btn svg { width: 18px; height: 18px; }
-
       .theme-toggle .sun { display: none; }
       html[data-theme="dark"] .theme-toggle .moon { display: none; }
       html[data-theme="dark"] .theme-toggle .sun { display: block; }
@@ -345,14 +261,14 @@
   <body>
     <main class="auth">
       <div class="auth-inner">
-        <a class="brand-hero" href="login.html">
+        <a class="brand-hero" href="index.html">
           <img class="brand-hero-logo" src="assets/logo-chatwithrepo.png" alt="ChatWithRepo logo" />
           <span class="brand-hero-text">Chat<span>WithRepo</span></span>
         </a>
 
         <form id="auth-form" class="card" novalidate>
-          <h1>Create account</h1>
-          <p>Index your first repository in under a minute.</p>
+          <h1>Welcome back</h1>
+          <p>Log in to continue to your repository chats.</p>
 
           <div class="field">
             <label for="email">Email</label>
@@ -361,17 +277,17 @@
 
           <div class="field">
             <label for="password">Password</label>
-            <input id="password" type="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required />
+            <input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="8" required />
           </div>
 
           <p id="error" class="error" role="alert" aria-live="polite"></p>
 
           <button class="button block" type="submit">
-            <span class="label">Register</span>
+            <span class="label">Continue</span>
             <span class="spinner" aria-hidden="true"></span>
           </button>
 
-          <a href="login.html" style="font-size: 14px; text-align: center">Already have an account?</a>
+          <a href="register.html" style="font-size: 14px; text-align: center">Create an account</a>
 
           <div class="nav-actions" style="justify-content: center">
             <a class="icon-btn github-link" href="https://github.com/shreyaghorui222004/chat-with-repo" target="_blank" rel="noopener" aria-label="View on GitHub">
@@ -399,9 +315,6 @@
         });
       }
 
-      // --- Lightweight UI-only affordances layered on top of the existing
-      //     form handling in js/app.js below. These never call
-      //     preventDefault(), so the real submit/auth logic is untouched. ---
       var form = document.getElementById("auth-form");
       var submitBtn = form.querySelector('button[type="submit"]');
       var emailInput = document.getElementById("email");
@@ -417,8 +330,6 @@
         }
       });
 
-      // If js/app.js surfaces an error (e.g. sets #error text or a failed
-      // fetch), clear the loading state so the button doesn't stay stuck.
       var errorEl = document.getElementById("error");
       new MutationObserver(function () {
         if (errorEl.textContent.trim()) {
