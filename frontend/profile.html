@@ -80,13 +80,6 @@
         font-weight: 700; font-size: 19px; letter-spacing: -0.01em; color: var(--ink);
       }
       .brand span { color: var(--brand-600); }
-      .brand-logo {
-          width: 66px;
-          height: 46px;
-        flex: none;
-        border-radius: 7px;
-        object-fit: contain;
-      }
       .brand-dot {
         width: 10px; height: 10px; border-radius: 50%;
         background: var(--brand-500);
@@ -397,9 +390,7 @@
   <body>
     <main class="page-wrap">
       <nav class="nav">
-        <a class="brand" href="dashboard.html">
-          <img class="brand-logo" src="assets/logo-chatwithrepo.png" alt="ChatWithRepo logo" />
-          </span>Chat<span>WithRepo</span></a>
+        <a class="brand" href="dashboard.html"><span class="brand-dot"></span>Chat<span>WithRepo</span></a>
 
         <div class="nav-actions">
           <a class="icon-btn github-link" href="https://github.com/shreyaghorui222004/chat-with-repo" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
@@ -486,49 +477,53 @@
     </main>
 
     <script>
-      /* ---------- Shared key used by dashboard warning ---------- */
-      var TOKEN_KEY = "chatwithrepo_github_token";
-
-      /* Theme toggle */
+      /* Theme spin only — actual toggle is handled by js/app.js */
       var themeBtn = document.querySelector(".theme-toggle");
-      themeBtn.addEventListener("click", function () {
-        var root = document.documentElement;
-        var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        root.setAttribute("data-theme", next);
-        localStorage.setItem("devlens_theme", next);
-        themeBtn.classList.add("spin");
-        setTimeout(function () { themeBtn.classList.remove("spin"); }, 400);
-      });
+      if (themeBtn) {
+        new MutationObserver(function () {
+          themeBtn.classList.add("spin");
+          setTimeout(function () {
+            themeBtn.classList.remove("spin");
+          }, 400);
+        }).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+      }
 
       /* Mobile nav */
       var hamburger = document.querySelector(".hamburger");
       var navLinks = document.getElementById("primary-nav-links");
-      hamburger.addEventListener("click", function () {
-        var open = navLinks.classList.toggle("open");
-        hamburger.setAttribute("aria-expanded", String(open));
-      });
-      navLinks.addEventListener("click", function (e) {
-        if (e.target.tagName === "A" || e.target.classList.contains("logout-btn") || e.target.id === "logout") {
-          navLinks.classList.remove("open");
-          hamburger.setAttribute("aria-expanded", "false");
-        }
-      });
-      document.addEventListener("click", function (e) {
-        if (!navLinks.contains(e.target) && !hamburger.contains(e.target)) {
-          navLinks.classList.remove("open");
-          hamburger.setAttribute("aria-expanded", "false");
-        }
-      });
+      if (hamburger && navLinks) {
+        hamburger.addEventListener("click", function () {
+          var open = navLinks.classList.toggle("open");
+          hamburger.setAttribute("aria-expanded", String(open));
+        });
+        navLinks.addEventListener("click", function (e) {
+          if (e.target.tagName === "A" || e.target.classList.contains("logout-btn") || e.target.id === "logout") {
+            navLinks.classList.remove("open");
+            hamburger.setAttribute("aria-expanded", "false");
+          }
+        });
+        document.addEventListener("click", function (e) {
+          if (!navLinks.contains(e.target) && !hamburger.contains(e.target)) {
+            navLinks.classList.remove("open");
+            hamburger.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
 
       /* Show / hide token */
       var toggleVis = document.getElementById("toggle-vis");
       var tokenInput = document.getElementById("token");
-      toggleVis.addEventListener("click", function () {
-        var showing = tokenInput.type === "text";
-        tokenInput.type = showing ? "password" : "text";
-        toggleVis.classList.toggle("show", !showing);
-        toggleVis.setAttribute("aria-label", showing ? "Show token" : "Hide token");
-      });
+      if (toggleVis && tokenInput) {
+        toggleVis.addEventListener("click", function () {
+          var showing = tokenInput.type === "text";
+          tokenInput.type = showing ? "password" : "text";
+          toggleVis.classList.toggle("show", !showing);
+          toggleVis.setAttribute("aria-label", showing ? "Show token" : "Hide token");
+        });
+      }
 
       /* Status banner helpers */
       var statusBanner = document.getElementById("token-status");
@@ -539,114 +534,92 @@
       var saveBtn = document.getElementById("save-btn");
 
       function updateBanner(hasToken) {
+        if (!statusBanner) return;
         if (hasToken) {
           statusBanner.className = "token-status configured";
           statusBanner.querySelector(".icon").innerHTML =
             '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
-          statusTitle.textContent = "GitHub token configured";
-          statusDesc.textContent = "Private repos and higher rate limits are available. The dashboard warning is hidden.";
-          removeBtn.hidden = false;
+          if (statusTitle) statusTitle.textContent = "GitHub token configured";
+          if (statusDesc) statusDesc.textContent = "Private repos and higher rate limits are available. The dashboard warning is hidden.";
+          if (removeBtn) removeBtn.hidden = false;
         } else {
           statusBanner.className = "token-status missing";
           statusBanner.querySelector(".icon").innerHTML =
             '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
-          statusTitle.textContent = "GitHub token not configured";
-          statusDesc.textContent = "Public API limits apply. Add a token for better performance.";
-          removeBtn.hidden = true;
+          if (statusTitle) statusTitle.textContent = "GitHub token not configured";
+          if (statusDesc) statusDesc.textContent = "Public API limits apply. Add a token for better performance.";
+          if (removeBtn) removeBtn.hidden = true;
         }
       }
 
-      function getToken() {
-        return (localStorage.getItem(TOKEN_KEY) || "").trim();
-      }
-
-      /* Init from localStorage */
-      (function init() {
-        var existing = getToken();
-        updateBanner(!!existing);
-        if (existing) {
-          // Mask for display only — never put the real value in a visible field by default
-          tokenInput.placeholder = "••••••••••••••••••••••••";
-          tokenInput.removeAttribute("required"); // allow empty to keep current
+      /* Init banner from API (matches dashboard) */
+      async function refreshTokenBanner() {
+        try {
+          var API = "http://127.0.0.1:8000";
+          var auth = localStorage.getItem("devlens_token") || "";
+          if (!auth) {
+            updateBanner(false);
+            return;
+          }
+          var res = await fetch(API + "/auth/me", {
+            headers: { Authorization: "Bearer " + auth },
+          });
+          if (!res.ok) {
+            updateBanner(false);
+            return;
+          }
+          var user = await res.json();
+          updateBanner(!!user.has_github_token);
+          if (user.has_github_token && tokenInput) {
+            tokenInput.placeholder = "••••••••••••••••••••••••";
+            tokenInput.removeAttribute("required");
+          }
+        } catch (e) {
+          updateBanner(false);
         }
-      })();
+      }
+      refreshTokenBanner();
 
-      /* Save token */
+      /* Loading state while app.js saves the token */
       var tokenForm = document.getElementById("token-form");
-      tokenForm.addEventListener("submit", function (e) {
-        e.preventDefault(); // we handle storage here so dashboard warning works immediately
-
-        var value = tokenInput.value.trim();
-        tokenInput.classList.toggle("invalid", !value && !getToken());
-
-        if (!value && !getToken()) {
-          statusEl.textContent = "Please enter a GitHub token.";
-          statusEl.className = "err";
-          return;
-        }
-
-        if (!value) {
-          // User left field empty but already had a token → keep it
-          statusEl.textContent = "Token already saved.";
-          statusEl.className = "ok";
-          return;
-        }
-
-        saveBtn.classList.add("loading");
-        saveBtn.disabled = true;
-
-        // Simulate short save delay for UX (real app.js may still run afterwards)
-        setTimeout(function () {
-          localStorage.setItem(TOKEN_KEY, value);
-          // Also write common alternate keys so existing app.js keeps working
-          localStorage.setItem("github_token", value);
-          localStorage.setItem("gh_token", value);
-
-          updateBanner(true);
-          statusEl.textContent = "Token saved successfully. Dashboard warning is now hidden.";
-          statusEl.className = "ok";
-          tokenInput.value = "";
-          tokenInput.placeholder = "••••••••••••••••••••••••";
-          tokenInput.removeAttribute("required");
-
-          saveBtn.classList.remove("loading");
-          saveBtn.disabled = false;
-        }, 450);
-      });
-
-      /* Remove token */
-      removeBtn.addEventListener("click", function () {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem("github_token");
-        localStorage.removeItem("gh_token");
-        updateBanner(false);
-        tokenInput.value = "";
-        tokenInput.placeholder = "ghp_xxxxxxxxxxxxxxxxxxxx";
-        tokenInput.setAttribute("required", "");
-        statusEl.textContent = "Token removed. Dashboard warning will appear again.";
-        statusEl.className = "ok";
-      });
-
-      /* Logout helpers (UI only — real logout lives in app.js) */
-      function doLogout() {
-        // Optional: clear token on logout if that’s desired
-        // localStorage.removeItem(TOKEN_KEY);
-        window.location.href = "index.html";
+      if (tokenForm && saveBtn) {
+        tokenForm.addEventListener("submit", function () {
+          if (tokenInput && tokenInput.value.trim()) {
+            saveBtn.classList.add("loading");
+            saveBtn.disabled = true;
+          }
+        });
       }
-      document.getElementById("logout").addEventListener("click", doLogout);
-      document.getElementById("logout-bottom").addEventListener("click", doLogout);
 
-      /* If app.js later writes into #status, sync our loading / color state */
-      new MutationObserver(function () {
-        var text = statusEl.textContent.trim();
-        if (!text) return;
-        saveBtn.classList.remove("loading");
-        saveBtn.disabled = false;
-        var looksLikeError = /fail|error|invalid|denied|expired/i.test(text);
-        statusEl.classList.toggle("err", looksLikeError);
-        statusEl.classList.toggle("ok", !looksLikeError);
-        if (!looksLikeError && getToken()) updateBanner(true);
-      }).observe(statusEl, { childList: true, characterData: true, subtree: true });
+      if (removeBtn) {
+        removeBtn.addEventListener("click", function () {
+          updateBanner(false);
+          if (tokenInput) {
+            tokenInput.value = "";
+            tokenInput.placeholder = "ghp_xxxxxxxxxxxxxxxxxxxx";
+            tokenInput.setAttribute("required", "");
+          }
+          if (statusEl) {
+            statusEl.textContent = "Banner cleared. Save a new token to configure again.";
+            statusEl.className = "ok";
+          }
+        });
+      }
+
+      if (statusEl) {
+        new MutationObserver(function () {
+          var text = statusEl.textContent.trim();
+          if (!text) return;
+          if (saveBtn) {
+            saveBtn.classList.remove("loading");
+            saveBtn.disabled = false;
+          }
+          var looksLikeError = /fail|error|invalid|denied|expired/i.test(text);
+          statusEl.classList.toggle("err", looksLikeError);
+          statusEl.classList.toggle("ok", !looksLikeError);
+          if (!looksLikeError) refreshTokenBanner();
+        }).observe(statusEl, { childList: true, characterData: true, subtree: true });
+      }
     </script>
     <script src="js/app.js"></script>
   </body>

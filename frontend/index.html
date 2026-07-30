@@ -12,7 +12,7 @@
     <script>
       document.documentElement.setAttribute(
         "data-theme",
-        localStorage.getItem("Chat With Repo_theme") ||
+        localStorage.getItem("devlens_theme") ||
           (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       );
     </script>
@@ -219,15 +219,17 @@
       </section>
     </main>
     <script>
+      // --- Theme spin only — actual toggle + persistence is handled by js/app.js ---
       var themeBtn = document.querySelector(".theme-toggle");
-      themeBtn.addEventListener("click", function () {
-        var root = document.documentElement;
-        var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        root.setAttribute("data-theme", next);
-        localStorage.setItem("devlens_theme", next);
-        themeBtn.classList.add("spin");
-        setTimeout(function () { themeBtn.classList.remove("spin"); }, 400);
-      });
+      if (themeBtn) {
+        new MutationObserver(function () {
+          themeBtn.classList.add("spin");
+          setTimeout(function () { themeBtn.classList.remove("spin"); }, 400);
+        }).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+      }
     </script>
     <script src="js/app.js"></script>
   </body>
