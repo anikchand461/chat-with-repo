@@ -1,4 +1,4 @@
-const API = "https://chat-with-repo-4vwy.onrender.com/";
+const API = "https://chat-with-repo-4vwy.onrender.com";
 
 // Change this to your repository (username/repo)
 const GITHUB_REPO = "shreyaghorui222004/chat-with-repo";
