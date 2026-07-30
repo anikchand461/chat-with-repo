@@ -12,7 +12,7 @@
     <script>
       document.documentElement.setAttribute(
         "data-theme",
-        localStorage.getItem("ChatWithRepo_theme") ||
+        localStorage.getItem("devlens_theme") ||
           (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       );
     </script>
@@ -213,12 +213,18 @@
 
       /* Floating label fields */
       .field {
-        position: relative;
         margin-top: 4px;
+      }
+      .field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink-soft);
       }
       .field input {
         width: 100%;
-        padding: 18px 14px 8px;
+        padding: 13px 14px;
         font: inherit;
         font-size: 15px;
         color: var(--ink);
@@ -228,25 +234,13 @@
         outline: none;
         transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.4s ease;
       }
+      .field input::placeholder {
+        color: var(--ink-soft);
+        opacity: 0.55;
+      }
       .field input:focus {
         border-color: var(--brand-500);
         box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 18%, transparent);
-      }
-      .field label {
-        position: absolute;
-        left: 14px;
-        top: 14px;
-        font-size: 15px;
-        color: var(--ink-soft);
-        pointer-events: none;
-        transform-origin: left top;
-        transition: transform 0.16s ease, color 0.16s ease, top 0.16s ease;
-      }
-      .field input:focus + label,
-      .field input:not(:placeholder-shown) + label {
-        top: 7px;
-        transform: scale(0.72);
-        color: var(--brand-600);
       }
       .field input.invalid {
         border-color: var(--danger);
@@ -360,13 +354,13 @@
           <p>Index your first repository in under a minute.</p>
 
           <div class="field">
-            <input id="email" type="email" placeholder=" " autocomplete="email" required />
             <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@example.com" autocomplete="email" required />
           </div>
 
           <div class="field">
-            <input id="password" type="password" placeholder=" " autocomplete="new-password" minlength="8" required />
             <label for="password">Password</label>
+            <input id="password" type="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required />
           </div>
 
           <p id="error" class="error" role="alert" aria-live="polite"></p>
@@ -392,16 +386,17 @@
     </main>
 
     <script>
-      // --- Theme toggle: persists to localStorage, smooth animated switch ---
+      // --- Theme spin only — actual toggle + persistence is handled by js/app.js ---
       var themeBtn = document.querySelector(".theme-toggle");
-      themeBtn.addEventListener("click", function () {
-        var root = document.documentElement;
-        var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        root.setAttribute("data-theme", next);
-        localStorage.setItem("Chat WithRepo_theme", next);
-        themeBtn.classList.add("spin");
-        setTimeout(function () { themeBtn.classList.remove("spin"); }, 400);
-      });
+      if (themeBtn) {
+        new MutationObserver(function () {
+          themeBtn.classList.add("spin");
+          setTimeout(function () { themeBtn.classList.remove("spin"); }, 400);
+        }).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+      }
 
       // --- Lightweight UI-only affordances layered on top of the existing
       //     form handling in js/app.js below. These never call
