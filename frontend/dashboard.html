@@ -121,6 +121,13 @@
         letter-spacing: -0.02em;
       }
       .brand span { color: var(--brand-bright); }
+      .brand-logo {
+        width: 66px;
+        height: 46px;
+        flex: none;
+        border-radius: 7px;
+        object-fit: contain;
+      }
       .brand-dot {
         width: 8px; height: 8px; border-radius: 50%;
         background: var(--brand);
@@ -732,13 +739,14 @@
       <div class="nav-wrap">
         <nav class="nav">
           <a class="brand" href="dashboard.html">
-            <span class="brand-dot"></span>Chat<span>WithRepo</span>
+            <img class="brand-logo" src="assets/logo-chatwithrepo.png" alt="ChatWithRepo logo" />
+            </span>Chat<span>WithRepo</span>
           </a>
 
           <div class="nav-actions">
             <a
               class="icon-btn github-link"
-              href="https://github.com/shreyaghorui222004/chat-with-repo"
+              href="https://github.com/shreyaghorui222004"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub — shreyaghorui222004"
