@@ -59,53 +59,67 @@ Before any of this, ingestion turns a raw repo into searchable documents: **GitH
 ---
 
 ## ◈ Full Architecture
-
+ 
 ```mermaid
 flowchart TB
     subgraph Frontend["Frontend — HTML / CSS / JS"]
-        A1["Login / Register"]
+        A1["Auth pages<br/>login / register"]
         A2["Dashboard"]
         A3["Chat UI"]
-        A4["Profile / Billing"]
+        A4["Billing"]
     end
-
-    subgraph API["FastAPI Backend"]
-        B1["Auth Router — JWT"]
-        B2["Repository Router"]
-        B3["Chat Router"]
-        B4["Payment Router — Dodo"]
+ 
+    subgraph API["Backend API — FastAPI"]
+        B1["Auth router<br/>JWT"]
+        B2["Repo router"]
+        B3["Chat router"]
+        B4["Payment router<br/>Dodo Payments"]
     end
-
+ 
     subgraph Ingest["Repository Ingestion"]
-        C1["GitHub Client — tree + files"]
-        C2["JSON Writer — data/*.json"]
+        C1["GitHub Client<br/>tree + files"]
+        C2["Loader → Converter → Chunker"]
     end
-
+ 
     subgraph RAG["RAG Pipeline"]
-        D1["Loader → Converter → Chunker"]
-        D2["Vector Store — Cohere embeddings"]
-        D3["Query Classifier"]
-        D4["Multi-Query Generator"]
-        D5["Retriever → RRF → Reranker"]
-        D6["LLM — Gemini"]
+        D1["Query Classifier"]
+        D2["Multi-Query Generator"]
+        D3["Retriever → RRF → Reranker"]
+        D4["Gemini — Answer Generation"]
     end
-
+ 
     subgraph Data["Persistence"]
-        E1[("SQL — users, chats, messages")]
-        E2[("Vector DB — Chroma")]
+        E1[("SQL<br/>users · chats · messages")]
+        E2[("Vector DB<br/>Chroma")]
     end
-
+ 
     A1 --> B1
     A2 --> B2
     A3 --> B3
     A4 --> B4
-
-    B2 --> C1 --> C2 --> D1 --> D2 --> E2
-    B3 --> D3 --> D4 --> D5 --> D6 --> B3
-
+ 
+    B2 --> C1 --> C2 --> E2
+    B3 --> D1 --> D2 --> D3 --> D4 --> B3
+    D3 -.reads.-> E2
+ 
     B1 --> E1
     B3 --> E1
     B4 --> E1
+ 
+    classDef frontend fill:#eafbf3,stroke:#17b57f,stroke-width:1px,color:#065f46;
+    classDef api fill:#e1f5ee,stroke:#0f6e56,stroke-width:1px,color:#04342c;
+    classDef ingest fill:#fdece4,stroke:#d85a30,stroke-width:1px,color:#4a1b0c;
+    classDef rag fill:#fdf1da,stroke:#ba7517,stroke-width:1px,color:#412402;
+    classDef data fill:#f1efe8,stroke:#5f5e5a,stroke-width:1px,color:#2c2c2a;
+ 
+    class A1,A2,A3,A4 frontend;
+    class B1,B2,B3,B4 api;
+    class C1,C2 ingest;
+    class D1,D2,D3,D4 rag;
+    class E1,E2 data;
+```
+
+Free vs Pro is enforced per-user (monthly repo limit, chat history depth); upgrades run through a Dodo Payments checkout + webhook flow.
 ```
 
 **Free vs Pro** is enforced per-user (monthly repo limit, chat history depth); upgrades run through a Dodo Payments checkout + webhook flow.
