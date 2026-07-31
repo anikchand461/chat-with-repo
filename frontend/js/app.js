@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 const API = "https://chat-with-repo-4vwy.onrender.com";
+// const API = "http://127.0.0.1:8000"; // local testing only
 
-=======
-//const API = "https://chat-with-repo-4vwy.onrender.com/";
-const API="http://127.0.0.1:8000"
->>>>>>> 3da6ba4 (Update frontend: API URL and live deploy fixes)
 // Change this to your repository (username/repo)
 const GITHUB_REPO = "shreyaghorui222004/chat-with-repo";
 
@@ -12,7 +8,13 @@ const authToken = localStorage.getItem("devlens_token");
 
 const page = location.pathname.split("/").pop();
 
-if (!authToken && page !== "login.html" && page !== "register.html" && page !== "login.html" && page !== "") {
+if (
+  !authToken &&
+  page !== "login.html" &&
+  page !== "register.html" &&
+  page !== "index.html" &&
+  page !== ""
+) {
   location.href = "login.html";
 }
 
@@ -35,9 +37,6 @@ async function request(path, options = {}) {
   if (!response.ok) {
     throw Error(data.detail || "Request failed");
   }
-
-  // Don't throw for subscription limits.
-  // Let the caller handle them.
 
   return data;
 }
@@ -143,7 +142,6 @@ function setupAuth(kind) {
 /* ==================== dashboard ==================== */
 
 async function setupDashboard() {
-  // Attach UI handlers first so Create always works
   const createBtn = document.querySelector("#create");
   const cancelBtn = document.querySelector("#cancel");
   const modal = document.querySelector("#modal");
@@ -211,7 +209,6 @@ async function setupDashboard() {
     upgradeBtn.addEventListener("click", startCheckout);
   }
 
-  // API calls after handlers are wired
   await refreshGithubWarning();
 
   try {
@@ -221,25 +218,18 @@ async function setupDashboard() {
   }
 }
 
-// Shows/hides the "GitHub token not configured" banner based on the
-// user's current state. Explicitly sets `hidden` both ways (not just
-// "show if missing") so a token saved on the Profile page correctly
-// clears the banner here too.
 async function refreshGithubWarning() {
   const warning = document.querySelector("#github-warning");
   if (!warning) return;
 
   try {
     const user = await request("/auth/me");
-    // Explicit both ways so a saved token always hides the banner
     warning.hidden = Boolean(user && user.has_github_token);
   } catch (err) {
     console.error("auth/me failed:", err);
-    // On error, leave the banner as-is (don't force-show)
   }
 }
 
-// Re-check when returning from Profile (bfcache + normal navigation)
 window.addEventListener("pageshow", () => {
   if (document.querySelector("#github-warning")) {
     refreshGithubWarning();
@@ -247,19 +237,10 @@ window.addEventListener("pageshow", () => {
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && document.querySelector("#github-warning")) {
-    refreshGithubWarning();
-  }
-});
-
-// Browsers can restore this page from the back/forward cache (bfcache)
-// when navigating "back" from Profile instead of doing a fresh load —
-// in that case none of the script above re-runs, so a token saved on
-// Profile would never clear the banner. Re-check whenever the page
-// becomes visible again, which covers both bfcache restores and users
-// switching back to this tab.
-window.addEventListener("pageshow", (event) => {
-  if (event.persisted && document.querySelector("#create-form")) {
+  if (
+    document.visibilityState === "visible" &&
+    document.querySelector("#github-warning")
+  ) {
     refreshGithubWarning();
   }
 });
@@ -288,16 +269,12 @@ async function loadChats() {
 
 async function setupChat() {
   const id = new URLSearchParams(location.search).get("id");
-
   if (!id) return;
 
-  // Load all chats
   const chats = await request("/chat/list");
-
   const list = document.querySelector("#chat-list");
   list.innerHTML = "";
 
-  // Current chat
   const current = chats.find((c) => c.chat_id == id);
 
   if (current) {
@@ -307,7 +284,6 @@ async function setupChat() {
     if (header) header.textContent = current.title;
   }
 
-  // Show current chat first
   const sorted = [
     ...chats.filter((c) => c.chat_id == id),
     ...chats.filter((c) => c.chat_id != id),
@@ -315,26 +291,18 @@ async function setupChat() {
 
   sorted.forEach((chat) => {
     const a = document.createElement("a");
-
     a.href = `chat.html?id=${chat.chat_id}`;
     a.className = "chat-item";
-
-    if (chat.chat_id == id) {
-      a.classList.add("active");
-    }
-
+    if (chat.chat_id == id) a.classList.add("active");
     a.innerHTML = `
-            <strong>${chat.title}</strong>
-            <small>branch: ${chat.branch}</small>
-        `;
-
+      <strong>${chat.title}</strong>
+      <small>branch: ${chat.branch}</small>
+    `;
     list.appendChild(a);
   });
 
-  // Load old messages
   try {
     const messages = await request(`/chat/${id}/messages`);
-
     const container = document.querySelector("#messages");
     container.innerHTML = "";
 
@@ -343,27 +311,21 @@ async function setupChat() {
         '<div class="empty"><h2>Ask your repository</h2><p>Ask anything about the indexed codebase — architecture, files, functions or bugs.</p></div>';
     }
 
-    messages.forEach((m) => {
-      addMessage(m.content, m.role);
-    });
+    messages.forEach((m) => addMessage(m.content, m.role));
   } catch (err) {
     console.error(err);
   }
 
-  // Ask form
   const askForm = document.querySelector("#ask");
-
   if (askForm) {
     askForm.onsubmit = async (e) => {
       e.preventDefault();
 
       const input = document.querySelector("#question");
       const q = input.value.trim();
-
       if (!q) return;
 
       document.querySelector(".empty")?.remove();
-
       addMessage(q, "user");
       input.value = "";
 
@@ -372,9 +334,7 @@ async function setupChat() {
       try {
         const data = await request(`/chat/${id}/ask`, {
           method: "POST",
-          body: JSON.stringify({
-            question: q,
-          }),
+          body: JSON.stringify({ question: q }),
         });
 
         typing.remove();
@@ -405,11 +365,10 @@ function showTyping() {
   const container = document.querySelector("#messages");
   container.appendChild(node);
   container.scrollTop = container.scrollHeight;
-
   return node;
 }
 
-/* ---- lightweight markdown rendering for chat messages ---- */
+/* ---- markdown rendering ---- */
 
 function escapeHtml(str) {
   return str
@@ -421,27 +380,19 @@ function escapeHtml(str) {
 }
 
 function renderMarkdown(raw) {
-  // 1. Pull out fenced code blocks first so nothing inside them gets
-  //    touched by the inline/list formatting passes below.
   const codeBlocks = [];
   let text = raw.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
     codeBlocks.push({ lang: (lang || "").trim(), code: code.replace(/\n$/, "") });
     return `\u0000CODEBLOCK${codeBlocks.length - 1}\u0000`;
   });
 
-  // 2. Escape everything else so raw HTML in repo content can't leak in.
   text = escapeHtml(text);
-
-  // 3. Inline code spans.
   text = text.replace(/`([^`\n]+)`/g, (_, code) => `<code>${code}</code>`);
-
-  // 4. Bold, then italic (order matters so **x** isn't eaten by *x*).
   text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
   text = text.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
   text = text.replace(/(^|[^_])_([^_\n]+)_(?!_)/g, "$1<em>$2</em>");
 
-  // 5. Walk line by line to build paragraphs / bullet / numbered lists.
   const lines = text.split("\n");
   let html = "";
   let inUl = false;
@@ -449,8 +400,14 @@ function renderMarkdown(raw) {
   let para = [];
 
   const closeLists = () => {
-    if (inUl) { html += "</ul>"; inUl = false; }
-    if (inOl) { html += "</ol>"; inOl = false; }
+    if (inUl) {
+      html += "</ul>";
+      inUl = false;
+    }
+    if (inOl) {
+      html += "</ol>";
+      inOl = false;
+    }
   };
   const flushPara = () => {
     if (para.length) {
@@ -477,13 +434,25 @@ function renderMarkdown(raw) {
       html += `<h${level}>${heading[2]}</h${level}>`;
     } else if (bullet) {
       flushPara();
-      if (inOl) { html += "</ol>"; inOl = false; }
-      if (!inUl) { html += "<ul>"; inUl = true; }
+      if (inOl) {
+        html += "</ol>";
+        inOl = false;
+      }
+      if (!inUl) {
+        html += "<ul>";
+        inUl = true;
+      }
       html += `<li>${bullet[1]}</li>`;
     } else if (numbered) {
       flushPara();
-      if (inUl) { html += "</ul>"; inUl = false; }
-      if (!inOl) { html += "<ol>"; inOl = true; }
+      if (inUl) {
+        html += "</ul>";
+        inUl = false;
+      }
+      if (!inOl) {
+        html += "<ol>";
+        inOl = true;
+      }
       html += `<li>${numbered[1]}</li>`;
     } else if (trimmed === "") {
       closeLists();
@@ -496,7 +465,6 @@ function renderMarkdown(raw) {
   closeLists();
   flushPara();
 
-  // 6. Re-insert the fenced code blocks as proper <pre><code> panels.
   html = html.replace(/\u0000CODEBLOCK(\d+)\u0000/g, (_, idx) => {
     const block = codeBlocks[Number(idx)];
     const label = block.lang || "text";
@@ -504,11 +472,11 @@ function renderMarkdown(raw) {
     const encoded = encodeURIComponent(block.code);
     return (
       `<div class="code-block">` +
-        `<div class="code-block-head">` +
-          `<span class="code-block-lang">${escapeHtml(label)}</span>` +
-          `<button type="button" class="copy-btn" data-code="${encoded}">Copy</button>` +
-        `</div>` +
-        `<pre><code data-lang="${escapeHtml(block.lang)}">${escaped}</code></pre>` +
+      `<div class="code-block-head">` +
+      `<span class="code-block-lang">${escapeHtml(label)}</span>` +
+      `<button type="button" class="copy-btn" data-code="${encoded}">Copy</button>` +
+      `</div>` +
+      `<pre><code data-lang="${escapeHtml(block.lang)}">${escaped}</code></pre>` +
       `</div>`
     );
   });
@@ -516,11 +484,6 @@ function renderMarkdown(raw) {
   return html;
 }
 
-// Syntax-highlights every fenced code block inside `scope` using highlight.js
-// (loaded via CDN in chat.html). If a language was given in the fence
-// (```go, ```js, ...) and hljs recognizes it, that's used; otherwise hljs
-// auto-detects, and — if the fence had no language at all — the detected
-// name is written into the little header label too.
 function highlightCodeBlocks(scope) {
   if (!window.hljs) return;
 
@@ -548,7 +511,8 @@ function highlightCodeBlocks(scope) {
 function addMessage(text, role) {
   const node = document.createElement("div");
   node.className = `message ${role}`;
-  node.innerHTML = role === "user" ? `<p>${escapeHtml(text)}</p>` : renderMarkdown(text);
+  node.innerHTML =
+    role === "user" ? `<p>${escapeHtml(text)}</p>` : renderMarkdown(text);
 
   highlightCodeBlocks(node);
 
@@ -557,8 +521,6 @@ function addMessage(text, role) {
   container.scrollTop = container.scrollHeight;
 }
 
-// One delegated listener handles every "Copy" button, including ones
-// added to messages long after page load.
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".copy-btn");
   if (!btn) return;
@@ -626,7 +588,6 @@ function setupProfile() {
       }
       form.reset();
 
-      // Optional: confirm backend now reports the token
       try {
         const me = await request("/auth/me");
         if (status && me.has_github_token) {
@@ -652,11 +613,10 @@ function setupProfile() {
   };
 }
 
-// ====================== INIT ======================
+/* ====================== INIT ====================== */
 
 if (document.querySelector("#auth-form")) {
   const currentPage = location.pathname.split("/").pop();
-
   if (currentPage === "register.html") {
     setupAuth("register");
   } else {
@@ -689,10 +649,7 @@ document.querySelectorAll("#logout, .logout-btn").forEach((btn) => {
 
 async function upgradeToPro() {
   try {
-    const data = await request("/payment/checkout", {
-      method: "POST",
-    });
-
+    const data = await request("/payment/checkout", { method: "POST" });
     window.location.href = data.checkout_url;
   } catch (err) {
     alert(err.message);
@@ -702,11 +659,8 @@ async function upgradeToPro() {
 async function loadSubscription() {
   try {
     const status = await request("/payment/status");
-
     const badge = document.querySelector("#plan");
-
     if (!badge) return;
-
     badge.textContent = status.plan;
   } catch (err) {
     console.error(err);
@@ -722,12 +676,10 @@ function showUpgradeModal(reason) {
       message.textContent =
         "You've reached your monthly repository limit. Upgrade to Pro to create unlimited repository chats.";
       break;
-
     case "daily_limit":
       message.textContent =
         "You've reached today's question limit. Upgrade to Pro for unlimited questions.";
       break;
-
     default:
       message.textContent = "This feature requires Chat WithRepo Pro.";
   }
@@ -741,10 +693,7 @@ function hideUpgradeModal() {
 
 async function startCheckout() {
   try {
-    const data = await request("/payment/checkout", {
-      method: "POST",
-    });
-
+    const data = await request("/payment/checkout", { method: "POST" });
     window.location.href = data.checkout_url;
   } catch (err) {
     console.error(err);
