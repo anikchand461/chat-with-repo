@@ -4,6 +4,8 @@ const API = "https://chat-with-repo-4vwy.onrender.com";
 // Change this to your repository (username/repo)
 const GITHUB_REPO = "shreyaghorui222004/chat-with-repo";
 
+const FREE_CHAT_LIMIT = 2;
+
 const authToken = localStorage.getItem("devlens_token");
 
 const page = location.pathname.split("/").pop();
@@ -148,7 +150,22 @@ async function setupDashboard() {
   const form = document.querySelector("#create-form");
 
   if (createBtn) {
-    createBtn.onclick = () => {
+    createBtn.onclick = async () => {
+      // Soft check: if free user already has 2 chats, show upgrade instead of create form
+      try {
+        const [chats, status] = await Promise.all([
+          request("/chat/list"),
+          request("/payment/status").catch(() => ({ plan: "FREE", is_pro: false })),
+        ]);
+
+        if (!status.is_pro && chats.length >= FREE_CHAT_LIMIT) {
+          showUpgradeModal("repo_limit");
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
       if (modal) modal.hidden = false;
     };
   }
@@ -344,6 +361,7 @@ async function setupChat() {
             "⚠️ " + data.message + "\n\nUpgrade to Pro to continue chatting.",
             "assistant"
           );
+          showUpgradeModal(data.reason);
           return;
         }
 
@@ -671,24 +689,28 @@ function showUpgradeModal(reason) {
   const modal = document.getElementById("upgrade-modal");
   const message = document.getElementById("upgrade-message");
 
+  if (!modal || !message) return;
+
   switch (reason) {
     case "repo_limit":
       message.textContent =
-        "You've reached your monthly repository limit. Upgrade to Pro to create unlimited repository chats.";
+        "You've reached the free limit of 2 repository chats. Upgrade to Pro for unlimited chats.";
       break;
+    case "daily_questions":
     case "daily_limit":
       message.textContent =
-        "You've reached today's question limit. Upgrade to Pro for unlimited questions.";
+        "You've reached today's free question limit. Upgrade to Pro for unlimited questions.";
       break;
     default:
-      message.textContent = "This feature requires Chat WithRepo Pro.";
+      message.textContent = "This feature requires ChatWithRepo Pro.";
   }
 
   modal.hidden = false;
 }
 
 function hideUpgradeModal() {
-  document.getElementById("upgrade-modal").hidden = true;
+  const modal = document.getElementById("upgrade-modal");
+  if (modal) modal.hidden = true;
 }
 
 async function startCheckout() {
