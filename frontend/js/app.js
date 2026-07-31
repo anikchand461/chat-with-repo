@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 const API = "https://chat-with-repo-4vwy.onrender.com";
 
+=======
+//const API = "https://chat-with-repo-4vwy.onrender.com/";
+const API="http://127.0.0.1:8000"
+>>>>>>> 3da6ba4 (Update frontend: API URL and live deploy fixes)
 // Change this to your repository (username/repo)
 const GITHUB_REPO = "shreyaghorui222004/chat-with-repo";
 
