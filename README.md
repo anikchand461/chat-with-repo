@@ -6,7 +6,7 @@
 
 ### Point it at any GitHub repository. Ask it anything. Get answers grounded in the actual code.
 
-[![Live Demo](https://img.shields.io/badge/live%20demo-chatwithrepo.vercel.app-17b57f?style=for-the-badge&logo=vercel&logoColor=white)]([https://chatwithrepo-nine.vercel.app/])
+[![Live Demo](https://img.shields.io/badge/live%20demo-chatwithrepo-nine.vercel.app-17b57f?style=for-the-badge&logo=vercel&logoColor=white)]([https://chatwithrepo-nine.vercel.app/])
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://www.langchain.com/)
@@ -34,16 +34,7 @@ READMEs go stale, comments lie, and keyword search finds the word, not the conce
 
 This is the core of the project — a multi-stage retrieval pipeline, not a single embed-and-search step:
 
-```mermaid
-flowchart LR
-    Q["User Question"] --> QC["Query Classifier<br/>Groq · llama-3.1-8b-instant<br/>lookup vs analysis"]
-    QC --> MQ["Multi-Query Generator<br/>Groq · llama-3.1-8b-instant<br/>+2 rephrasings"]
-    MQ --> R["Retriever<br/>Cohere embed-v4.0 + Chroma"]
-    R --> RRF["Reciprocal Rank Fusion<br/>merges ranked result sets"]
-    RRF --> RR["Reranker<br/>Cohere rerank-v3.5"]
-    RR --> LLM["Answer Generation<br/>Gemini 3.1 Flash-Lite"]
-    LLM --> A["Grounded Answer"]
-```
+<img src="frontend/assets/rag-pipeline.png" alt="Chat With Repo logo" width="180"/>
 
 | Stage | Model / Method | Purpose |
 |---|---|---|
