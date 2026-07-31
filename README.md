@@ -34,7 +34,7 @@ READMEs go stale, comments lie, and keyword search finds the word, not the conce
 
 This is the core of the project — a multi-stage retrieval pipeline, not a single embed-and-search step:
 
-<img src="frontend/assets/rag-pipeline.png" alt="Chat With Repo logo" width="180"/>
+<img src="frontend/assets/rag-pipeline.png" alt="Chat With Repo logo"/>
 
 | Stage | Model / Method | Purpose |
 |---|---|---|
