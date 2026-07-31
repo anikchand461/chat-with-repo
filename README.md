@@ -76,10 +76,14 @@ cp .env.example .env
 ```
 
 ```env
-GROQ_API_KEY=your_groq_key        # classifier + multi-query
-GOOGLE_API_KEY=your_gemini_key    # answer generation
-COHERE_API_KEY=your_cohere_key    # embeddings + reranking
-DODO_API_KEY=your_dodo_key        # optional, Pro plan
+GOOGLE_API_KEY=google_api_key
+COHERE_API_KEY=cohere_api_key
+GROQ_API_KEY=groq_api_key
+DODO_API_KEY=dodopayments_api_key
+DODO_PRODUCT_ID=dodo_product_id
+APP_URL=http://127.0.0.1:5500/
+DODO_BASE_URL=https://test.dodopayments.com
+DATABASE_URL=postgresql+psycopg://neondb_owner:YOUR_PASSWORD@ep-cool-heart-azo2wz85-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
 ```
 
 **Step 3 — Run the backend**
