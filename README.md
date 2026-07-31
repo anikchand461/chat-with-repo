@@ -79,7 +79,6 @@ cp .env.example .env
 GROQ_API_KEY=your_groq_key        # classifier + multi-query
 GOOGLE_API_KEY=your_gemini_key    # answer generation
 COHERE_API_KEY=your_cohere_key    # embeddings + reranking
-JWT_SECRET=your_jwt_secret
 DODO_API_KEY=your_dodo_key        # optional, Pro plan
 ```
 
@@ -106,13 +105,28 @@ Visit `http://127.0.0.1:5500/index.html`.
 
 <div align="center">
 
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=flat-square&logo=langchain&logoColor=white)
-![Cohere](https://img.shields.io/badge/Cohere-embed%20%2B%20rerank-39594D?style=flat-square)
-![Gemini](https://img.shields.io/badge/Gemini-answering-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq-classifier%20%2B%20multiquery-F55036?style=flat-square)
-![Chroma](https://img.shields.io/badge/Chroma-vector%20store-purple?style=flat-square)
-![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=flat-square&logo=vercel&logoColor=white)
+
+![Groq](https://img.shields.io/badge/Groq-Llama%203.1%208B%20Instant-F55036?style=flat-square)
+![Cohere](https://img.shields.io/badge/Cohere-Embed%20v4%20%7C%20Rerank%20v3.5-39594D?style=flat-square)
+![Gemini](https://img.shields.io/badge/Gemini-Flash--Lite-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
+
+![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-8A2BE2?style=flat-square)
+![Neon](https://img.shields.io/badge/Neon-Postgres-00E699?style=flat-square&logo=neondatabase&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+
+![GitHub](https://img.shields.io/badge/GitHub-API-181717?style=flat-square&logo=github&logoColor=white)
+![Dodo%20Payments](https://img.shields.io/badge/Dodo-Payments-9BE000?style=flat-square)
+
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+
+![Render](https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=black)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
 
 </div>
 
