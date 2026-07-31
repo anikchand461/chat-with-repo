@@ -6,7 +6,7 @@
 
 ### Point it at any GitHub repository. Ask it anything. Get answers grounded in the actual code.
 
-[![Live Demo](https://img.shields.io/badge/live%20demo-chatwithrepo.vercel.app-17b57f?style=for-the-badge&logo=vercel&logoColor=white)](https://chatwithrepo.vercel.app)
+[![Live Demo](https://img.shields.io/badge/live%20demo-chatwithrepo.vercel.app-17b57f?style=for-the-badge&logo=vercel&logoColor=white)]([https://chatwithrepo-nine.vercel.app/])
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://www.langchain.com/)
