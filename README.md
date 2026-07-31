@@ -6,7 +6,6 @@
 
 ### Point it at any GitHub repository. Ask it anything. Get answers grounded in the actual code.
 
-[![Live Demo](https://img.shields.io/badge/live%20demo-chatwithrepo.vercel.app-17b57f?style=for-the-badge&logo=vercel&logoColor=white)]([https://chatwithrepo-nine.vercel.app/])
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://www.langchain.com/)
@@ -34,16 +33,7 @@ READMEs go stale, comments lie, and keyword search finds the word, not the conce
 
 This is the core of the project — a multi-stage retrieval pipeline, not a single embed-and-search step:
 
-```mermaid
-flowchart LR
-    Q["User Question"] --> QC["Query Classifier<br/>Groq · llama-3.1-8b-instant<br/>lookup vs analysis"]
-    QC --> MQ["Multi-Query Generator<br/>Groq · llama-3.1-8b-instant<br/>+2 rephrasings"]
-    MQ --> R["Retriever<br/>Cohere embed-v4.0 + Chroma"]
-    R --> RRF["Reciprocal Rank Fusion<br/>merges ranked result sets"]
-    RRF --> RR["Reranker<br/>Cohere rerank-v3.5"]
-    RR --> LLM["Answer Generation<br/>Gemini 3.1 Flash-Lite"]
-    LLM --> A["Grounded Answer"]
-```
+<img src="frontend/assets/rag-pipeline.png" alt="Chat With Repo logo"/>
 
 | Stage | Model / Method | Purpose |
 |---|---|---|
@@ -60,64 +50,7 @@ Before any of this, ingestion turns a raw repo into searchable documents: **GitH
 
 ## ◈ Full Architecture
  
-```mermaid
-flowchart TB
-    subgraph Frontend["Frontend — HTML / CSS / JS"]
-        A1["Auth pages<br/>login / register"]
-        A2["Dashboard"]
-        A3["Chat UI"]
-        A4["Billing"]
-    end
- 
-    subgraph API["Backend API — FastAPI"]
-        B1["Auth router<br/>JWT"]
-        B2["Repo router"]
-        B3["Chat router"]
-        B4["Payment router<br/>Dodo Payments"]
-    end
- 
-    subgraph Ingest["Repository Ingestion"]
-        C1["GitHub Client<br/>tree + files"]
-        C2["Loader → Converter → Chunker"]
-    end
- 
-    subgraph RAG["RAG Pipeline"]
-        D1["Query Classifier"]
-        D2["Multi-Query Generator"]
-        D3["Retriever → RRF → Reranker"]
-        D4["Gemini — Answer Generation"]
-    end
- 
-    subgraph Data["Persistence"]
-        E1[("SQL<br/>users · chats · messages")]
-        E2[("Vector DB<br/>Chroma")]
-    end
- 
-    A1 --> B1
-    A2 --> B2
-    A3 --> B3
-    A4 --> B4
- 
-    B2 --> C1 --> C2 --> E2
-    B3 --> D1 --> D2 --> D3 --> D4 --> B3
-    D3 -.reads.-> E2
- 
-    B1 --> E1
-    B3 --> E1
-    B4 --> E1
- 
-    classDef frontend fill:#eafbf3,stroke:#17b57f,stroke-width:1px,color:#065f46;
-    classDef api fill:#e1f5ee,stroke:#0f6e56,stroke-width:1px,color:#04342c;
-    classDef ingest fill:#fdece4,stroke:#d85a30,stroke-width:1px,color:#4a1b0c;
-    classDef rag fill:#fdf1da,stroke:#ba7517,stroke-width:1px,color:#412402;
-    classDef data fill:#f1efe8,stroke:#5f5e5a,stroke-width:1px,color:#2c2c2a;
- 
-    class A1,A2,A3,A4 frontend;
-    class B1,B2,B3,B4 api;
-    class C1,C2 ingest;
-    class D1,D2,D3,D4 rag;
-    class E1,E2 data;
-```
+<img src="frontend/assets/architecture.png" alt="Chat With Repo logo"/>
 
 Free vs Pro is enforced per-user (monthly repo limit, chat history depth); upgrades run through a Dodo Payments checkout + webhook flow.
 ```
@@ -143,11 +76,14 @@ cp .env.example .env
 ```
 
 ```env
-GROQ_API_KEY=your_groq_key        # classifier + multi-query
-GOOGLE_API_KEY=your_gemini_key    # answer generation
-COHERE_API_KEY=your_cohere_key    # embeddings + reranking
-JWT_SECRET=your_jwt_secret
-DODO_API_KEY=your_dodo_key        # optional, Pro plan
+GOOGLE_API_KEY=google_api_key
+COHERE_API_KEY=cohere_api_key
+GROQ_API_KEY=groq_api_key
+DODO_API_KEY=dodopayments_api_key
+DODO_PRODUCT_ID=dodo_product_id
+APP_URL=http://127.0.0.1:5500/
+DODO_BASE_URL=https://test.dodopayments.com
+DATABASE_URL=postgresql+psycopg://neondb_owner:YOUR_PASSWORD@ep-cool-heart-azo2wz85-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
 ```
 
 **Step 3 — Run the backend**
@@ -173,13 +109,28 @@ Visit `http://127.0.0.1:5500/index.html`.
 
 <div align="center">
 
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=flat-square&logo=langchain&logoColor=white)
-![Cohere](https://img.shields.io/badge/Cohere-embed%20%2B%20rerank-39594D?style=flat-square)
-![Gemini](https://img.shields.io/badge/Gemini-answering-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq-classifier%20%2B%20multiquery-F55036?style=flat-square)
-![Chroma](https://img.shields.io/badge/Chroma-vector%20store-purple?style=flat-square)
-![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=flat-square&logo=vercel&logoColor=white)
+
+![Groq](https://img.shields.io/badge/Groq-Llama%203.1%208B%20Instant-F55036?style=flat-square)
+![Cohere](https://img.shields.io/badge/Cohere-Embed%20v4%20%7C%20Rerank%20v3.5-39594D?style=flat-square)
+![Gemini](https://img.shields.io/badge/Gemini-Flash--Lite-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
+
+![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-8A2BE2?style=flat-square)
+![Neon](https://img.shields.io/badge/Neon-Postgres-00E699?style=flat-square&logo=neondatabase&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+
+![GitHub](https://img.shields.io/badge/GitHub-API-181717?style=flat-square&logo=github&logoColor=white)
+![Dodo%20Payments](https://img.shields.io/badge/Dodo-Payments-9BE000?style=flat-square)
+
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+
+![Render](https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=black)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
 
 </div>
 
