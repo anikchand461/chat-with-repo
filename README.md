@@ -12,7 +12,7 @@
 [![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://www.langchain.com/)
 [![Status](https://img.shields.io/badge/status-active-17b57f?style=for-the-badge)](#)
 
-**[Live Demo](https://chatwithrepo.vercel.app) · [Problem](#-the-problem) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Install](#-installation)**
+**[Live Demo](https://chatwithrepo-nine.vercel.app/) · [Problem](#-the-problem) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Install](#-installation)**
 
 </div>
 
@@ -26,7 +26,7 @@ clone repo  →  open 40 tabs  →  grep for the entry point  →  still lost
 
 READMEs go stale, comments lie, and keyword search finds the word, not the concept. **Chat With Repo** indexes any public GitHub repository into a real retrieval pipeline, so you can ask questions and get answers grounded in the actual files — not a guess.
 
-**Try it now → [chatwithrepo.vercel.app](https://chatwithrepo.vercel.app)**
+**Try it now → [chatwithrepo-nine.vercel.app](https://chatwithrepo-nine.vercel.app/)**
 
 ---
 
