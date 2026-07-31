@@ -14,6 +14,7 @@ from backend.auth import get_current_user
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 FREE_HISTORY_LIMIT = 20
+FREE_CHAT_LIMIT = 2
 
 
 class CreateChatRequest(BaseModel):
@@ -49,16 +50,7 @@ def create_chat(
     print("TOKEN ON USER:", bool(current_user.github_token))
     print("=" * 50)
 
-    if (
-        current_user.plan == "FREE"
-        and current_user.used_repo_count >= current_user.monthly_repo_limit
-    ):
-        return {
-            "upgrade_required": True,
-            "reason": "repo_limit",
-            "message": "You've reached your monthly repository limit.",
-        }
-
+    # Same owner/repo/branch → reopen existing chat (does not use a new slot)
     existing_chat = (
         db.query(Chat)
         .filter(
@@ -90,6 +82,20 @@ def create_chat(
             "already_indexed": True,
             "can_reindex": True,
         }
+
+    # FREE: hard max of 2 chats total
+    if current_user.plan == "FREE":
+        total_chats = (
+            db.query(Chat)
+            .filter(Chat.user_id == current_user.id)
+            .count()
+        )
+        if total_chats >= FREE_CHAT_LIMIT:
+            return {
+                "upgrade_required": True,
+                "reason": "repo_limit",
+                "message": "You've reached the free limit of 2 repository chats. Upgrade to Pro for unlimited chats.",
+            }
 
     chat_key = uuid4().hex
     collection_name = f"chat_{current_user.id}_{chat_key}"
