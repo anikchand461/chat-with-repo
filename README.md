@@ -13,7 +13,7 @@
 [![Gio](https://img.shields.io/badge/Gio-Android-00ADD8?style=for-the-badge)](https://gioui.org/)
 [![Status](https://img.shields.io/badge/status-active-17b57f?style=for-the-badge)](#)
 
-**[Live Demo](https://chatwithrepo-nine.vercel.app/) · [Android App](https://github.com/anikchand461/chat-with-repo/releases/tag/v1.0.0) · [Problem](#-the-problem) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Installation](#-installation)**
+**[Live Demo](https://chatwithrepo-nine.vercel.app/) · [Android App](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0) · [Problem](#-the-problem) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Installation](#-installation)**
 
 </div>
 
@@ -86,7 +86,7 @@ The Android app acts as a mobile client for the existing Chat With Repo backend.
 
 ### Android Release
 
-**[Download ChatWithRepo Android v1.0.0](https://github.com/anikchand461/chat-with-repo/releases/tag/v1.0.0)**
+**[Download ChatWithRepo Android v1.0.0](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0)**
 
 The release contains `ChatWithRepo.apk`.
 
@@ -146,7 +146,7 @@ Visit `http://127.0.0.1:5500/index.html`.
 
 The Android APK is distributed through GitHub Releases rather than committed to the repository.
 
-**[Download the latest Android release](https://github.com/anikchand461/chat-with-repo/releases/tag/v1.0.0)**
+**[Download the latest Android release](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0)**
 
 1. Download `ChatWithRepo.apk`.
 2. Transfer it to your Android device if necessary.
@@ -193,7 +193,7 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 
 | Version | Platform | Download |
 |---|---|---|
-| v1.0.0 | Android | **[ChatWithRepo.apk](https://github.com/anikchand461/chat-with-repo/releases/tag/v1.0.0)** |
+| v1.0.0 | Android | **[ChatWithRepo.apk](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0)** |
 
 ---
 
