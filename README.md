@@ -189,24 +189,6 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 
 ---
 
-## ◈ Project Structure
-
-```text
-chat-with-repo/
-├── backend/          # FastAPI backend and RAG pipeline
-├── frontend/         # Web frontend
-├── mobile/           # Native Android app (Go + Gio)
-│   ├── api/          # API client
-│   ├── ui/           # Android UI
-│   ├── main.go       # Mobile application entry point
-│   └── icon.png      # Android app icon
-├── .env.example
-├── pyproject.toml
-└── README.md
-```
-
----
-
 ## ◈ Android Release
 
 | Version | Platform | Download |
