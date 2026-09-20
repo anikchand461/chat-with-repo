@@ -120,15 +120,19 @@ function setupAuth(kind) {
     }
 
     try {
+      const email = document.querySelector("#email").value;
+
       const data = await request(`/auth/${kind}`, {
         method: "POST",
         body: JSON.stringify({
-          email: document.querySelector("#email").value,
+          email,
           password: document.querySelector("#password").value,
         }),
       });
 
       localStorage.setItem("devlens_token", data.access_token);
+      // Remember the email so the profile page can greet the user right away
+      localStorage.setItem("devlens_email", email.trim());
       location.href = "dashboard.html";
     } catch (error) {
       document.querySelector("#error").textContent = error.message;
@@ -562,73 +566,178 @@ document.addEventListener("click", (e) => {
 
 /* ==================== profile ==================== */
 
+// Email from the login JWT, used only as an instant fallback before /auth/me answers
+function emailFromToken() {
+  try {
+    let part = token().split(".")[1];
+    if (!part) return "";
+    part = part.replace(/-/g, "+").replace(/_/g, "/");
+    part += "=".repeat((4 - (part.length % 4)) % 4);
+    const bytes = Uint8Array.from(atob(part), (c) => c.charCodeAt(0));
+    const payload = JSON.parse(new TextDecoder().decode(bytes));
+    if (payload.email) return String(payload.email);
+    if (payload.sub && String(payload.sub).includes("@")) return String(payload.sub);
+  } catch (_) {}
+  return "";
+}
+
+// "shreya.ghorui@gmail.com" -> "Shreya"
+function greetingName(email) {
+  const local = String(email || "").split("@")[0].trim();
+  const first = local.split(/[._+-]/)[0];
+  return first ? first.charAt(0).toUpperCase() + first.slice(1) : "";
+}
+
 function setupProfile() {
   const form = document.querySelector("#token-form");
   if (!form) return;
 
+  const nameEl = document.querySelector("#user-name");
+  const emailEl = document.querySelector("#user-email");
+  const banner = document.querySelector("#token-status");
+  const bannerTitle = document.querySelector("#status-title");
+  const bannerDesc = document.querySelector("#status-desc");
+  const status = document.querySelector("#status");
+  const input = document.querySelector("#token");
+  const saveBtn = document.querySelector("#save-btn");
+  const saveLabel = saveBtn ? saveBtn.querySelector(".label") : null;
+  const removeBtn = document.querySelector("#remove-token");
+
+  const ICON_OK =
+    '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+  const ICON_WARN =
+    '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+
+  let hasToken = false;
+
+  function setStatus(message, kind) {
+    if (!status) return;
+    status.textContent = message || "";
+    status.className = kind || "";
+  }
+
+  function setBusy(button, busy) {
+    if (!button) return;
+    button.classList.toggle("loading", busy);
+    button.disabled = busy;
+  }
+
+  function showUser(email) {
+    nameEl.textContent = greetingName(email) || "there";
+    emailEl.textContent = email || "";
+    emailEl.hidden = !email;
+  }
+
+  function showTokenState(has) {
+    hasToken = has;
+    banner.className = "token-status " + (has ? "configured" : "missing");
+    banner.querySelector(".icon").innerHTML = has ? ICON_OK : ICON_WARN;
+    bannerTitle.textContent = has ? "GitHub token configured" : "GitHub token not configured";
+    bannerDesc.textContent = has
+      ? "Private repos and higher rate limits are available. The dashboard warning is hidden."
+      : "Public API limits apply. Add a token for better performance.";
+
+    if (removeBtn) removeBtn.hidden = !has;
+    if (saveLabel) saveLabel.textContent = has ? "Update token" : "Save token";
+
+    if (has) {
+      // The server never sends the token back, so this is a generic mask
+      input.placeholder = "••••••••••••••••••••••••";
+      input.removeAttribute("required"); // empty = keep the saved token
+    } else {
+      input.placeholder = "ghp_xxxxxxxxxxxxxxxxxxxx";
+      input.setAttribute("required", "");
+    }
+  }
+
+  // 1) Show what we already know straight away (email typed at login / JWT)
+  showUser(localStorage.getItem("devlens_email") || emailFromToken());
+
+  // 2) Then ask the server: real email + whether a GitHub token is already saved
+  request("/auth/me")
+    .then((me) => {
+      if (me && me.email) {
+        localStorage.setItem("devlens_email", me.email);
+        showUser(me.email);
+      }
+      showTokenState(Boolean(me && me.has_github_token));
+    })
+    .catch((err) => {
+      console.error("auth/me failed:", err);
+      banner.className = "token-status";
+      banner.querySelector(".icon").innerHTML = ICON_WARN;
+      bannerTitle.textContent = "Couldn't check your token";
+      bannerDesc.textContent = "The server didn't answer. Refresh the page to try again.";
+    });
+
+  // Save / update token
   form.onsubmit = async (e) => {
     e.preventDefault();
+    setStatus("");
 
-    const status = document.querySelector("#status");
-    const input = document.querySelector("#token");
-    const button = form.querySelector('button[type="submit"]');
-    const original = button ? button.textContent : "";
+    const value = input.value.trim();
 
-    if (status) {
-      status.textContent = "";
-      status.className = "";
-    }
-
-    if (!input || !input.value.trim()) {
-      if (status) {
-        status.textContent = "Please enter a GitHub token.";
-        status.className = "err";
+    if (!value) {
+      input.classList.add("invalid");
+      if (hasToken) {
+        setStatus("Paste a new token to replace the saved one.");
+      } else {
+        setStatus("Please enter a GitHub token.", "err");
       }
       return;
     }
+    input.classList.remove("invalid");
 
-    if (button) {
-      button.disabled = true;
-      button.textContent = "Saving...";
-    }
+    setBusy(saveBtn, true);
 
     try {
       await request("/auth/github-token", {
         method: "POST",
-        body: JSON.stringify({
-          github_access_token: input.value.trim(),
-        }),
+        body: JSON.stringify({ github_access_token: value }),
       });
 
-      if (status) {
-        status.textContent = "Token saved. Dashboard warning will clear.";
-        status.className = "ok";
-      }
       form.reset();
 
+      let me = null;
       try {
-        const me = await request("/auth/me");
-        if (status && me.has_github_token) {
-          status.textContent = "Token saved and verified ✓";
-          status.className = "ok";
-        } else if (status) {
-          status.textContent =
-            "Token sent, but /auth/me still reports no token. Check backend.";
-          status.className = "err";
-        }
+        me = await request("/auth/me");
       } catch (_) {}
+
+      if (me && me.has_github_token) {
+        showTokenState(true);
+        setStatus("Token saved and verified ✓", "ok");
+      } else if (me) {
+        showTokenState(false);
+        setStatus("Token sent, but the server still reports no token. Check the backend.", "err");
+      } else {
+        showTokenState(true);
+        setStatus("Token saved.", "ok");
+      }
     } catch (error) {
-      if (status) {
-        status.textContent = error.message || "Failed to save token.";
-        status.className = "err";
-      }
+      setStatus(error.message || "Failed to save token.", "err");
     } finally {
-      if (button) {
-        button.disabled = false;
-        button.textContent = original;
-      }
+      setBusy(saveBtn, false);
     }
   };
+
+  // Remove token
+  if (removeBtn) {
+    removeBtn.onclick = async () => {
+      setStatus("");
+      removeBtn.disabled = true;
+
+      try {
+        // NOTE: needs a DELETE /auth/github-token route on the backend
+        await request("/auth/github-token", { method: "DELETE" });
+        showTokenState(false);
+        setStatus("Token removed. The dashboard warning will appear again.", "ok");
+      } catch (error) {
+        setStatus(error.message || "Couldn't remove the token.", "err");
+      } finally {
+        removeBtn.disabled = false;
+      }
+    };
+  }
 }
 
 /* ====================== INIT ====================== */
@@ -658,10 +767,11 @@ if (document.querySelector("#token-form")) {
 
 function logout() {
   localStorage.removeItem("devlens_token");
+  localStorage.removeItem("devlens_email");
   window.location.replace("login.html");
 }
 
-document.querySelectorAll("#logout, .logout-btn").forEach((btn) => {
+document.querySelectorAll("#logout, #logout-bottom, .logout-btn").forEach((btn) => {
   btn.addEventListener("click", logout);
 });
 
