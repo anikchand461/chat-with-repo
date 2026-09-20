@@ -673,3 +673,93 @@ func spacerX(dp int) layout.Widget {
 		return layout.Dimensions{Size: image.Point{X: gtx.Dp(unit.Dp(dp))}}
 	}
 }
+
+// stepProgress animates the sidebar opening and closing.
+func stepProgress(
+	gtx layout.Context,
+	open bool,
+	progress *float32,
+	last *time.Time,
+) {
+	target := float32(0)
+	if open {
+		target = 1
+	}
+
+	const speed = float32(0.18)
+
+	if *progress < target {
+		*progress += speed
+		if *progress > target {
+			*progress = target
+		}
+	} else if *progress > target {
+		*progress -= speed
+		if *progress < target {
+			*progress = target
+		}
+	}
+
+	*last = gtx.Now
+
+	if *progress != target {
+		gtx.Execute(op.InvalidateCmd{
+			At: gtx.Now.Add(16 * time.Millisecond),
+		})
+	}
+}
+
+// hamburgerButton draws the hamburger menu button.
+func hamburgerButton(
+	gtx layout.Context,
+	btn *widget.Clickable,
+) layout.Dimensions {
+	const sizeDp = 44
+
+	d := gtx.Dp(unit.Dp(sizeDp))
+
+	gtx.Constraints.Min = image.Pt(d, d)
+	gtx.Constraints.Max = image.Pt(d, d)
+
+	return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		r := gtx.Dp(unit.Dp(12))
+
+		paint.FillShape(
+			gtx.Ops,
+			authField,
+			clip.RRect{
+				Rect: image.Rectangle{
+					Max: image.Pt(d, d),
+				},
+				NE: r,
+				NW: r,
+				SE: r,
+				SW: r,
+			}.Op(gtx.Ops),
+		)
+
+		lineColor := authTitle
+		lineWidth := gtx.Dp(unit.Dp(18))
+		lineHeight := gtx.Dp(unit.Dp(2))
+		x := (d - lineWidth) / 2
+
+		for _, y := range []int{
+			d/2 - gtx.Dp(unit.Dp(7)),
+			d / 2,
+			d/2 + gtx.Dp(unit.Dp(7)),
+		} {
+			paint.FillShape(
+				gtx.Ops,
+				lineColor,
+				clip.Rect{
+					Min: image.Pt(x, y),
+					Max: image.Pt(x+lineWidth, y+lineHeight),
+				}.Op(),
+			)
+		}
+
+		return layout.Dimensions{
+			Size: image.Pt(d, d),
+		}
+	})
+}
