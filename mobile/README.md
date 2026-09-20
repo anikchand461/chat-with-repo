@@ -86,8 +86,13 @@ against the Android *emulator* instead of a real device).
 
 ```bash
 cd mobile
-gogio -target android -appid com.chatwithrepo.mobile -o chatwithrepo.apk .
+gogio -target android -arch arm64 -ldflags "-s -w" -name ChatWithRepo \
+  -appid com.chatwithrepo.mobile -o chatwithrepo.apk .
 ```
+
+`-arch arm64` (all current phones) and `-ldflags "-s -w"` keep the APK around
+7 MB; leaving them out builds every CPU architecture with debug info (60 MB+).
+Add `,arm` to `-arch` only if you must support old 32-bit phones.
 
 This produces `chatwithrepo.apk` in the current directory. `gogio`
 cross-compiles the Go code for Android and packages it — no Java/Kotlin

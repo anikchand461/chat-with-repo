@@ -9,6 +9,7 @@ import (
 
 	"gioui.org/f32"
 	"gioui.org/font"
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -284,8 +285,6 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 		s.sideChatBtn = nil
 	}
 
-	stepProgress(gtx, s.showMenu, &s.menuProg, &s.menuLast)
-
 	for s.menuBtn.Clicked(gtx) {
 		s.showMenu = true
 	}
@@ -362,17 +361,43 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 
 	authBackground(gtx)
 	gtx.Constraints.Min = gtx.Constraints.Max
-	content := layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(s.topBar(th, snap.title, snap.branch)),
-		layout.Flexed(1, s.messageList(th, snap.messages, snap.loadingHist, snap.asking)),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			if snap.errMsg == "" {
-				return layout.Dimensions{}
+	// Android Back: close the sidebar/dialog, otherwise return to the
+	// Dashboard (instead of leaving the app).
+	for {
+		ev, ok := gtx.Event(key.Filter{Name: key.NameBack})
+		if !ok {
+			break
+		}
+		if e, ok := ev.(key.Event); ok && e.State == key.Press {
+			switch {
+			case snap.showUpgrade:
+				s.closeUpgradeModal()
+			case s.showMenu:
+				s.showMenu = false
+			default:
+				s.app.ShowDashboard()
 			}
-			return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Bottom: unit.Dp(6)}.Layout(gtx, ErrorText(th, snap.errMsg))
-		}),
-		layout.Rigid(s.inputRow(th, asking)),
-	)
+		}
+	}
+
+	// Step after this frame's clicks have updated showMenu (see Dashboard):
+	// otherwise the opening frame requests no follow-up and, without mouse
+	// movement to keep redrawing (i.e. on a phone), the sidebar never slides in.
+	stepProgress(gtx, s.showMenu, &s.menuProg, &s.menuLast)
+
+	content := withInsets(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(s.topBar(th, snap.title, snap.branch)),
+			layout.Flexed(1, s.messageList(th, snap.messages, snap.loadingHist, snap.asking)),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if snap.errMsg == "" {
+					return layout.Dimensions{}
+				}
+				return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Bottom: unit.Dp(6)}.Layout(gtx, ErrorText(th, snap.errMsg))
+			}),
+			layout.Rigid(s.inputRow(th, asking)),
+		)
+	})
 
 	s.overlay.step(gtx, snap.showUpgrade)
 	if s.overlay.visible() {
@@ -681,7 +706,7 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 			paint.FillShape(gtx.Ops, authCardBorder, clip.RRect{Rect: image.Rectangle{Max: gtx.Constraints.Max}, NE: r, SE: r}.Op(gtx.Ops))
 			paint.FillShape(gtx.Ops, authCard, clip.RRect{Rect: image.Rect(0, 0, dw-gtx.Dp(unit.Dp(1)), size.Y), NE: r, SE: r}.Op(gtx.Ops))
 
-			layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(20), Bottom: unit.Dp(16)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(20) + sysInsets.Top, Bottom: unit.Dp(16) + sysInsets.Bottom}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(greeting(th, email)),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {

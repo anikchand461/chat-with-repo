@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"gioui.org/app"
+	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
 
@@ -33,6 +34,9 @@ func main() {
 		w.Option(
 			app.Title("ChatWithRepo"),
 			app.Size(unit.Dp(380), unit.Dp(760)),
+			// Android: bars take the app's dark green and get light icons.
+			app.StatusColor(ui.StatusBarColor),
+			app.NavigationColor(ui.NavigationBarColor),
 		)
 		if err := run(w); err != nil {
 			os.Exit(1)
@@ -61,7 +65,19 @@ func run(w *app.Window) error {
 		case app.DestroyEvent:
 			return e.Err
 		case app.FrameEvent:
-			gtx := app.NewContext(&ops, e)
+			// Draw across the whole window (behind the status and
+			// navigation bars) and hand the insets to the UI, which
+			// keeps only its content clear of them. app.NewContext
+			// would shrink the drawing area and leave the bars bare.
+			ops.Reset()
+			gtx := layout.Context{
+				Ops:         &ops,
+				Now:         e.Now,
+				Source:      e.Source,
+				Metric:      e.Metric,
+				Constraints: layout.Exact(e.Size),
+			}
+			ui.SetInsets(e.Insets)
 			a.Layout(gtx)
 			e.Frame(gtx.Ops)
 		}
