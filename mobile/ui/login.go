@@ -7,8 +7,6 @@ import (
 	"gioui.org/layout"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-
-	"chatwithrepo/mobile/api"
 )
 
 // LoginScreen holds all state for the Login screen: the two text
@@ -25,6 +23,7 @@ type LoginScreen struct {
 	registerBtn widget.Clickable
 
 	mu      sync.Mutex
+	uiReset bool // consumed by Layout (editors are UI-goroutine only)
 	loading bool
 	errMsg  string
 }
@@ -74,10 +73,8 @@ func (s *LoginScreen) submit() {
 			s.setError(err.Error())
 			return
 		}
-		s.app.Client.SetToken(token)
-		_ = api.SaveToken(token)
 		s.setLoading(false)
-		s.app.ShowDashboard()
+		s.app.BeginSession(token)
 	}()
 }
 
@@ -91,14 +88,25 @@ func (s *LoginScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 		s.app.ShowRegister()
 	}
 
+	s.mu.Lock()
+	doReset := s.uiReset
+	s.uiReset = false
+	s.mu.Unlock()
+	if doReset {
+		s.email.SetText("")
+		s.password.SetText("")
+	}
+
 	loading, errMsg := s.snapshot()
+	s.email.ReadOnly = loading
+	s.password.ReadOnly = loading
 
 	return authScreen(gtx, th, "Welcome back", "Log in to continue to your repository chats.",
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(AuthField(th, &s.email, "Email", "you@example.com")),
 				layout.Rigid(authGap(20)),
-				layout.Rigid(AuthField(th, &s.password, "Password", "Enter your password")),
+				layout.Rigid(AuthField(th, &s.password, "Password", "Atleast 8 characters")),
 				layout.Rigid(authGap(8)),
 				layout.Rigid(ErrorText(th, errMsg)),
 				layout.Rigid(authGap(24)),
@@ -109,4 +117,13 @@ func (s *LoginScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 				layout.Rigid(AuthGitHubButton(&s.githubBtn)),
 			)
 		})
+}
+
+// reset drops everything typed or shown for the previous account.
+func (s *LoginScreen) reset() {
+	s.mu.Lock()
+	s.loading = false
+	s.errMsg = ""
+	s.uiReset = true
+	s.mu.Unlock()
 }

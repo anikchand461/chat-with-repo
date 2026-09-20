@@ -37,19 +37,23 @@ type DashboardScreen struct {
 	chats    []api.Chat
 	chatBtns []widget.Clickable
 	isPro    bool
+	email    string // from the existing /auth/me call; "" if unavailable
 
 	list      widget.List
 	logoutBtn widget.Clickable
 	newBtn    widget.Clickable
 
 	// Hamburger menu / bottom sheet (UI-goroutine only, no locking).
-	showMenu   bool
-	menuProg   float32 // 0 closed .. 1 open, animated
-	menuLast   time.Time
-	menuBtn    widget.Clickable
-	menuScrim  widget.Clickable
-	menuSheet  widget.Clickable
-	menuGithub widget.Clickable
+	uiReset     bool // consumed by Layout
+	overlay     overlayAnim
+	overlayKind int // 1 = create form, 2 = upgrade
+	showMenu    bool
+	menuProg    float32 // 0 closed .. 1 open, animated
+	menuLast    time.Time
+	menuBtn     widget.Clickable
+	menuScrim   widget.Clickable
+	menuSheet   widget.Clickable
+	menuGithub  widget.Clickable
 
 	// "New Repository" modal
 	showModal bool
@@ -83,6 +87,7 @@ func newDashboardScreen(app *App) *DashboardScreen {
 
 // Reload fetches the chat list in the background.
 func (s *DashboardScreen) Reload() {
+	gen := s.app.Generation()
 	s.mu.Lock()
 	s.loading = true
 	s.errMsg = ""
@@ -91,6 +96,9 @@ func (s *DashboardScreen) Reload() {
 
 	go func() {
 		chats, err := s.app.Client.ListChats()
+		if !s.app.IsCurrent(gen) {
+			return
+		}
 		if err == api.ErrUnauthorized {
 			s.app.HandleUnauthorized()
 			return
@@ -100,8 +108,18 @@ func (s *DashboardScreen) Reload() {
 		// already-Pro user briefly sees a lock that clears on retry,
 		// rather than a free user bypassing the limit).
 		status, statusErr := s.app.Client.PaymentStatus()
+		// Best-effort: only used for the greeting, so a failure just
+		// hides it.
+		email := ""
+		if me, meErr := s.app.Client.Me(); meErr == nil {
+			email = me.Email
+		}
 
 		s.mu.Lock()
+		if !s.app.IsCurrent(gen) { // re-check: Me/PaymentStatus took time
+			s.mu.Unlock()
+			return
+		}
 		s.loading = false
 		if err != nil {
 			s.errMsg = err.Error()
@@ -111,6 +129,9 @@ func (s *DashboardScreen) Reload() {
 			s.errMsg = ""
 		}
 		s.isPro = statusErr == nil && status.IsPro
+		if email != "" {
+			s.email = email
+		}
 		s.mu.Unlock()
 		s.app.Window.Invalidate()
 	}()
@@ -183,6 +204,7 @@ func (s *DashboardScreen) closeUpgradeModal() {
 // same POST /payment/checkout the web frontend's "Upgrade to Pro"
 // button calls) and opens the returned URL in the system browser.
 func (s *DashboardScreen) startCheckout() {
+	gen := s.app.Generation()
 	s.mu.Lock()
 	s.checkingOut = true
 	s.checkoutErr = ""
@@ -191,11 +213,18 @@ func (s *DashboardScreen) startCheckout() {
 
 	go func() {
 		url, err := s.app.Client.CreateCheckout()
+		if !s.app.IsCurrent(gen) {
+			return
+		}
 		if err == api.ErrUnauthorized {
 			s.app.HandleUnauthorized()
 			return
 		}
 		s.mu.Lock()
+		if !s.app.IsCurrent(gen) {
+			s.mu.Unlock()
+			return
+		}
 		s.checkingOut = false
 		if err != nil {
 			s.checkoutErr = err.Error()
@@ -230,6 +259,7 @@ func (s *DashboardScreen) submitCreate() {
 		return
 	}
 
+	gen := s.app.Generation()
 	s.mu.Lock()
 	s.creating = true
 	s.formErr = ""
@@ -238,11 +268,18 @@ func (s *DashboardScreen) submitCreate() {
 
 	go func() {
 		resp, err := s.app.Client.CreateChat(owner, repo, branch)
+		if !s.app.IsCurrent(gen) {
+			return
+		}
 		if err == api.ErrUnauthorized {
 			s.app.HandleUnauthorized()
 			return
 		}
 		s.mu.Lock()
+		if !s.app.IsCurrent(gen) {
+			s.mu.Unlock()
+			return
+		}
 		s.creating = false
 		if err != nil {
 			s.formErr = err.Error()
@@ -268,6 +305,9 @@ func (s *DashboardScreen) submitCreate() {
 			return
 		}
 
+		if !s.app.IsCurrent(gen) {
+			return
+		}
 		s.mu.Lock()
 		s.showModal = false
 		s.mu.Unlock()
@@ -286,6 +326,7 @@ type dashboardSnapshot struct {
 	chats    []api.Chat
 	chatBtns []widget.Clickable
 	isPro    bool
+	email    string
 
 	showModal bool
 	creating  bool
@@ -311,6 +352,7 @@ func (s *DashboardScreen) snapshot() dashboardSnapshot {
 		chats:       s.chats,
 		chatBtns:    s.chatBtns,
 		isPro:       s.isPro,
+		email:       s.email,
 		showModal:   s.showModal,
 		creating:    s.creating,
 		formErr:     s.formErr,
@@ -324,6 +366,20 @@ func (s *DashboardScreen) snapshot() dashboardSnapshot {
 // Layout draws the Dashboard screen and processes its own clicks.
 func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	authS = authScale(gtx)
+
+	s.mu.Lock()
+	doReset := s.uiReset
+	s.uiReset = false
+	s.mu.Unlock()
+	if doReset {
+		s.showMenu, s.menuProg = false, 0
+		s.overlay = overlayAnim{}
+		s.overlayKind = 0
+		s.owner.SetText("")
+		s.repo.SetText("")
+		s.branch.SetText("main")
+		s.list = widget.List{List: layout.List{Axis: layout.Vertical}}
+	}
 
 	s.stepMenuAnimation(gtx)
 	for s.menuBtn.Clicked(gtx) {
@@ -389,21 +445,22 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 		}),
 	)
 
-	overlay := layout.Widget(nil)
+	open := snap.showUpgrade || showModal
+	s.overlay.step(gtx, open)
 	switch {
 	case snap.showUpgrade:
-		overlay = UpgradeModal(th, snap.upgradeMsg, &s.upgradeBtn, &s.upgradeCancel, snap.checkingOut, snap.checkoutErr)
+		s.overlayKind = 2
 	case showModal:
-		overlay = s.modal(th, creating, formErr)
+		s.overlayKind = 1
 	}
-	if overlay != nil {
+	if s.overlay.visible() {
+		dialog := s.modal(th, creating, formErr)
+		if s.overlayKind == 2 {
+			dialog = UpgradeModal(th, snap.upgradeMsg, &s.upgradeBtn, &s.upgradeCancel, snap.checkingOut, snap.checkoutErr)
+		}
 		return layout.Stack{}.Layout(gtx,
 			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
-			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return fill(gtx, colorScrim()) }),
-			layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-				gtx.Constraints.Min = gtx.Constraints.Max
-				return overlay(gtx)
-			}),
+			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return s.overlay.draw(gtx, dialog) }),
 		)
 	}
 	if s.showMenu || s.menuProg > 0 {
@@ -443,6 +500,7 @@ func (s *DashboardScreen) menuButton(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints.Min, gtx.Constraints.Max = image.Pt(d, d), image.Pt(d, d)
 	return s.menuBtn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		borderedRRect(gtx, image.Pt(d, d), unit.Dp(22), authIconBg, authFieldBorder)
+		pressOverlay(gtx, &s.menuBtn, image.Pt(d, d), d/2, pressLight)
 		w, h := d*40/100, gtx.Dp(unit.Dp(2))
 		gap := gtx.Dp(unit.Dp(5))
 		x := (d - w) / 2
@@ -509,6 +567,7 @@ func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
 				return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					sz := image.Pt(gtx.Constraints.Max.X, h)
 					borderedRRect(gtx, sz, unit.Dp(16), authField, authFieldBorder)
+					pressOverlay(gtx, btn, sz, gtx.Dp(unit.Dp(16)), pressLight)
 					return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						centerY(gtx, h, func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
@@ -567,6 +626,7 @@ func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
 			paint.FillShape(gtx.Ops, authCard, clip.RRect{Rect: image.Rect(gtx.Dp(unit.Dp(1)), 0, dw, size.Y), NW: r, SW: r}.Op(gtx.Ops))
 			layout.Inset{Left: unit.Dp(20), Right: unit.Dp(20), Top: unit.Dp(72)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(greeting(th, s.snapshot().email)),
 					layout.Rigid(row(&s.menuGithub, true, "GitHub", authTitle)),
 					layout.Rigid(row(&s.logoutBtn, false, "Logout", colorError)),
 				)
@@ -672,6 +732,7 @@ func (s *DashboardScreen) chatCard(th *material.Theme, _ int, c api.Chat, btn *w
 			return layout.Stack{}.Layout(gtx,
 				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 					borderedRRect(gtx, gtx.Constraints.Min, unit.Dp(20), authCard, authCardBorder)
+					pressOverlay(gtx, btn, gtx.Constraints.Min, gtx.Dp(unit.Dp(20)), pressLight)
 					return layout.Dimensions{Size: gtx.Constraints.Min}
 				}),
 				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
@@ -751,4 +812,71 @@ func (s *DashboardScreen) modal(th *material.Theme, creating bool, formErr strin
 			})(gtx)
 		})
 	}
+}
+
+var greetingYellow = color.NRGBA{R: 0xfa, G: 0xcc, B: 0x15, A: 0xff}
+
+// greeting renders "Hi <Name>" from the logged-in user's email (the part
+// before "@", first letter capitalised). It draws nothing when the email
+// is unknown.
+func greeting(th *material.Theme, email string) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		name, _, _ := strings.Cut(strings.TrimSpace(email), "@")
+		name = strings.TrimSpace(name)
+		if name == "" {
+			return layout.Dimensions{}
+		}
+		r := []rune(name)
+		name = strings.ToUpper(string(r[0])) + string(r[1:])
+		return layout.Inset{Left: unit.Dp(4), Bottom: unit.Dp(16)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			part := func(txt string, col color.NRGBA, truncate bool) layout.Widget {
+				return func(gtx layout.Context) layout.Dimensions {
+					l := material.Label(th, unit.Sp(20), txt)
+					l.Color = col
+					l.Font.Weight = font.Bold
+					l.MaxLines = 1
+					if truncate {
+						l.Truncator = "…"
+					}
+					return l.Layout(gtx)
+				}
+			}
+			gap := layout.Spacer{Width: unit.Dp(6)}.Layout
+			gtx.Constraints.Min.X = 0
+			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(part("Hi", authTitle, false)),
+				layout.Rigid(gap),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					// Leave room for the emoji so a long name truncates
+					// instead of pushing it out of the menu.
+					gtx.Constraints.Max.X -= gtx.Dp(unit.Dp(44))
+					return part(name, greetingYellow, true)(gtx)
+				}),
+				layout.Rigid(gap),
+				layout.Rigid(part("👋", authTitle, false)),
+			)
+		})
+	}
+}
+
+// reset wipes everything account-specific. The dashboard starts in the
+// loading state so nothing (not even "No chats yet") flashes before the
+// new account's data arrives. UI-goroutine-only widgets are reset by Layout.
+func (s *DashboardScreen) reset() {
+	s.mu.Lock()
+	s.loading = true
+	s.errMsg = ""
+	s.chats = nil
+	s.chatBtns = nil
+	s.isPro = false
+	s.email = ""
+	s.showModal = false
+	s.creating = false
+	s.formErr = ""
+	s.showUpgrade = false
+	s.upgradeMsg = ""
+	s.checkingOut = false
+	s.checkoutErr = ""
+	s.uiReset = true
+	s.mu.Unlock()
 }
