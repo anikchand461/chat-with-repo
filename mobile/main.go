@@ -43,6 +43,9 @@ func main() {
 }
 
 func run(w *app.Window) error {
+	if b, err := assets.ReadFile("assets/fonts/NotoColorEmoji.ttf"); err == nil {
+		ui.SetEmojiFont(b)
+	}
 	if b, err := assets.ReadFile("assets/icon.png"); err == nil {
 		ui.SetLogo(b)
 	}
