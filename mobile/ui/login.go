@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"gioui.org/layout"
-	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 
@@ -16,6 +15,8 @@ import (
 // fields, the two buttons, and a small loading/error status.
 type LoginScreen struct {
 	app *App
+
+	githubBtn widget.Clickable
 
 	email    widget.Editor
 	password widget.Editor
@@ -92,38 +93,20 @@ func (s *LoginScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 
 	loading, errMsg := s.snapshot()
 
-	return layout.UniformInset(unit.Dp(24)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Vertical, Alignment: layout.Start}.Layout(gtx,
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					gtx.Constraints.Min.X = gtx.Constraints.Max.X
-					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							title := material.H5(th, "ChatWithRepo")
-							title.Color = colorText
-							return title.Layout(gtx)
-						}),
-						layout.Rigid(spacer(6)),
-						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							sub := material.Body2(th, "Sign in to keep chatting with your repos.")
-							sub.Color = colorSubtleText
-							return sub.Layout(gtx)
-						}),
-						layout.Rigid(spacer(24)),
-						layout.Rigid(TextField(th, &s.email, "Email")),
-						layout.Rigid(spacer(12)),
-						layout.Rigid(TextField(th, &s.password, "Password")),
-						layout.Rigid(spacer(8)),
-						layout.Rigid(ErrorText(th, errMsg)),
-						layout.Rigid(spacer(16)),
-						layout.Rigid(PrimaryButton(th, &s.loginBtn, "Login", loading)),
-						layout.Rigid(spacer(8)),
-						layout.Rigid(TextButton(th, &s.registerBtn, "Create Account")),
-					)
-				})
-			}),
-		)
-	})
+	return authScreen(gtx, th, "Welcome back", "Log in to continue to your repository chats.",
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(AuthField(th, &s.email, "Email", "you@example.com")),
+				layout.Rigid(authGap(20)),
+				layout.Rigid(AuthField(th, &s.password, "Password", "Enter your password")),
+				layout.Rigid(authGap(8)),
+				layout.Rigid(ErrorText(th, errMsg)),
+				layout.Rigid(authGap(24)),
+				layout.Rigid(AuthButton(th, &s.loginBtn, "Continue", loading)),
+				layout.Rigid(authGap(16)),
+				layout.Rigid(AuthLink(th, &s.registerBtn, "Create an account")),
+				layout.Rigid(authGap(8)),
+				layout.Rigid(AuthGitHubButton(&s.githubBtn)),
+			)
+		})
 }
-
-

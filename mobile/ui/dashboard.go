@@ -3,8 +3,16 @@ package ui
 import (
 	"strings"
 	"sync"
+	"time"
 
+	"image"
+	"image/color"
+
+	"gioui.org/font"
 	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -33,6 +41,15 @@ type DashboardScreen struct {
 	list      widget.List
 	logoutBtn widget.Clickable
 	newBtn    widget.Clickable
+
+	// Hamburger menu / bottom sheet (UI-goroutine only, no locking).
+	showMenu   bool
+	menuProg   float32 // 0 closed .. 1 open, animated
+	menuLast   time.Time
+	menuBtn    widget.Clickable
+	menuScrim  widget.Clickable
+	menuSheet  widget.Clickable
+	menuGithub widget.Clickable
 
 	// "New Repository" modal
 	showModal bool
@@ -306,7 +323,23 @@ func (s *DashboardScreen) snapshot() dashboardSnapshot {
 
 // Layout draws the Dashboard screen and processes its own clicks.
 func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	authS = authScale(gtx)
+
+	s.stepMenuAnimation(gtx)
+	for s.menuBtn.Clicked(gtx) {
+		s.showMenu = true
+	}
+	for s.menuScrim.Clicked(gtx) {
+		s.showMenu = false
+	}
+	for s.menuSheet.Clicked(gtx) {
+	}
+	for s.menuGithub.Clicked(gtx) {
+		s.showMenu = false
+		go func() { _ = openURL(repoURL) }()
+	}
 	for s.logoutBtn.Clicked(gtx) {
+		s.showMenu = false
 		s.app.Logout()
 	}
 	for s.newBtn.Clicked(gtx) {
@@ -346,124 +379,342 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 		s.closeModal()
 	}
 
+	authBackground(gtx)
+	gtx.Constraints.Min = gtx.Constraints.Max
 	content := layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(s.topBar(th)),
+		layout.Rigid(s.header(th)),
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(PrimaryButton(th, &s.newBtn, "New Repository", false)),
-					layout.Rigid(spacer(16)),
-					layout.Rigid(ErrorText(th, errMsg)),
-					layout.Flexed(1, s.chatList(th, loading, chats, chatBtns, snap.isPro)),
-				)
-			})
+			return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(4)}.Layout(gtx,
+				s.body(th, loading, errMsg, chats, chatBtns, snap.isPro))
 		}),
 	)
 
-	if !showModal && !snap.showUpgrade {
-		return content
-	}
-
-	overlay := s.modal(th, creating, formErr)
-	if snap.showUpgrade {
+	overlay := layout.Widget(nil)
+	switch {
+	case snap.showUpgrade:
 		overlay = UpgradeModal(th, snap.upgradeMsg, &s.upgradeBtn, &s.upgradeCancel, snap.checkingOut, snap.checkoutErr)
+	case showModal:
+		overlay = s.modal(th, creating, formErr)
 	}
-
-	return layout.Stack{}.Layout(gtx,
-		layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
-		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-			return fill(gtx, colorScrim())
-		}),
-		layout.Stacked(overlay),
-	)
-}
-
-func (s *DashboardScreen) topBar(th *material.Theme) layout.Widget {
-	return func(gtx layout.Context) layout.Dimensions {
+	if overlay != nil {
 		return layout.Stack{}.Layout(gtx,
+			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
+			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return fill(gtx, colorScrim()) }),
 			layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-				return fill(gtx, colorSurface)
-			}),
-			layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-				gtx.Constraints.Min.X = gtx.Constraints.Max.X
-				return layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							title := material.H6(th, "ChatWithRepo")
-							title.Color = colorText
-							return title.Layout(gtx)
-						}),
-						layout.Rigid(TextButton(th, &s.logoutBtn, "Logout")),
-					)
-				})
+				gtx.Constraints.Min = gtx.Constraints.Max
+				return overlay(gtx)
 			}),
 		)
 	}
+	if s.showMenu || s.menuProg > 0 {
+		return layout.Stack{}.Layout(gtx,
+			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
+			layout.Expanded(s.drawer(th)),
+		)
+	}
+	return content
 }
 
-func (s *DashboardScreen) chatList(th *material.Theme, loading bool, chats []api.Chat, chatBtns []widget.Clickable, isPro bool) layout.Widget {
+// header is the compact top row: logo on the left, hamburger on the right.
+func (s *DashboardScreen) header(th *material.Theme) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
-		if loading && len(chats) == 0 {
-			lbl := material.Body2(th, "Loading chats…")
-			lbl.Color = colorSubtleText
-			return lbl.Layout(gtx)
+		return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(10), Bottom: unit.Dp(6)}.Layout(gtx,
+			func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						if logoOp == nil {
+							return layout.Dimensions{}
+						}
+						return widget.Image{Src: *logoOp, Fit: widget.Contain, Position: layout.W}.Layout(
+							constrainHeight(gtx, unit.Dp(40)))
+					}),
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						return layout.Dimensions{Size: image.Pt(gtx.Constraints.Max.X, 0)}
+					}),
+					layout.Rigid(s.menuButton),
+				)
+			})
+	}
+}
+
+// menuButton is the round hamburger on the right of the header.
+func (s *DashboardScreen) menuButton(gtx layout.Context) layout.Dimensions {
+	d := gtx.Dp(unit.Dp(44))
+	gtx.Constraints.Min, gtx.Constraints.Max = image.Pt(d, d), image.Pt(d, d)
+	return s.menuBtn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		borderedRRect(gtx, image.Pt(d, d), unit.Dp(22), authIconBg, authFieldBorder)
+		w, h := d*40/100, gtx.Dp(unit.Dp(2))
+		gap := gtx.Dp(unit.Dp(5))
+		x := (d - w) / 2
+		y := (d - (3*h + 2*gap)) / 2
+		for i := 0; i < 3; i++ {
+			r := image.Rect(x, y+i*(h+gap), x+w, y+i*(h+gap)+h)
+			paint.FillShape(gtx.Ops, authIconFg, clip.UniformRRect(r, h/2).Op(gtx.Ops))
 		}
-		if len(chats) == 0 {
-			lbl := material.Body2(th, "No chats yet. Create one to index a repository.")
-			lbl.Color = colorSubtleText
-			return lbl.Layout(gtx)
+		return layout.Dimensions{Size: image.Pt(d, d)}
+	})
+}
+
+// stepMenuAnimation eases menuProg toward open/closed and keeps
+// requesting frames until it settles.
+func (s *DashboardScreen) stepMenuAnimation(gtx layout.Context) {
+	target := float32(0)
+	if s.showMenu {
+		target = 1
+	}
+	dt := float32(gtx.Now.Sub(s.menuLast).Seconds())
+	s.menuLast = gtx.Now
+	if dt <= 0 || dt > 0.05 {
+		dt = 1.0 / 60
+	}
+	if s.menuProg == target {
+		return
+	}
+	step := dt / 0.22 // ~220ms
+	if s.menuProg < target {
+		s.menuProg += step
+		if s.menuProg > target {
+			s.menuProg = target
 		}
-		return s.list.Layout(gtx, len(chats), func(gtx layout.Context, i int) layout.Dimensions {
-			c := chats[i]
-			// Beyond the free limit, a chat was never indexed (see
-			// submitCreate's UpgradeRequired handling) — mark it
-			// locked instead of letting it open into an empty,
-			// unusable conversation.
-			locked := !isPro && i >= freeChatLimit
-			return layout.Inset{Bottom: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return chatBtns[i].Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.Stack{}.Layout(gtx,
-						layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-							roundedFill(gtx, gtx.Constraints.Min, unit.Dp(10), colorSurface)
-							return layout.Dimensions{Size: gtx.Constraints.Min}
+	} else {
+		s.menuProg -= step
+		if s.menuProg < target {
+			s.menuProg = target
+		}
+	}
+	if s.menuProg != target {
+		gtx.Execute(op.InvalidateCmd{})
+	}
+}
+
+// centerY lays w out at its natural height and centres it vertically in a
+// row of height h.
+func centerY(gtx layout.Context, h int, w layout.Widget) layout.Dimensions {
+	gtx.Constraints.Min.Y, gtx.Constraints.Max.Y = 0, h
+	m := op.Record(gtx.Ops)
+	dims := w(gtx)
+	call := m.Stop()
+	defer op.Offset(image.Pt(0, (h-dims.Size.Y)/2)).Push(gtx.Ops).Pop()
+	call.Add(gtx.Ops)
+	return layout.Dimensions{Size: image.Pt(dims.Size.X, h)}
+}
+
+// drawer is the dimmed scrim plus the menu panel sliding in from the right.
+func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
+	row := func(btn *widget.Clickable, icon bool, label string, col color.NRGBA) layout.Widget {
+		return func(gtx layout.Context) layout.Dimensions {
+			return layout.Inset{Top: unit.Dp(4), Bottom: unit.Dp(4)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Min.X = gtx.Constraints.Max.X
+				h := gtx.Dp(unit.Dp(56))
+				return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					sz := image.Pt(gtx.Constraints.Max.X, h)
+					borderedRRect(gtx, sz, unit.Dp(16), authField, authFieldBorder)
+					return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						centerY(gtx, h, func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									if !icon {
+										return layout.Dimensions{}
+									}
+									d := gtx.Dp(unit.Dp(24))
+									if githubOp != nil {
+										g := gtx
+										g.Constraints.Min, g.Constraints.Max = image.Pt(d, d), image.Pt(d, d)
+										widget.Image{Src: *githubOp, Fit: widget.Contain, Position: layout.Center}.Layout(g)
+									}
+									return layout.Dimensions{Size: image.Pt(d+gtx.Dp(unit.Dp(14)), d)}
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									l := material.Label(th, unit.Sp(17), label)
+									l.Color = col
+									l.Font.Weight = font.Bold
+									return l.Layout(gtx)
+								}),
+							)
+						})
+						return layout.Dimensions{Size: sz}
+					})
+				})
+			})
+		}
+	}
+
+	return func(gtx layout.Context) layout.Dimensions {
+		size := gtx.Constraints.Max
+		gtx.Constraints.Min = size
+		e := s.menuProg * s.menuProg * (3 - 2*s.menuProg) // smoothstep
+
+		dw := gtx.Dp(unit.Dp(280))
+		if lim := size.X * 80 / 100; dw > lim {
+			dw = lim
+		}
+
+		// Scrim.
+		scrim := colorScrim()
+		scrim.A = uint8(float32(scrim.A) * e)
+		s.menuScrim.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return fill(gtx, scrim)
+		})
+
+		// Panel.
+		x := size.X - int(float32(dw)*e)
+		defer op.Offset(image.Pt(x, 0)).Push(gtx.Ops).Pop()
+		pg := gtx
+		pg.Constraints.Min, pg.Constraints.Max = image.Pt(dw, size.Y), image.Pt(dw, size.Y)
+		return s.menuSheet.Layout(pg, func(gtx layout.Context) layout.Dimensions {
+			r := gtx.Dp(unit.Dp(28))
+			paint.FillShape(gtx.Ops, authCardBorder, clip.RRect{Rect: image.Rectangle{Max: gtx.Constraints.Max}, NW: r, SW: r}.Op(gtx.Ops))
+			paint.FillShape(gtx.Ops, authCard, clip.RRect{Rect: image.Rect(gtx.Dp(unit.Dp(1)), 0, dw, size.Y), NW: r, SW: r}.Op(gtx.Ops))
+			layout.Inset{Left: unit.Dp(20), Right: unit.Dp(20), Top: unit.Dp(72)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(row(&s.menuGithub, true, "GitHub", authTitle)),
+					layout.Rigid(row(&s.logoutBtn, false, "Logout", colorError)),
+				)
+			})
+			return layout.Dimensions{Size: gtx.Constraints.Max}
+		})
+	}
+}
+
+// body is the scrollable dashboard content: hero + Create Chat, then
+// the "Previous chats" section.
+func (s *DashboardScreen) body(th *material.Theme, loading bool, errMsg string, chats []api.Chat, chatBtns []widget.Clickable, isPro bool) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		n := 3
+		if len(chats) > 0 {
+			n = 2 + len(chats)
+		}
+		return s.list.Layout(gtx, n, func(gtx layout.Context, i int) layout.Dimensions {
+			switch {
+			case i == 0:
+				return layout.Inset{Top: unit.Dp(8), Bottom: unit.Dp(8)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							l := material.Label(th, authSp(26), "Your codebase,")
+							l.Color = authTitle
+							l.Font.Weight = font.Bold
+							return l.Layout(gtx)
 						}),
-						layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-							gtx.Constraints.Min.X = gtx.Constraints.Max.X
-							return layout.UniformInset(unit.Dp(14)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-								return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
-									layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-										return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-											layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-												lbl := material.Body1(th, c.Title)
-												lbl.Color = colorText
-												if locked {
-													lbl.Color = colorSubtleText
-												}
-												return lbl.Layout(gtx)
-											}),
-											layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-												lbl := material.Caption(th, "branch: "+c.Branch)
-												lbl.Color = colorSubtleText
-												return lbl.Layout(gtx)
-											}),
-										)
-									}),
-									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-										if !locked {
-											return layout.Dimensions{}
-										}
-										return layout.Inset{Left: unit.Dp(8)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-											lbl := material.Caption(th, "🔒 Pro")
-											lbl.Color = colorPrimary
-											return lbl.Layout(gtx)
-										})
-									}),
-								)
-							})
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							l := material.Label(th, authSp(26), "in conversation.")
+							l.Color = color.NRGBA{R: 0x3d, G: 0xdc, B: 0x97, A: 0xff}
+							l.Font.Weight = font.Bold
+							return l.Layout(gtx)
+						}),
+						layout.Rigid(authGap(8)),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							l := material.Label(th, authSp(15), "Each chat indexes one repository. Ask questions, get answers grounded in real code.")
+							l.LineHeightScale = 1.25
+							l.Color = authBody
+							return l.Layout(gtx)
+						}),
+						layout.Rigid(authGap(18)),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							w := gtx.Dp(unit.Dp(240))
+							if w > gtx.Constraints.Max.X {
+								w = gtx.Constraints.Max.X
+							}
+							gtx.Constraints.Min.X, gtx.Constraints.Max.X = w, w
+							return layout.Center.Layout(gtx, AuthButton(th, &s.newBtn, "Create Chat", false))
+						}),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							if errMsg == "" {
+								return layout.Dimensions{}
+							}
+							return layout.Inset{Top: unit.Dp(10)}.Layout(gtx, ErrorText(th, errMsg))
 						}),
 					)
 				})
-			})
+			case i == 1:
+				return layout.Inset{Top: unit.Dp(24), Bottom: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							l := material.Label(th, authSp(20), "Previous chats")
+							l.Color = authTitle
+							l.Font.Weight = font.Bold
+							return l.Layout(gtx)
+						}),
+						layout.Rigid(authGap(4)),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							l := material.Label(th, authSp(14), "Jump back into a repository you've already indexed.")
+							l.LineHeightScale = 1.25
+							l.Color = authBody
+							return l.Layout(gtx)
+						}),
+					)
+				})
+			case len(chats) == 0:
+				msg := "No chats yet. Create one to index a repository."
+				if loading {
+					msg = "Loading chats…"
+				}
+				return layout.Inset{Bottom: unit.Dp(24)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return authCardWidget(func(gtx layout.Context) layout.Dimensions {
+						l := material.Label(th, authSp(15), msg)
+						l.Color = authBody
+						return l.Layout(gtx)
+					})(gtx)
+				})
+			default:
+				ci := i - 2
+				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, s.chatCard(th, ci, chats[ci], &chatBtns[ci], !isPro && ci >= freeChatLimit))
+			}
+		})
+	}
+}
+
+// chatCard is one previous chat as a tappable rounded card. Chats beyond
+// the free limit were never indexed, so they show a Pro pill and open the
+// upgrade prompt instead of an empty conversation.
+func (s *DashboardScreen) chatCard(th *material.Theme, _ int, c api.Chat, btn *widget.Clickable, locked bool) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Stack{}.Layout(gtx,
+				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+					borderedRRect(gtx, gtx.Constraints.Min, unit.Dp(20), authCard, authCardBorder)
+					return layout.Dimensions{Size: gtx.Constraints.Min}
+				}),
+				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Min.X = gtx.Constraints.Max.X
+					return layout.Inset{Left: unit.Dp(18), Right: unit.Dp(14), Top: unit.Dp(16), Bottom: unit.Dp(16)}.Layout(gtx,
+						func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+								layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+									return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+											l := material.Label(th, unit.Sp(17), c.Title)
+											l.Color = authTitle
+											if locked {
+												l.Color = authBody
+											}
+											l.Font.Weight = font.Bold
+											return l.Layout(gtx)
+										}),
+										layout.Rigid(layout.Spacer{Height: unit.Dp(4)}.Layout),
+										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+											l := material.Label(th, unit.Sp(13), "branch: "+c.Branch)
+											l.Color = authHint
+											return l.Layout(gtx)
+										}),
+									)
+								}),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									txt, col := "›", authLink
+									if locked {
+										txt, col = "Pro", authLink
+									}
+									l := material.Label(th, unit.Sp(22), txt)
+									if locked {
+										l.TextSize = unit.Sp(13)
+										l.Font.Weight = font.Bold
+									}
+									l.Color = col
+									return layout.Inset{Left: unit.Dp(10)}.Layout(gtx, l.Layout)
+								}),
+							)
+						})
+				}),
+			)
 		})
 	}
 }
@@ -471,37 +722,33 @@ func (s *DashboardScreen) chatList(th *material.Theme, loading bool, chats []api
 func (s *DashboardScreen) modal(th *material.Theme, creating bool, formErr string) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
 		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Max.X = gtx.Constraints.Max.X * 88 / 100
-			gtx.Constraints.Min.X = gtx.Constraints.Max.X
-			return layout.Stack{}.Layout(gtx,
-				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-					roundedFill(gtx, gtx.Constraints.Min, unit.Dp(14), colorSurface)
-					return layout.Dimensions{Size: gtx.Constraints.Min}
-				}),
-				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-					return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								title := material.H6(th, "New Repository")
-								title.Color = colorText
-								return title.Layout(gtx)
-							}),
-							layout.Rigid(spacer(16)),
-							layout.Rigid(TextField(th, &s.owner, "Owner (e.g. octocat)")),
-							layout.Rigid(spacer(10)),
-							layout.Rigid(TextField(th, &s.repo, "Repository")),
-							layout.Rigid(spacer(10)),
-							layout.Rigid(TextField(th, &s.branch, "Branch (default: main)")),
-							layout.Rigid(spacer(8)),
-							layout.Rigid(ErrorText(th, formErr)),
-							layout.Rigid(spacer(16)),
-							layout.Rigid(PrimaryButton(th, &s.createBtn, "Create", creating)),
-							layout.Rigid(spacer(8)),
-							layout.Rigid(TextButton(th, &s.cancelBtn, "Cancel")),
-						)
-					})
-				}),
-			)
+			maxW := gtx.Constraints.Max.X - 2*gtx.Dp(unit.Dp(20))
+			if lim := gtx.Dp(unit.Dp(440)); maxW > lim {
+				maxW = lim
+			}
+			gtx.Constraints.Min.X, gtx.Constraints.Max.X = maxW, maxW
+			return authCardWidget(func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						l := material.Label(th, authSp(20), "Create a repository chat")
+						l.Color = authTitle
+						l.Font.Weight = font.Bold
+						return l.Layout(gtx)
+					}),
+					layout.Rigid(authGap(14)),
+					layout.Rigid(AuthField(th, &s.owner, "GitHub username", "username")),
+					layout.Rigid(authGap(10)),
+					layout.Rigid(AuthField(th, &s.repo, "Repository name", "repo")),
+					layout.Rigid(authGap(10)),
+					layout.Rigid(AuthField(th, &s.branch, "Branch", "main")),
+					layout.Rigid(authGap(8)),
+					layout.Rigid(ErrorText(th, formErr)),
+					layout.Rigid(authGap(12)),
+					layout.Rigid(AuthButton(th, &s.createBtn, "Create", creating)),
+					layout.Rigid(authGap(10)),
+					layout.Rigid(AuthLink(th, &s.cancelBtn, "Cancel")),
+				)
+			})(gtx)
 		})
 	}
 }

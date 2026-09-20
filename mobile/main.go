@@ -5,6 +5,7 @@
 package main
 
 import (
+	"embed"
 	"os"
 
 	"gioui.org/app"
@@ -13,6 +14,13 @@ import (
 
 	"chatwithrepo/mobile/ui"
 )
+
+// assets holds the images shown in the UI (assets/icon.png and
+// assets/github.png). Embedding them bundles the files into the binary,
+// so they load the same way on desktop and in the Android build.
+//
+//go:embed assets/*
+var assets embed.FS
 
 // baseURL is the only thing you need to change to point this client
 // at a different backend (e.g. a local dev server on 10.0.2.2 for the
@@ -35,6 +43,12 @@ func main() {
 }
 
 func run(w *app.Window) error {
+	if b, err := assets.ReadFile("assets/icon.png"); err == nil {
+		ui.SetLogo(b)
+	}
+	if b, err := assets.ReadFile("assets/github.png"); err == nil {
+		ui.SetGitHubIcon(b)
+	}
 	a := ui.NewApp(w, baseURL)
 	a.Bootstrap()
 

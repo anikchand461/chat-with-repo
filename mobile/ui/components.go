@@ -170,7 +170,7 @@ func UpgradeModal(th *material.Theme, message string, upgradeBtn, cancelBtn *wid
 			gtx.Constraints.Min.X = gtx.Constraints.Max.X
 			return layout.Stack{}.Layout(gtx,
 				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-					roundedFill(gtx, gtx.Constraints.Min, unit.Dp(14), colorSurface)
+					borderedRRect(gtx, gtx.Constraints.Min, unit.Dp(26), authCard, authCardBorder)
 					return layout.Dimensions{Size: gtx.Constraints.Min}
 				}),
 				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
@@ -190,9 +190,9 @@ func UpgradeModal(th *material.Theme, message string, upgradeBtn, cancelBtn *wid
 							layout.Rigid(spacer(8)),
 							layout.Rigid(ErrorText(th, errMsg)),
 							layout.Rigid(spacer(16)),
-							layout.Rigid(PrimaryButton(th, upgradeBtn, "Upgrade to Pro", checkingOut)),
+							layout.Rigid(AuthButton(th, upgradeBtn, "Upgrade to Pro", checkingOut)),
 							layout.Rigid(spacer(8)),
-							layout.Rigid(TextButton(th, cancelBtn, "Not now")),
+							layout.Rigid(AuthLink(th, cancelBtn, "Not now")),
 						)
 					})
 				}),
