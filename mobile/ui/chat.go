@@ -3,7 +3,6 @@ package ui
 import (
 	"image"
 	"image/color"
-	"math"
 	"strings"
 	"sync"
 	"time"
@@ -40,6 +39,8 @@ type ChatScreen struct {
 	question widget.Editor
 	sendBtn  widget.Clickable
 	// Left drawer (UI-goroutine only).
+	uiReset     bool // consumed by Layout
+	overlay     overlayAnim
 	showMenu    bool
 	menuProg    float32
 	menuLast    time.Time
@@ -77,6 +78,7 @@ func newChatScreen(app *App) *ChatScreen {
 
 // Open resets the screen for chatID and loads its message history.
 func (s *ChatScreen) Open(chatID, title, branch string) {
+	gen := s.app.Generation()
 	s.mu.Lock()
 	s.chatID = chatID
 	s.title = title
@@ -92,11 +94,18 @@ func (s *ChatScreen) Open(chatID, title, branch string) {
 
 	go func() {
 		msgs, err := s.app.Client.Messages(chatID)
+		if !s.app.IsCurrent(gen) {
+			return
+		}
 		if err == api.ErrUnauthorized {
 			s.app.HandleUnauthorized()
 			return
 		}
 		s.mu.Lock()
+		if !s.app.IsCurrent(gen) || s.chatID != chatID {
+			s.mu.Unlock()
+			return
+		}
 		s.loadingHist = false
 		if err != nil {
 			s.errMsg = err.Error()
@@ -114,6 +123,7 @@ func (s *ChatScreen) submitAsk() {
 	if question == "" {
 		return
 	}
+	gen := s.app.Generation()
 	s.mu.Lock()
 	chatID := s.chatID
 	s.messages = append(s.messages, api.Message{Role: "user", Content: question})
@@ -126,11 +136,18 @@ func (s *ChatScreen) submitAsk() {
 
 	go func() {
 		resp, err := s.app.Client.Ask(chatID, question)
+		if !s.app.IsCurrent(gen) {
+			return
+		}
 		if err == api.ErrUnauthorized {
 			s.app.HandleUnauthorized()
 			return
 		}
 		s.mu.Lock()
+		if !s.app.IsCurrent(gen) || s.chatID != chatID {
+			s.mu.Unlock()
+			return
+		}
 		s.asking = false
 		switch {
 		case err != nil:
@@ -172,6 +189,7 @@ func (s *ChatScreen) closeUpgradeModal() {
 // startCheckout mirrors DashboardScreen.startCheckout: fetch a hosted
 // payment session and open it in the system browser.
 func (s *ChatScreen) startCheckout() {
+	gen := s.app.Generation()
 	s.mu.Lock()
 	s.checkingOut = true
 	s.checkoutErr = ""
@@ -180,11 +198,18 @@ func (s *ChatScreen) startCheckout() {
 
 	go func() {
 		url, err := s.app.Client.CreateCheckout()
+		if !s.app.IsCurrent(gen) {
+			return
+		}
 		if err == api.ErrUnauthorized {
 			s.app.HandleUnauthorized()
 			return
 		}
 		s.mu.Lock()
+		if !s.app.IsCurrent(gen) {
+			s.mu.Unlock()
+			return
+		}
 		s.checkingOut = false
 		if err != nil {
 			s.checkoutErr = err.Error()
@@ -245,6 +270,20 @@ func (s *ChatScreen) snapshot() chatSnapshot {
 // Layout draws the Chat screen and processes its own clicks.
 func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	authS = authScale(gtx)
+
+	s.mu.Lock()
+	doReset := s.uiReset
+	s.uiReset = false
+	s.mu.Unlock()
+	if doReset {
+		s.showMenu, s.menuProg = false, 0
+		s.overlay = overlayAnim{}
+		s.question.SetText("")
+		s.list = widget.List{List: layout.List{Axis: layout.Vertical, ScrollToEnd: true}}
+		s.sideList = widget.List{List: layout.List{Axis: layout.Vertical}}
+		s.sideChatBtn = nil
+	}
+
 	stepProgress(gtx, s.showMenu, &s.menuProg, &s.menuLast)
 
 	for s.menuBtn.Clicked(gtx) {
@@ -335,20 +374,18 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 		layout.Rigid(s.inputRow(th, asking)),
 	)
 
-	if snap.showUpgrade {
+	s.overlay.step(gtx, snap.showUpgrade)
+	if s.overlay.visible() {
+		dialog := UpgradeModal(th, snap.upgradeMsg, &s.upgradeBtn, &s.upgradeCancel, snap.checkingOut, snap.checkoutErr)
 		return layout.Stack{}.Layout(gtx,
 			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
-			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return fill(gtx, colorScrim()) }),
-			layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-				gtx.Constraints.Min = gtx.Constraints.Max
-				return UpgradeModal(th, snap.upgradeMsg, &s.upgradeBtn, &s.upgradeCancel, snap.checkingOut, snap.checkoutErr)(gtx)
-			}),
+			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return s.overlay.draw(gtx, dialog) }),
 		)
 	}
 	if s.showMenu || s.menuProg > 0 {
 		return layout.Stack{}.Layout(gtx,
 			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
-			layout.Expanded(s.sidebar(th, dash.chats, dash.isPro, curID)),
+			layout.Expanded(s.sidebar(th, dash.chats, dash.isPro, curID, dash.email)),
 		)
 	}
 	return content
@@ -495,9 +532,11 @@ func (s *ChatScreen) sendButton(th *material.Theme, asking bool) layout.Widget {
 			paint.PaintOp{}.Add(gtx.Ops)
 			st.Pop()
 
+			pressOverlay(gtx, &s.sendBtn, image.Pt(d, d), d/2, pressDark)
 			if asking {
-				g := gtx
+				// Round spinner while waiting for the answer.
 				ld := d / 2
+				g := gtx
 				g.Constraints.Min, g.Constraints.Max = image.Pt(ld, ld), image.Pt(ld, ld)
 				defer op.Offset(image.Pt(d/4, d/4)).Push(gtx.Ops).Pop()
 				loader := material.Loader(th)
@@ -523,7 +562,7 @@ func (s *ChatScreen) sendButton(th *material.Theme, asking bool) layout.Widget {
 
 // sidebar is the left slide-in drawer: New Chat, previous chats (from the
 // Dashboard's existing chat list) and the GitHub / Dashboard / Logout actions.
-func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, curID string) layout.Widget {
+func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, curID, email string) layout.Widget {
 	const rowH = 52
 	action := func(btn *widget.Clickable, icon bool, label string, col color.NRGBA) layout.Widget {
 		return func(gtx layout.Context) layout.Dimensions {
@@ -531,6 +570,7 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 			h := gtx.Dp(unit.Dp(rowH))
 			return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				sz := image.Pt(gtx.Constraints.Max.X, h)
+				pressOverlay(gtx, btn, sz, gtx.Dp(unit.Dp(14)), pressLight)
 				return layout.Inset{Left: unit.Dp(12), Right: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					centerY(gtx, h, func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
@@ -573,6 +613,7 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 					if selected {
 						borderedRRect(gtx, sz, unit.Dp(14), color.NRGBA{R: 0x10, G: 0x3a, B: 0x2c, A: 0xff}, color.NRGBA{R: 0x1a, G: 0x5a, B: 0x44, A: 0xff})
 					}
+					pressOverlay(gtx, &s.sideChatBtn[i], sz, gtx.Dp(unit.Dp(14)), pressLight)
 					return layout.Inset{Left: unit.Dp(14), Right: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						centerY(gtx, h, func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
@@ -642,6 +683,7 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 
 			layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(20), Bottom: unit.Dp(16)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					layout.Rigid(greeting(th, email)),
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 						return AuthButton(th, &s.newChatBtn, "+ New Chat", false)(gtx)
 					}),
@@ -685,38 +727,38 @@ func spacerX(dp int) layout.Widget {
 	}
 }
 
-// stepProgress animates the sidebar opening and closing.
-func stepProgress(
-	gtx layout.Context,
-	open bool,
-	progress *float32,
-	last *time.Time,
-) {
+// stepProgress eases *prog toward 1 (open) or 0 (closed) in ~220ms of real
+// time (independent of the display's frame rate) and keeps requesting
+// frames only while it is still moving.
+func stepProgress(gtx layout.Context, open bool, prog *float32, last *time.Time) {
+	const duration = 220 * time.Millisecond
+
 	target := float32(0)
 	if open {
 		target = 1
 	}
-
-	const speed = float32(0.18)
-
-	if *progress < target {
-		*progress += speed
-		if *progress > target {
-			*progress = target
+	dt := gtx.Now.Sub(*last)
+	*last = gtx.Now
+	if dt <= 0 || dt > 50*time.Millisecond {
+		dt = time.Second / 60
+	}
+	if *prog == target {
+		return
+	}
+	step := float32(dt) / float32(duration)
+	if *prog < target {
+		*prog += step
+		if *prog > target {
+			*prog = target
 		}
-	} else if *progress > target {
-		*progress -= speed
-		if *progress < target {
-			*progress = target
+	} else {
+		*prog -= step
+		if *prog < target {
+			*prog = target
 		}
 	}
-
-	*last = gtx.Now
-
-	if *progress != target {
-		gtx.Execute(op.InvalidateCmd{
-			At: gtx.Now.Add(16 * time.Millisecond),
-		})
+	if *prog != target {
+		gtx.Execute(op.InvalidateCmd{})
 	}
 }
 
@@ -749,6 +791,8 @@ func hamburgerButton(
 			}.Op(gtx.Ops),
 		)
 
+		pressOverlay(gtx, btn, image.Pt(d, d), r, pressLight)
+
 		lineColor := authTitle
 		lineWidth := gtx.Dp(unit.Dp(18))
 		lineHeight := gtx.Dp(unit.Dp(2))
@@ -775,31 +819,32 @@ func hamburgerButton(
 	})
 }
 
-// typingBubble is the assistant "…" indicator: three dots whose scale and
-// opacity ripple in sequence. It is only laid out while a request is in
-// flight and asks Gio for the next frame each time it draws, so the
-// animation runs at the display's frame rate and stops the moment the
-// bubble leaves the list.
+// typingBubble is the assistant "…" indicator shown while a request is in
+// flight; see dotsIndicator for the animation.
 func typingBubble(gtx layout.Context) layout.Dimensions {
-	gtx.Execute(op.InvalidateCmd{})
-	t := float64(gtx.Now.UnixNano()%int64(time.Hour)) / float64(time.Second)
-
 	maxR := gtx.Dp(unit.Dp(4.5))
-	gap := gtx.Dp(unit.Dp(7))
 	padX, padY := gtx.Dp(unit.Dp(18)), gtx.Dp(unit.Dp(15))
-	w := 2*padX + 3*2*maxR + 2*gap
-	h := 2*padY + 2*maxR
-	sz := image.Pt(w, h)
+	w := 2*padX + 3*2*maxR + 2*(maxR*3/2)
+	sz := image.Pt(w, 2*padY+2*maxR)
 	borderedRRect(gtx, sz, unit.Dp(20), authCard, authCardBorder)
-
-	for i := 0; i < 3; i++ {
-		wave := (math.Sin(2*math.Pi*(t/1.2-float64(i)*0.16)) + 1) / 2
-		r := int(float64(maxR) * (0.65 + 0.35*wave))
-		c := authLink
-		c.A = uint8(90 + 165*wave)
-		cx := padX + maxR + i*(2*maxR+gap)
-		cy := h / 2
-		paint.FillShape(gtx.Ops, c, clip.Ellipse{Min: image.Pt(cx-r, cy-r), Max: image.Pt(cx+r, cy+r)}.Op(gtx.Ops))
-	}
+	defer op.Offset(image.Pt(padX, padY)).Push(gtx.Ops).Pop()
+	dotsIndicator(gtx, authLink, maxR)
 	return layout.Dimensions{Size: sz}
+}
+
+// reset wipes the open conversation and everything derived from it.
+func (s *ChatScreen) reset() {
+	s.mu.Lock()
+	s.chatID, s.title, s.branch = "", "", ""
+	s.messages = nil
+	s.loadingHist = false
+	s.asking = false
+	s.errMsg = ""
+	s.scrollPending = false
+	s.showUpgrade = false
+	s.upgradeMsg = ""
+	s.checkingOut = false
+	s.checkoutErr = ""
+	s.uiReset = true
+	s.mu.Unlock()
 }

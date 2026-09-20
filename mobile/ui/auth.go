@@ -5,6 +5,8 @@ import (
 	"image"
 	"image/color"
 	_ "image/png" // registers the PNG decoder for SetLogo
+	"math"
+	"time"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -284,9 +286,102 @@ func AuthField(th *material.Theme, editor *widget.Editor, label, hint string) la
 	}
 }
 
-// AuthButton is the full-width green gradient call-to-action.
+// btnAnim is the per-button loading cross-fade state. Buttons are drawn by
+// closures that are rebuilt every frame, so the state is keyed by the
+// (stable) *widget.Clickable. UI goroutine only.
+type btnAnim struct {
+	prog float32
+	last time.Time
+}
+
+var btnAnims = map[*widget.Clickable]*btnAnim{}
+
+func btnAnimFor(btn *widget.Clickable) *btnAnim {
+	st := btnAnims[btn]
+	if st == nil {
+		st = &btnAnim{}
+		btnAnims[btn] = st
+	}
+	return st
+}
+
+// easeInOut is smoothstep, used for every open/close and fade animation.
+func easeInOut(p float32) float32 { return p * p * (3 - 2*p) }
+
+// pressOverlay tints a rounded area while btn is held down: the subtle
+// pressed state shared by every tappable surface.
+func pressOverlay(gtx layout.Context, btn *widget.Clickable, sz image.Point, radius int, tint color.NRGBA) {
+	if !btn.Pressed() {
+		return
+	}
+	paint.FillShape(gtx.Ops, tint, clip.RRect{Rect: image.Rectangle{Max: sz}, NE: radius, NW: radius, SE: radius, SW: radius}.Op(gtx.Ops))
+}
+
+var (
+	pressDark  = color.NRGBA{A: 0x30}
+	pressLight = color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0x14}
+)
+
+// dotsIndicator draws the three-dot loading animation used by the chat
+// typing bubble, the send button and the Login/Register button. Each dot's
+// scale and opacity ripple in sequence. It requests the next frame only
+// while it is being drawn, so nothing redraws once it leaves the screen.
+func dotsIndicator(gtx layout.Context, col color.NRGBA, maxR int) layout.Dimensions {
+	gtx.Execute(op.InvalidateCmd{})
+	t := float64(gtx.Now.UnixNano()%int64(time.Hour)) / float64(time.Second)
+	gap := maxR * 3 / 2
+	w := 3*2*maxR + 2*gap
+	h := 2 * maxR
+	for i := 0; i < 3; i++ {
+		wave := (math.Sin(2*math.Pi*(t/1.2-float64(i)*0.16)) + 1) / 2
+		r := int(float64(maxR) * (0.65 + 0.35*wave))
+		c := col
+		c.A = uint8(float64(col.A) * (0.35 + 0.65*wave))
+		cx := maxR + i*(2*maxR+gap)
+		paint.FillShape(gtx.Ops, c, clip.Ellipse{Min: image.Pt(cx-r, maxR-r), Max: image.Pt(cx+r, maxR+r)}.Op(gtx.Ops))
+	}
+	return layout.Dimensions{Size: image.Pt(w, h)}
+}
+
+// overlayAnim animates a modal: a dimming scrim plus a dialog that fades
+// and rises slightly. The dialog keeps drawing while it fades out.
+type overlayAnim struct {
+	prog float32
+	last time.Time
+}
+
+// step advances the animation; call once per frame before draw.
+func (o *overlayAnim) step(gtx layout.Context, open bool) {
+	stepProgress(gtx, open, &o.prog, &o.last)
+}
+
+// visible reports whether anything should be drawn.
+func (o *overlayAnim) visible() bool { return o.prog > 0 }
+
+// draw paints the scrim and dialog over the whole area.
+func (o *overlayAnim) draw(gtx layout.Context, dialog layout.Widget) layout.Dimensions {
+	size := gtx.Constraints.Max
+	gtx.Constraints.Min = size
+	e := easeInOut(o.prog)
+
+	scrim := colorScrim()
+	scrim.A = uint8(float32(scrim.A) * e)
+	fill(gtx, scrim)
+
+	defer paint.PushOpacity(gtx.Ops, e).Pop()
+	defer op.Offset(image.Pt(0, int(float32(gtx.Dp(unit.Dp(16)))*(1-e)))).Push(gtx.Ops).Pop()
+	dialog(gtx)
+	return layout.Dimensions{Size: size}
+}
+
+// AuthButton is the full-width green gradient call-to-action. While
+// loading, its label cross-fades into the dots animation (and back).
 func AuthButton(th *material.Theme, btn *widget.Clickable, label string, loading bool) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
+		st := btnAnimFor(btn)
+		stepProgress(gtx, loading, &st.prog, &st.last)
+		e := easeInOut(st.prog)
+
 		if loading {
 			gtx = gtx.Disabled()
 		}
@@ -296,10 +391,10 @@ func AuthButton(th *material.Theme, btn *widget.Clickable, label string, loading
 				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 					sz := gtx.Constraints.Min
 					r := gtx.Dp(unit.Dp(16))
+
 					c1, c2 := authBtnLeft, authBtnRight
-					if loading {
-						c1.A, c2.A = 0xa0, 0xa0
-					}
+					c1.A = uint8(255 - 95*e)
+					c2.A = c1.A
 					st := clip.RRect{Rect: image.Rectangle{Max: sz}, SE: r, SW: r, NE: r, NW: r}.Push(gtx.Ops)
 					paint.LinearGradientOp{
 						Stop1: f32.Pt(0, 0), Color1: c1,
@@ -307,21 +402,35 @@ func AuthButton(th *material.Theme, btn *widget.Clickable, label string, loading
 					}.Add(gtx.Ops)
 					paint.PaintOp{}.Add(gtx.Ops)
 					st.Pop()
+					pressOverlay(gtx, btn, sz, r, pressDark)
 					return layout.Dimensions{Size: sz}
 				}),
 				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
 					gtx.Constraints.Min.X = gtx.Constraints.Max.X
 					return layout.Inset{Top: authDp(14), Bottom: authDp(14)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						if loading {
-							loader := material.Loader(th)
-							loader.Color = authBtnText
-							return layout.Center.Layout(gtx, loader.Layout)
-						}
+						// The label always lays out (it sets the button's
+						// height); it fades out as the dots fade in.
+						m := op.Record(gtx.Ops)
 						l := material.Label(th, authSp(17), label)
 						l.Color = authBtnText
 						l.Font.Weight = font.Bold
 						l.Alignment = text.Middle
-						return l.Layout(gtx)
+						dims := l.Layout(gtx)
+						call := m.Stop()
+
+						o := paint.PushOpacity(gtx.Ops, 1-e)
+						call.Add(gtx.Ops)
+						o.Pop()
+
+						if e > 0 {
+							r := gtx.Dp(unit.Dp(4))
+							o := paint.PushOpacity(gtx.Ops, e)
+							off := op.Offset(image.Pt(dims.Size.X/2-9*r/2, dims.Size.Y/2-r)).Push(gtx.Ops)
+							dotsIndicator(gtx, authBtnText, r)
+							off.Pop()
+							o.Pop()
+						}
+						return dims
 					})
 				}),
 			)
@@ -337,6 +446,9 @@ func AuthLink(th *material.Theme, btn *widget.Clickable, label string) layout.Wi
 				return layout.UniformInset(authDp(6)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					l := material.Label(th, authSp(16), label)
 					l.Color = authLink
+					if btn.Pressed() {
+						l.Color.A = 0x99
+					}
 					l.MaxLines = 1
 					dims := l.Layout(gtx)
 					line := image.Rect(0, dims.Size.Y-gtx.Dp(unit.Dp(1)), dims.Size.X, dims.Size.Y)
@@ -366,6 +478,7 @@ func AuthGitHubButton(btn *widget.Clickable) layout.Widget {
 			return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				sz := image.Pt(d, d)
 				borderedRRect(gtx, sz, unit.Dp(22*authS), authIconBg, authFieldBorder)
+				pressOverlay(gtx, btn, sz, gtx.Dp(unit.Dp(22*authS)), pressLight)
 				if githubOp != nil {
 					pad := d * 24 / 100
 					in := gtx
@@ -388,6 +501,7 @@ func AuthSecondaryButton(th *material.Theme, btn *widget.Clickable, label string
 			return layout.Stack{Alignment: layout.Center}.Layout(gtx,
 				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 					borderedRRect(gtx, gtx.Constraints.Min, unit.Dp(16), authCard, authCardBorder)
+					pressOverlay(gtx, btn, gtx.Constraints.Min, gtx.Dp(unit.Dp(16)), pressLight)
 					return layout.Dimensions{Size: gtx.Constraints.Min}
 				}),
 				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
