@@ -37,7 +37,6 @@
         --warn-border: rgba(180, 120, 20, 0.35);
         --warn-text: #a16207;
         --shadow-soft: 0 20px 45px -25px rgba(6, 58, 43, 0.45);
-        --shadow-lift: 0 16px 32px -18px rgba(6, 58, 43, 0.5);
         --radius-lg: 18px;
         --radius-md: 14px;
         --radius-sm: 10px;
@@ -55,11 +54,12 @@
         --warn-border: rgba(234, 179, 8, 0.45);
         --warn-text: #fbbf24;
         --shadow-soft: 0 25px 60px -25px rgba(0, 0, 0, 0.65);
-        --shadow-lift: 0 18px 34px -18px rgba(0, 0, 0, 0.6);
         color-scheme: dark;
       }
 
       * { box-sizing: border-box; }
+      /* Lets the [hidden] attribute win over display rules like .button { display: inline-flex } */
+      [hidden] { display: none !important; }
       body {
         margin: 0;
         font-family: "Inter", system-ui, sans-serif;
@@ -108,25 +108,14 @@
       }
       .brand span { color: var(--brand-600); }
       .brand-logo {
-          width: 66px;
-          height: 46px;
+        width: 66px;
+        height: 46px;
         flex: none;
         border-radius: 7px;
         object-fit: contain;
       }
-      .brand-dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        background: var(--brand-500);
-        box-shadow: 0 0 0 0 rgba(23, 181, 127, 0.55);
-        animation: pulse 2.4s ease-in-out infinite;
-      }
-      @keyframes pulse {
-        0%   { box-shadow: 0 0 0 0 rgba(23, 181, 127, 0.55); }
-        70%  { box-shadow: 0 0 0 8px rgba(23, 181, 127, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(23, 181, 127, 0); }
-      }
       @media (prefers-reduced-motion: reduce) {
-        .brand-dot, .card { animation: none; }
+        .card, .wave { animation: none !important; }
       }
 
       /* ---- Pill navbar (matches dashboard) ---- */
@@ -207,13 +196,13 @@
 
       .page { min-height: calc(100vh - var(--nav-h)); display: flex; }
 
-      /* Profile card */
+      /* ---- Profile card ---- */
       .card.narrow {
         width: 100%;
         max-width: 440px;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 22px;
         padding: 36px 32px;
         border-radius: var(--radius-lg);
         background: color-mix(in srgb, var(--paper-raised) 82%, transparent);
@@ -227,16 +216,30 @@
         from { opacity: 0; transform: translateY(14px) scale(0.98); }
         to { opacity: 1; transform: translateY(0) scale(1); }
       }
-      .card.narrow h1 {
+
+      /* Greeting */
+      .greeting h1 {
         margin: 0;
         font-family: "Plus Jakarta Sans", sans-serif;
-        font-weight: 700; font-size: 28px; letter-spacing: -0.01em;
+        font-weight: 800; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15;
+        overflow-wrap: anywhere;
       }
-      .card.narrow > p.lead {
-        margin: 0;
-        color: var(--ink-soft);
+      .wave {
+        display: inline-block;
+        transform-origin: 70% 70%;
+        animation: wave 2.2s ease-in-out 0.5s 2;
+      }
+      @keyframes wave {
+        0%, 60%, 100% { transform: rotate(0deg); }
+        10%, 30% { transform: rotate(16deg); }
+        20%, 40% { transform: rotate(-10deg); }
+        50% { transform: rotate(8deg); }
+      }
+      .greeting .email {
+        margin: 6px 0 0;
         font-size: 14.5px;
-        line-height: 1.55;
+        color: var(--ink-soft);
+        overflow-wrap: anywhere;
       }
 
       /* Token status banner */
@@ -258,44 +261,19 @@
         background: var(--warn-bg);
         border-color: var(--warn-border);
       }
-      .token-status .icon {
-        flex-shrink: 0;
-        width: 22px; height: 22px;
-        margin-top: 1px;
-      }
+      .token-status .icon { flex-shrink: 0; width: 22px; height: 22px; margin-top: 1px; color: var(--ink-soft); }
+      .token-status.checking .icon { animation: spin 1s linear infinite; }
       .token-status.configured .icon { color: var(--ok); }
       .token-status.missing .icon { color: var(--warn-text); }
-      .token-status .text strong {
-        display: block;
-        font-size: 13.5px;
-        font-weight: 600;
-        margin-bottom: 2px;
-      }
+      .token-status .text strong { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
       .token-status.configured .text strong { color: var(--ok); }
       .token-status.missing .text strong { color: var(--warn-text); }
-      .token-status .text p {
-        margin: 0;
-        font-size: 12.5px;
-        color: var(--ink-soft);
-        line-height: 1.45;
-      }
+      .token-status .text p { margin: 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.45; }
 
       /* Form */
-      .field {
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-      }
-      .field > label {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--ink-soft);
-      }
-      .input-wrap {
-        position: relative;
-        display: flex;
-        align-items: center;
-      }
+      .field { display: flex; flex-direction: column; gap: 7px; }
+      .field > label { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+      .input-wrap { position: relative; display: flex; align-items: center; }
       .field input {
         width: 100%;
         padding: 13px 44px 13px 14px;
@@ -314,57 +292,27 @@
         border-color: var(--brand-500);
         box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 18%, transparent);
       }
-      .field input.invalid {
-        border-color: var(--danger);
-        animation: shake 0.32s ease;
-      }
-      @keyframes shake {
-        25% { transform: translateX(-4px); }
-        75% { transform: translateX(4px); }
-      }
+      .field input.invalid { border-color: var(--danger); animation: shake 0.32s ease; }
+      @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
       .toggle-vis {
-        position: absolute;
-        right: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        position: absolute; right: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
         width: 34px; height: 34px;
-        border: none;
-        border-radius: 8px;
-        background: transparent;
-        color: var(--ink-soft);
-        cursor: pointer;
+        border: none; border-radius: 8px;
+        background: transparent; color: var(--ink-soft); cursor: pointer;
         transition: color 0.15s ease, background 0.15s ease;
       }
-      .toggle-vis:hover {
-        color: var(--brand-600);
-        background: color-mix(in srgb, var(--brand-500) 10%, transparent);
-      }
+      .toggle-vis:hover { color: var(--brand-600); background: color-mix(in srgb, var(--brand-500) 10%, transparent); }
       .toggle-vis svg { width: 18px; height: 18px; }
       .toggle-vis .eye-off { display: none; }
       .toggle-vis.show .eye-on { display: none; }
       .toggle-vis.show .eye-off { display: block; }
 
-      .hint {
-        margin: 0;
-        font-size: 12.5px;
-        color: var(--ink-soft);
-        line-height: 1.45;
-      }
-      .hint a {
-        color: var(--brand-600);
-        font-weight: 600;
-        text-decoration: underline;
-        text-underline-offset: 2px;
-      }
+      .hint { margin: 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.45; }
+      .hint a { color: var(--brand-600); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 
-      #status {
-        min-height: 18px;
-        font-size: 13.5px;
-        font-weight: 500;
-        transition: opacity 0.2s ease;
-      }
-      #status:empty { opacity: 0; }
+      #status { margin: 0; font-size: 13.5px; font-weight: 500; }
+      #status:empty { display: none; }
       #status.ok { color: var(--ok); }
       #status.err { color: var(--danger); }
 
@@ -383,25 +331,11 @@
       }
       .button:not(.secondary):hover { transform: translateY(-2px); filter: brightness(1.04); }
       .button:active { transform: translateY(0); }
-      .button.secondary {
-        background: transparent; color: var(--ink); border: 1.5px solid var(--line);
-      }
-      .button.secondary:hover {
-        border-color: var(--brand-500); color: var(--brand-600); transform: translateY(-2px);
-      }
-      .button.secondary.danger {
-        color: var(--danger);
-        border-color: color-mix(in srgb, var(--danger) 45%, transparent);
-      }
-      .button.secondary.danger:hover {
-        border-color: var(--danger); color: var(--danger);
-        background: var(--danger-soft);
-      }
-      .button:disabled {
-        cursor: not-allowed;
-        filter: grayscale(0.3) brightness(0.95);
-        transform: none;
-      }
+      .button.secondary { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+      .button.secondary:hover { border-color: var(--brand-500); color: var(--brand-600); transform: translateY(-2px); }
+      .button.secondary.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+      .button.secondary.danger:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+      .button:disabled { cursor: not-allowed; filter: grayscale(0.3) brightness(0.95); transform: none; }
       .button .spinner { display: none; }
       .button.loading .label { visibility: hidden; }
       .button.loading .spinner {
@@ -414,11 +348,7 @@
       }
       @keyframes spin { to { transform: rotate(360deg); } }
 
-      .actions {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
+      .actions { display: flex; flex-direction: column; gap: 10px; }
 
       /* Mobile */
       @media (max-width: 760px) {
@@ -440,15 +370,12 @@
           transform: translateY(-6px);
           transition: opacity 0.2s ease, transform 0.2s ease;
         }
-        .nav.open .nav-links {
-          opacity: 1;
-          pointer-events: auto;
-          transform: none;
-        }
+        .nav.open .nav-links { opacity: 1; pointer-events: auto; transform: none; }
         .nav-links a, .nav-links .logout-btn { text-align: left; padding: 12px 14px; border-radius: 10px; }
         .nav-links .logout-btn { margin: 4px 0 0; }
         .page { padding: 24px 16px; align-items: flex-start; justify-content: center; }
         .card.narrow { padding: 28px 22px; border-radius: var(--radius-md); }
+        .greeting h1 { font-size: 26px; }
       }
       @media (min-width: 761px) {
         .page { align-items: center; justify-content: center; padding: 40px; }
@@ -461,7 +388,7 @@
         <nav class="nav">
           <a class="brand" href="dashboard.html">
             <img class="brand-logo" src="assets/logo-chatwithrepo.png" alt="ChatWithRepo logo" />
-            </span>Chat<span>WithRepo</span>
+            Chat<span>WithRepo</span>
           </a>
 
           <div class="nav-actions">
@@ -493,19 +420,21 @@
 
       <section class="page">
         <div class="card narrow">
-          <h1>Profile</h1>
-          <p class="lead">Add a GitHub Personal Access Token to access private repos and raise API rate limits. The dashboard warning will disappear once a token is saved.</p>
 
-          <!-- Live status banner -->
-          <div id="token-status" class="token-status missing" role="status">
+          <!-- Greeting + email -->
+          <header class="greeting">
+            <h1>Hi, <span id="user-name">there</span> <span class="wave" aria-hidden="true">👋</span></h1>
+            <p class="email" id="user-email" hidden></p>
+          </header>
+
+          <!-- Token status -->
+          <div id="token-status" class="token-status checking" role="status">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
+              <path d="M21 12a9 9 0 1 1-6.22-8.56"/>
             </svg>
             <div class="text">
-              <strong id="status-title">GitHub token not configured</strong>
-              <p id="status-desc">Public API limits apply. Add a token for better performance.</p>
+              <strong id="status-title">Checking your GitHub token…</strong>
+              <p id="status-desc">One moment.</p>
             </div>
           </div>
 
@@ -556,9 +485,6 @@
     </main>
 
     <script>
-      /* ---------- Shared key used by dashboard warning ---------- */
-      var TOKEN_KEY = "chatwithrepo_github_token";
-
       /* Theme toggle — actual toggling is handled by app.js's setupTheme();
          this just plays the spin animation when data-theme changes. */
       new MutationObserver(function () {
@@ -571,25 +497,20 @@
         attributeFilter: ["data-theme"],
       });
 
-      /* Mobile nav */
+      /* Mobile nav: app.js opens/closes it with the hamburger; here we only close it
+         when a link is tapped or the page is tapped elsewhere. */
       var nav = document.querySelector(".nav");
       var hamburger = document.querySelector(".hamburger");
       var navLinks = document.getElementById("primary-nav-links");
-      hamburger.addEventListener("click", function () {
-        var open = nav.classList.toggle("open");
-        hamburger.setAttribute("aria-expanded", String(open));
-      });
+      function closeNav() {
+        nav.classList.remove("open");
+        hamburger.setAttribute("aria-expanded", "false");
+      }
       navLinks.addEventListener("click", function (e) {
-        if (e.target.tagName === "A" || e.target.classList.contains("logout-btn") || e.target.id === "logout") {
-          nav.classList.remove("open");
-          hamburger.setAttribute("aria-expanded", "false");
-        }
+        if (e.target.tagName === "A" || e.target.classList.contains("logout-btn")) closeNav();
       });
       document.addEventListener("click", function (e) {
-        if (!nav.contains(e.target)) {
-          nav.classList.remove("open");
-          hamburger.setAttribute("aria-expanded", "false");
-        }
+        if (!nav.contains(e.target)) closeNav();
       });
 
       /* Show / hide token */
@@ -601,124 +522,6 @@
         toggleVis.classList.toggle("show", !showing);
         toggleVis.setAttribute("aria-label", showing ? "Show token" : "Hide token");
       });
-
-      /* Status banner helpers */
-      var statusBanner = document.getElementById("token-status");
-      var statusTitle = document.getElementById("status-title");
-      var statusDesc = document.getElementById("status-desc");
-      var removeBtn = document.getElementById("remove-token");
-      var statusEl = document.getElementById("status");
-      var saveBtn = document.getElementById("save-btn");
-
-      function updateBanner(hasToken) {
-        if (hasToken) {
-          statusBanner.className = "token-status configured";
-          statusBanner.querySelector(".icon").innerHTML =
-            '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
-          statusTitle.textContent = "GitHub token configured";
-          statusDesc.textContent = "Private repos and higher rate limits are available. The dashboard warning is hidden.";
-          removeBtn.hidden = false;
-        } else {
-          statusBanner.className = "token-status missing";
-          statusBanner.querySelector(".icon").innerHTML =
-            '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
-          statusTitle.textContent = "GitHub token not configured";
-          statusDesc.textContent = "Public API limits apply. Add a token for better performance.";
-          removeBtn.hidden = true;
-        }
-      }
-
-      function getToken() {
-        return (localStorage.getItem(TOKEN_KEY) || "").trim();
-      }
-
-      /* Init from localStorage */
-      (function init() {
-        var existing = getToken();
-        updateBanner(!!existing);
-        if (existing) {
-          // Mask for display only — never put the real value in a visible field by default
-          tokenInput.placeholder = "••••••••••••••••••••••••";
-          tokenInput.removeAttribute("required"); // allow empty to keep current
-        }
-      })();
-
-      /* Save token */
-      var tokenForm = document.getElementById("token-form");
-      tokenForm.addEventListener("submit", function (e) {
-        e.preventDefault(); // we handle storage here so dashboard warning works immediately
-
-        var value = tokenInput.value.trim();
-        tokenInput.classList.toggle("invalid", !value && !getToken());
-
-        if (!value && !getToken()) {
-          statusEl.textContent = "Please enter a GitHub token.";
-          statusEl.className = "err";
-          return;
-        }
-
-        if (!value) {
-          // User left field empty but already had a token → keep it
-          statusEl.textContent = "Token already saved.";
-          statusEl.className = "ok";
-          return;
-        }
-
-        saveBtn.classList.add("loading");
-        saveBtn.disabled = true;
-
-        // Simulate short save delay for UX (real app.js may still run afterwards)
-        setTimeout(function () {
-          localStorage.setItem(TOKEN_KEY, value);
-          // Also write common alternate keys so existing app.js keeps working
-          localStorage.setItem("github_token", value);
-          localStorage.setItem("gh_token", value);
-
-          updateBanner(true);
-          statusEl.textContent = "Token saved successfully. Dashboard warning is now hidden.";
-          statusEl.className = "ok";
-          tokenInput.value = "";
-          tokenInput.placeholder = "••••••••••••••••••••••••";
-          tokenInput.removeAttribute("required");
-
-          saveBtn.classList.remove("loading");
-          saveBtn.disabled = false;
-        }, 450);
-      });
-
-      /* Remove token */
-      removeBtn.addEventListener("click", function () {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem("github_token");
-        localStorage.removeItem("gh_token");
-        updateBanner(false);
-        tokenInput.value = "";
-        tokenInput.placeholder = "ghp_xxxxxxxxxxxxxxxxxxxx";
-        tokenInput.setAttribute("required", "");
-        statusEl.textContent = "Token removed. Dashboard warning will appear again.";
-        statusEl.className = "ok";
-      });
-
-      /* Logout helpers (UI only — real logout lives in app.js) */
-      function doLogout() {
-        // Optional: clear token on logout if that’s desired
-        // localStorage.removeItem(TOKEN_KEY);
-        window.location.href = "index.html";
-      }
-      document.getElementById("logout").addEventListener("click", doLogout);
-      document.getElementById("logout-bottom").addEventListener("click", doLogout);
-
-      /* If app.js later writes into #status, sync our loading / color state */
-      new MutationObserver(function () {
-        var text = statusEl.textContent.trim();
-        if (!text) return;
-        saveBtn.classList.remove("loading");
-        saveBtn.disabled = false;
-        var looksLikeError = /fail|error|invalid|denied|expired/i.test(text);
-        statusEl.classList.toggle("err", looksLikeError);
-        statusEl.classList.toggle("ok", !looksLikeError);
-        if (!looksLikeError && getToken()) updateBanner(true);
-      }).observe(statusEl, { childList: true, characterData: true, subtree: true });
     </script>
     <script src="js/app.js"></script>
   </body>
