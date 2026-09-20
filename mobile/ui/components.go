@@ -3,9 +3,11 @@ package ui
 import (
 	"image"
 	"image/color"
-	"strings"
 
+	"gioui.org/f32"
 	"gioui.org/font"
+	"gioui.org/font/gofont"
+	"gioui.org/font/opentype"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
@@ -34,6 +36,7 @@ var (
 // NewTheme builds the material theme used across every screen.
 func NewTheme() *material.Theme {
 	th := material.NewTheme()
+	th.Shaper = newShaper()
 	th.Palette = material.Palette{
 		Bg:         colorBackground,
 		Fg:         colorText,
@@ -215,32 +218,43 @@ func upgradeMessageFor(reason string) string {
 	}
 }
 
-// Bubble renders one chat message as a rounded, colored bubble aligned
-// to the right (user) or left (assistant), with basic Markdown-ish
-// rendering of the content (bold, inline code, fenced code blocks).
+// Bubble renders one chat message as a rounded bubble aligned to the
+// right (user, green gradient) or left (assistant, dark bordered card).
+// Assistant text goes through the Markdown renderer; user text is shown
+// as typed.
 func Bubble(th *material.Theme, role, content string) layout.Widget {
 	isUser := role == "user"
-	bg := colorBubbleBot
-	if isUser {
-		bg = colorBubbleUser
-	}
 	align := layout.W
+	fg := authTitle
 	if isUser {
 		align = layout.E
+		fg = authBtnText
 	}
 
 	return func(gtx layout.Context) layout.Dimensions {
-		maxWidth := gtx.Constraints.Max.X * 82 / 100
+		maxWidth := gtx.Constraints.Max.X * 88 / 100
 		return align.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.X = maxWidth
 			return layout.Stack{}.Layout(gtx,
 				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-					roundedFill(gtx, gtx.Constraints.Min, unit.Dp(14), bg)
-					return layout.Dimensions{Size: gtx.Constraints.Min}
+					sz := gtx.Constraints.Min
+					if !isUser {
+						borderedRRect(gtx, sz, unit.Dp(20), authCard, authCardBorder)
+						return layout.Dimensions{Size: sz}
+					}
+					r := gtx.Dp(unit.Dp(20))
+					st := clip.RRect{Rect: image.Rectangle{Max: sz}, SE: r, SW: r, NE: r, NW: r}.Push(gtx.Ops)
+					paint.LinearGradientOp{
+						Stop1: f32.Pt(0, 0), Color1: authBtnLeft,
+						Stop2: f32.Pt(float32(sz.X), float32(sz.Y)), Color2: authBtnRight,
+					}.Add(gtx.Ops)
+					paint.PaintOp{}.Add(gtx.Ops)
+					st.Pop()
+					return layout.Dimensions{Size: sz}
 				}),
 				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-					return layout.UniformInset(unit.Dp(12)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return renderContent(gtx, th, content)
+					return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(12), Bottom: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return renderMarkdown(gtx, th, content, fg, !isUser)
 					})
 				}),
 			)
@@ -248,76 +262,26 @@ func Bubble(th *material.Theme, role, content string) layout.Widget {
 	}
 }
 
-// renderContent does a small, dependency-free pass over the message
-// text: fenced code blocks get a monospace block with a dark
-// background, everything else is rendered as wrapped body text with
-// **bold** markers stripped-and-applied. This is intentionally basic —
-// it is not a full Markdown renderer, just enough for readable answers.
-func renderContent(gtx layout.Context, th *material.Theme, raw string) layout.Dimensions {
-	blocks := splitCodeBlocks(raw)
+// emojiFace is the bundled color-emoji font (set by main via SetEmojiFont).
+// Gio's default fonts and the OS font scan don't cover emoji, so without it
+// they render as empty boxes.
+var emojiFace text.FontFace
 
-	children := make([]layout.FlexChild, 0, len(blocks))
-	for _, b := range blocks {
-		b := b
-		if b.code {
-			children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return layout.Inset{Top: unit.Dp(4), Bottom: unit.Dp(4)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.Stack{}.Layout(gtx,
-						layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-							roundedFill(gtx, gtx.Constraints.Min, unit.Dp(8), colorCodeBg)
-							return layout.Dimensions{Size: gtx.Constraints.Min}
-						}),
-						layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-							return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-								lbl := material.Body2(th, b.text)
-								lbl.Font.Typeface = "monospace"
-								lbl.Color = colorText
-								return lbl.Layout(gtx)
-							})
-						}),
-					)
-				})
-			}))
-			continue
-		}
-		children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			lbl := material.Body1(th, stripBold(b.text))
-			lbl.Color = colorText
-			return lbl.Layout(gtx)
-		}))
+// SetEmojiFont registers an emoji TTF (Noto Color Emoji) as a fallback font.
+func SetEmojiFont(ttf []byte) {
+	face, err := opentype.Parse(ttf)
+	if err != nil {
+		return
 	}
-
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx, children...)
+	emojiFace = text.FontFace{Font: font.Font{Typeface: "Noto Color Emoji"}, Face: face}
 }
 
-type contentBlock struct {
-	text string
-	code bool
-}
-
-// splitCodeBlocks separates ```fenced``` sections from normal text.
-func splitCodeBlocks(raw string) []contentBlock {
-	parts := strings.Split(raw, "```")
-	blocks := make([]contentBlock, 0, len(parts))
-	for i, p := range parts {
-		p = strings.Trim(p, "\n")
-		if p == "" {
-			continue
-		}
-		blocks = append(blocks, contentBlock{text: p, code: i%2 == 1})
+// newShaper builds the text shaper: the Go fonts (regular/bold/mono) plus
+// the emoji font. Glyphs missing from the primary font fall back to it.
+func newShaper() *text.Shaper {
+	coll := gofont.Collection()
+	if emojiFace.Face != nil {
+		coll = append(coll, emojiFace)
 	}
-	if len(blocks) == 0 {
-		return []contentBlock{{text: raw}}
-	}
-	return blocks
-}
-
-// stripBold removes ** / __ markers. Gio's material.Label doesn't do
-// inline rich text without a lot more plumbing, so for this minimal
-// client we just clean the markers rather than mixing weights
-// mid-line.
-func stripBold(s string) string {
-	s = strings.ReplaceAll(s, "**", "")
-	s = strings.ReplaceAll(s, "__", "")
-	return s
+	return text.NewShaper(text.WithCollection(coll))
 }
