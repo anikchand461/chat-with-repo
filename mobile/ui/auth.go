@@ -8,6 +8,7 @@ import (
 	"math"
 	"time"
 
+	"gioui.org/app"
 	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/layout"
@@ -109,38 +110,40 @@ func authScreen(gtx layout.Context, th *material.Theme, title, subtitle string, 
 	authS = authScale(gtx)
 	authBackground(gtx)
 	gtx.Constraints.Min = gtx.Constraints.Max
-	return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		// Cap card width on tablets / desktop; keep side gutters.
-		maxW := gtx.Dp(unit.Dp(440))
-		if w := gtx.Constraints.Max.X - 2*gtx.Dp(authDp(20)); w < maxW {
-			maxW = w
-		}
-		gtx.Constraints.Min.X, gtx.Constraints.Max.X = maxW, maxW
-		gtx.Constraints.Min.Y = 0
-		return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
-			layout.Rigid(authLogo),
-			layout.Rigid(authGap(10)),
-			layout.Rigid(authWordmark(th)),
-			layout.Rigid(authGap(18)),
-			layout.Rigid(authCardWidget(func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						l := material.Label(th, authSp(28), title)
-						l.Color = authTitle
-						l.Font.Weight = font.Bold
-						return l.Layout(gtx)
-					}),
-					layout.Rigid(authGap(8)),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						l := material.Label(th, authSp(15), subtitle)
-						l.Color = authBody
-						return l.Layout(gtx)
-					}),
-					layout.Rigid(authGap(16)),
-					layout.Rigid(body),
-				)
-			})),
-		)
+	return withInsets(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			// Cap card width on tablets / desktop; keep side gutters.
+			maxW := gtx.Dp(unit.Dp(440))
+			if w := gtx.Constraints.Max.X - 2*gtx.Dp(authDp(20)); w < maxW {
+				maxW = w
+			}
+			gtx.Constraints.Min.X, gtx.Constraints.Max.X = maxW, maxW
+			gtx.Constraints.Min.Y = 0
+			return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(authLogo),
+				layout.Rigid(authGap(10)),
+				layout.Rigid(authWordmark(th)),
+				layout.Rigid(authGap(18)),
+				layout.Rigid(authCardWidget(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							l := material.Label(th, authSp(28), title)
+							l.Color = authTitle
+							l.Font.Weight = font.Bold
+							return l.Layout(gtx)
+						}),
+						layout.Rigid(authGap(8)),
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							l := material.Label(th, authSp(15), subtitle)
+							l.Color = authBody
+							return l.Layout(gtx)
+						}),
+						layout.Rigid(authGap(16)),
+						layout.Rigid(body),
+					)
+				})),
+			)
+		})
 	})
 }
 
@@ -517,4 +520,24 @@ func AuthSecondaryButton(th *material.Theme, btn *widget.Clickable, label string
 			)
 		})
 	}
+}
+
+// Status/navigation bar colors match the top and bottom of the background
+// gradient so the bars blend into the screen.
+var (
+	StatusBarColor     = authBgTop
+	NavigationBarColor = authBgBottom
+)
+
+// sysInsets is the space taken by the system bars and the on-screen
+// keyboard (dp), refreshed every frame from the window.
+var sysInsets app.Insets
+
+// SetInsets records the current window insets; call once per frame.
+func SetInsets(in app.Insets) { sysInsets = in }
+
+// withInsets keeps w clear of the system bars while the background it sits
+// on still extends underneath them.
+func withInsets(gtx layout.Context, w layout.Widget) layout.Dimensions {
+	return layout.Inset{Top: sysInsets.Top, Bottom: sysInsets.Bottom, Left: sysInsets.Left, Right: sysInsets.Right}.Layout(gtx, w)
 }
