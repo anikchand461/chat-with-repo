@@ -9,6 +9,7 @@ import (
 	"image/color"
 
 	"gioui.org/font"
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -381,7 +382,6 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 		s.list = widget.List{List: layout.List{Axis: layout.Vertical}}
 	}
 
-	s.stepMenuAnimation(gtx)
 	for s.menuBtn.Clicked(gtx) {
 		s.showMenu = true
 	}
@@ -435,15 +435,44 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 		s.closeModal()
 	}
 
+	// Android Back closes the topmost overlay; with nothing open no filter
+	// is registered, so Back keeps its default (leave the app).
+	if snap.showUpgrade || showModal || s.showMenu {
+		for {
+			ev, ok := gtx.Event(key.Filter{Name: key.NameBack})
+			if !ok {
+				break
+			}
+			if e, ok := ev.(key.Event); ok && e.State == key.Press {
+				switch {
+				case snap.showUpgrade:
+					s.closeUpgradeModal()
+				case showModal:
+					s.closeModal()
+				default:
+					s.showMenu = false
+				}
+			}
+		}
+	}
+
+	// Advance the drawer animation only after this frame's clicks/Back have
+	// updated showMenu; stepping earlier meant the frame that opened the
+	// drawer never requested a follow-up frame, which only worked on
+	// desktop because mouse movement keeps redrawing.
+	s.stepMenuAnimation(gtx)
+
 	authBackground(gtx)
 	gtx.Constraints.Min = gtx.Constraints.Max
-	content := layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(s.header(th)),
-		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(4)}.Layout(gtx,
-				s.body(th, loading, errMsg, chats, chatBtns, snap.isPro))
-		}),
-	)
+	content := withInsets(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(s.header(th)),
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(4)}.Layout(gtx,
+					s.body(th, loading, errMsg, chats, chatBtns, snap.isPro))
+			}),
+		)
+	})
 
 	open := snap.showUpgrade || showModal
 	s.overlay.step(gtx, open)
@@ -624,7 +653,7 @@ func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
 			r := gtx.Dp(unit.Dp(28))
 			paint.FillShape(gtx.Ops, authCardBorder, clip.RRect{Rect: image.Rectangle{Max: gtx.Constraints.Max}, NW: r, SW: r}.Op(gtx.Ops))
 			paint.FillShape(gtx.Ops, authCard, clip.RRect{Rect: image.Rect(gtx.Dp(unit.Dp(1)), 0, dw, size.Y), NW: r, SW: r}.Op(gtx.Ops))
-			layout.Inset{Left: unit.Dp(20), Right: unit.Dp(20), Top: unit.Dp(72)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			layout.Inset{Left: unit.Dp(20), Right: unit.Dp(20), Top: unit.Dp(72) + sysInsets.Top}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(greeting(th, s.snapshot().email)),
 					layout.Rigid(row(&s.menuGithub, true, "GitHub", authTitle)),
