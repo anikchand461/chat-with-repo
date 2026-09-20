@@ -3,6 +3,7 @@ package ui
 import (
 	"image"
 	"image/color"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -67,6 +68,9 @@ func newChatScreen(app *App) *ChatScreen {
 	s := &ChatScreen{app: app}
 	s.list.Axis = layout.Vertical
 	s.sideList.Axis = layout.Vertical
+	// Follow new content while the user is at the bottom; scrolling up
+	// (Position.BeforeEnd) releases it, so they are never dragged back.
+	s.list.ScrollToEnd = true
 	s.question.SingleLine = false
 	return s
 }
@@ -143,7 +147,6 @@ func (s *ChatScreen) submitAsk() {
 				Role:    "assistant",
 				Content: "⚠️ " + msg + "\n\nUpgrade to Pro to continue chatting.",
 			})
-			s.scrollPending = true
 			reason := resp.Reason
 			if reason == "" {
 				reason = "daily_questions"
@@ -153,7 +156,6 @@ func (s *ChatScreen) submitAsk() {
 			s.checkoutErr = ""
 		default:
 			s.messages = append(s.messages, api.Message{Role: "assistant", Content: resp.Answer})
-			s.scrollPending = true
 		}
 		s.mu.Unlock()
 		s.app.Window.Invalidate()
@@ -309,6 +311,8 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 
 	snap := s.snapshot()
 	if snap.scrollPending {
+		// Explicit "go to the bottom": history loaded or the user sent.
+		s.list.Position.BeforeEnd = false
 		s.list.ScrollToEnd = true
 	}
 
@@ -321,7 +325,7 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	gtx.Constraints.Min = gtx.Constraints.Max
 	content := layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(s.topBar(th, snap.title, snap.branch)),
-		layout.Flexed(1, s.messageList(th, snap.messages, snap.loadingHist)),
+		layout.Flexed(1, s.messageList(th, snap.messages, snap.loadingHist, snap.asking)),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			if snap.errMsg == "" {
 				return layout.Dimensions{}
@@ -382,7 +386,7 @@ func (s *ChatScreen) topBar(th *material.Theme, title, branch string) layout.Wid
 	}
 }
 
-func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, loadingHist bool) layout.Widget {
+func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, loadingHist, typing bool) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
 		if loadingHist && len(messages) == 0 {
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -391,7 +395,7 @@ func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, loa
 				return lbl.Layout(gtx)
 			})
 		}
-		if len(messages) == 0 {
+		if len(messages) == 0 && !typing {
 			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				lbl := material.Label(th, authSp(15), "Ask anything about this repository — architecture, files, functions, or bugs.")
 				lbl.LineHeightScale = 1.25
@@ -400,7 +404,14 @@ func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, loa
 			})
 		}
 		return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(4)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return s.list.Layout(gtx, len(messages), func(gtx layout.Context, i int) layout.Dimensions {
+			n := len(messages)
+			if typing {
+				n++
+			}
+			return s.list.Layout(gtx, n, func(gtx layout.Context, i int) layout.Dimensions {
+				if i == len(messages) {
+					return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, typingBubble)
+				}
 				m := messages[i]
 				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content))
 			})
@@ -762,4 +773,33 @@ func hamburgerButton(
 			Size: image.Pt(d, d),
 		}
 	})
+}
+
+// typingBubble is the assistant "…" indicator: three dots whose scale and
+// opacity ripple in sequence. It is only laid out while a request is in
+// flight and asks Gio for the next frame each time it draws, so the
+// animation runs at the display's frame rate and stops the moment the
+// bubble leaves the list.
+func typingBubble(gtx layout.Context) layout.Dimensions {
+	gtx.Execute(op.InvalidateCmd{})
+	t := float64(gtx.Now.UnixNano()%int64(time.Hour)) / float64(time.Second)
+
+	maxR := gtx.Dp(unit.Dp(4.5))
+	gap := gtx.Dp(unit.Dp(7))
+	padX, padY := gtx.Dp(unit.Dp(18)), gtx.Dp(unit.Dp(15))
+	w := 2*padX + 3*2*maxR + 2*gap
+	h := 2*padY + 2*maxR
+	sz := image.Pt(w, h)
+	borderedRRect(gtx, sz, unit.Dp(20), authCard, authCardBorder)
+
+	for i := 0; i < 3; i++ {
+		wave := (math.Sin(2*math.Pi*(t/1.2-float64(i)*0.16)) + 1) / 2
+		r := int(float64(maxR) * (0.65 + 0.35*wave))
+		c := authLink
+		c.A = uint8(90 + 165*wave)
+		cx := padX + maxR + i*(2*maxR+gap)
+		cy := h / 2
+		paint.FillShape(gtx.Ops, c, clip.Ellipse{Min: image.Pt(cx-r, cy-r), Max: image.Pt(cx+r, cy+r)}.Op(gtx.Ops))
+	}
+	return layout.Dimensions{Size: sz}
 }
