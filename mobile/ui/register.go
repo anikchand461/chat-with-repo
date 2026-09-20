@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -89,6 +90,18 @@ func (s *RegisterScreen) Layout(gtx layout.Context, th *material.Theme) layout.D
 	for s.backBtn.Clicked(gtx) {
 		s.setError("")
 		s.app.ShowLogin()
+	}
+
+	// Android Back returns to Login.
+	for {
+		ev, ok := gtx.Event(key.Filter{Name: key.NameBack})
+		if !ok {
+			break
+		}
+		if e, ok := ev.(key.Event); ok && e.State == key.Press {
+			s.setError("")
+			s.app.ShowLogin()
+		}
 	}
 
 	s.mu.Lock()

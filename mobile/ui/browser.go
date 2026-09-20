@@ -26,7 +26,7 @@ func openURL(rawURL string) error {
 	case "linux":
 		cmd = exec.Command("xdg-open", rawURL)
 	case "android":
-		cmd = exec.Command("am", "start", "-a", "android.intent.action.VIEW", "-d", rawURL)
+		return openURLAndroid(rawURL)
 	default:
 		return fmt.Errorf("open browser: unsupported platform %q", runtime.GOOS)
 	}
