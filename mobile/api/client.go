@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -23,8 +24,10 @@ var ErrUnauthorized = errors.New("unauthorized")
 // point the app at a different backend (e.g. local dev).
 type Client struct {
 	BaseURL string
-	token   string
 	http    *http.Client
+
+	tokenMu sync.RWMutex // token is read by request goroutines and swapped on login/logout
+	token   string
 }
 
 // NewClient builds a Client pointed at baseURL (no trailing slash expected).
@@ -39,11 +42,15 @@ func NewClient(baseURL string) *Client {
 
 // SetToken stores the bearer token used for all subsequent requests.
 func (c *Client) SetToken(token string) {
+	c.tokenMu.Lock()
 	c.token = token
+	c.tokenMu.Unlock()
 }
 
 // Token returns the currently stored bearer token, if any.
 func (c *Client) Token() string {
+	c.tokenMu.RLock()
+	defer c.tokenMu.RUnlock()
 	return c.token
 }
 
@@ -154,8 +161,8 @@ func (c *Client) do(method, path string, body any, out any) error {
 		return fmt.Errorf("build request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
+	if token := c.Token(); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
 	}
 
 	resp, err := c.http.Do(req)
