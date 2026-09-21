@@ -1,19 +1,23 @@
+import json
 from pathlib import Path
 from uuid import uuid4
 import traceback
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from backend.database import Chat, User, Message, DailyUsage
+from backend.database.db import SessionLocal
 from backend.database.session import get_db
 from backend.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-FREE_HISTORY_LIMIT = 20
+FREE_HISTORY_LIMIT = 6
+HISTORY_LIMIT = 6
 FREE_CHAT_LIMIT = 2
 
 
@@ -200,13 +204,13 @@ def list_chats(
     ]
 
 
-@router.post("/{chat_id}/ask")
-def ask(
-    chat_id: int,
-    req: AskRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+def _prepare_ask(chat_id: int, current_user: User, db: Session):
+    """
+    Shared setup for /ask and /ask/stream.
+
+    Returns (chat, usage, rag, history) or an upgrade_required dict.
+    """
+
     chat = (
         db.query(Chat)
         .filter(Chat.id == chat_id, Chat.user_id == current_user.id)
@@ -244,16 +248,12 @@ def ask(
             "message": "You have reached today's free question limit.",
         }
 
-    from backend.rag.pipeline import RAGPipeline
+    from backend.rag.pipeline import get_pipeline
 
-    json_path = f"data/{chat.owner}_{chat.repo}_{chat.branch}.json"
-
-    rag = RAGPipeline(
-        json_path,
-        collection_name=chat.collection_name,
-        persist_directory=str(
-            Path("chroma_db") / "chats" / chat.collection_name.split("_", 2)[-1]
-        ),
+    rag = get_pipeline(
+        f"data/{chat.owner}_{chat.repo}_{chat.branch}.json",
+        chat.collection_name,
+        str(Path("chroma_db") / "chats" / chat.collection_name.split("_", 2)[-1]),
     )
 
     messages = (
@@ -263,10 +263,36 @@ def ask(
         .all()
     )
 
-    history = [{"role": m.role, "content": m.content} for m in messages]
+    # Skip the assistant welcome message(s) before the first user turn.
+    first_user = next(
+        (i for i, m in enumerate(messages) if m.role == "user"),
+        len(messages),
+    )
 
-    if current_user.plan == "FREE":
-        history = history[-FREE_HISTORY_LIMIT:]
+    history = [
+        {"role": m.role, "content": m.content}
+        for m in messages[first_user:]
+    ]
+
+    limit = FREE_HISTORY_LIMIT if current_user.plan == "FREE" else HISTORY_LIMIT
+    history = history[-limit:]
+
+    return chat, usage, rag, history
+
+
+@router.post("/{chat_id}/ask")
+def ask(
+    chat_id: int,
+    req: AskRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    prepared = _prepare_ask(chat_id, current_user, db)
+
+    if isinstance(prepared, dict):
+        return prepared
+
+    chat, usage, rag, history = prepared
 
     answer = rag.ask(question=req.question, history=history)
 
@@ -279,6 +305,81 @@ def ask(
     db.commit()
 
     return {"answer": answer}
+
+
+@router.post("/{chat_id}/ask/stream")
+def ask_stream(
+    chat_id: int,
+    req: AskRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Server-sent events version of /ask.
+
+    Events (each `data:` line is JSON):
+      {"token": "..."}  - a piece of the answer
+      {"done": true}    - the full answer has been saved
+      {"error": "..."}  - generation failed (nothing is saved)
+    If the daily limit is hit, a plain JSON upgrade_required body is returned.
+    """
+
+    prepared = _prepare_ask(chat_id, current_user, db)
+
+    if isinstance(prepared, dict):
+        return prepared
+
+    chat, _usage, rag, history = prepared
+
+    chat_pk = chat.id
+    user_pk = current_user.id
+    is_free = current_user.plan == "FREE"
+    question = req.question
+
+    def sse(payload):
+        return f"data: {json.dumps(payload)}\n\n"
+
+    def event_stream():
+        parts = []
+
+        try:
+            for token in rag.ask_stream(question=question, history=history):
+                parts.append(token)
+                yield sse({"token": token})
+        except Exception as e:
+            traceback.print_exc()
+            yield sse({"error": str(e)})
+            return
+
+        # The request-scoped session may already be closed while streaming,
+        # so persist the turn with a fresh one.
+        with SessionLocal() as session:
+            session.add(Message(chat_id=chat_pk, role="user", content=question))
+            session.add(
+                Message(chat_id=chat_pk, role="assistant", content="".join(parts))
+            )
+
+            if is_free:
+                row = (
+                    session.query(DailyUsage)
+                    .filter(
+                        DailyUsage.user_id == user_pk,
+                        DailyUsage.date == date.today(),
+                    )
+                    .first()
+                )
+                if row:
+                    row.questions_used += 1
+
+            session.commit()
+
+        yield sse({"done": True})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.get("/{chat_id}/messages")
