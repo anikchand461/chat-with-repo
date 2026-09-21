@@ -33,6 +33,8 @@ type ChatScreen struct {
 	messages      []api.Message
 	loadingHist   bool
 	asking        bool
+	streaming     bool // an assistant message is being written token by token
+	lastPaint     time.Time
 	errMsg        string
 	scrollPending bool
 
@@ -85,6 +87,7 @@ func (s *ChatScreen) Open(chatID, title, branch string) {
 	s.title = title
 	s.branch = branch
 	s.messages = nil
+	s.streaming = false
 	s.errMsg = ""
 	s.loadingHist = true
 	s.showUpgrade = false
@@ -119,6 +122,33 @@ func (s *ChatScreen) Open(chatID, title, branch string) {
 	}()
 }
 
+// appendToken adds a streamed piece of the answer to the assistant message
+// being written, creating it on the first token (which also hides the
+// typing dots).
+func (s *ChatScreen) appendToken(gen uint64, chatID, token string) {
+	s.mu.Lock()
+	if !s.app.IsCurrent(gen) || s.chatID != chatID {
+		s.mu.Unlock()
+		return
+	}
+	if !s.streaming {
+		s.streaming = true
+		s.messages = append(s.messages, api.Message{Role: "assistant"})
+	}
+	s.messages[len(s.messages)-1].Content += token
+
+	// Repaint at most every ~30ms; tokens can arrive faster than that.
+	repaint := time.Since(s.lastPaint) > 30*time.Millisecond
+	if repaint {
+		s.lastPaint = time.Now()
+	}
+	s.mu.Unlock()
+
+	if repaint {
+		s.app.Window.Invalidate()
+	}
+}
+
 func (s *ChatScreen) submitAsk() {
 	question := strings.TrimSpace(s.question.Text())
 	if question == "" {
@@ -136,7 +166,9 @@ func (s *ChatScreen) submitAsk() {
 	s.app.Window.Invalidate()
 
 	go func() {
-		resp, err := s.app.Client.Ask(chatID, question)
+		res, err := s.app.Client.AskStream(chatID, question, func(tok string) {
+			s.appendToken(gen, chatID, tok)
+		})
 		if !s.app.IsCurrent(gen) {
 			return
 		}
@@ -150,14 +182,17 @@ func (s *ChatScreen) submitAsk() {
 			return
 		}
 		s.asking = false
+		wasStreaming := s.streaming
+		s.streaming = false
 		switch {
 		case err != nil:
 			s.errMsg = err.Error()
-		case resp.UpgradeRequired:
+			// Keep any partial answer that was already written.
+		case res.UpgradeRequired:
 			// Mirrors the web frontend's chat.html ask handler: show
 			// the limit message inline, then surface the upgrade
 			// modal instead of pretending an answer came back.
-			msg := resp.Message
+			msg := res.Message
 			if msg == "" {
 				msg = "You've hit a free-plan limit."
 			}
@@ -165,15 +200,19 @@ func (s *ChatScreen) submitAsk() {
 				Role:    "assistant",
 				Content: "⚠️ " + msg + "\n\nUpgrade to Pro to continue chatting.",
 			})
-			reason := resp.Reason
+			reason := res.Reason
 			if reason == "" {
 				reason = "daily_questions"
 			}
 			s.showUpgrade = true
 			s.upgradeMsg = upgradeMessageFor(reason)
 			s.checkoutErr = ""
-		default:
-			s.messages = append(s.messages, api.Message{Role: "assistant", Content: resp.Answer})
+		case wasStreaming:
+			// Show "Responded in Xs" under the finished answer. The server
+			// stores the same value, so it also appears after a reload and
+			// on the web.
+			meta := res.Meta
+			s.messages[len(s.messages)-1].Meta = &meta
 		}
 		s.mu.Unlock()
 		s.app.Window.Invalidate()
@@ -237,6 +276,7 @@ type chatSnapshot struct {
 	messages      []api.Message
 	loadingHist   bool
 	asking        bool
+	streaming     bool
 	errMsg        string
 	scrollPending bool
 
@@ -259,6 +299,7 @@ func (s *ChatScreen) snapshot() chatSnapshot {
 		messages:      messages,
 		loadingHist:   s.loadingHist,
 		asking:        s.asking,
+		streaming:     s.streaming,
 		errMsg:        s.errMsg,
 		scrollPending: scrollPending,
 		showUpgrade:   s.showUpgrade,
@@ -388,7 +429,7 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	content := withInsets(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(s.topBar(th, snap.title, snap.branch)),
-			layout.Flexed(1, s.messageList(th, snap.messages, snap.loadingHist, snap.asking)),
+			layout.Flexed(1, s.messageList(th, snap.messages, snap.loadingHist, snap.asking && !snap.streaming)),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				if snap.errMsg == "" {
 					return layout.Dimensions{}
@@ -475,7 +516,7 @@ func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, loa
 					return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, typingBubble)
 				}
 				m := messages[i]
-				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content))
+				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content, m.Meta))
 			})
 		})
 	}
@@ -864,6 +905,7 @@ func (s *ChatScreen) reset() {
 	s.messages = nil
 	s.loadingHist = false
 	s.asking = false
+	s.streaming = false
 	s.errMsg = ""
 	s.scrollPending = false
 	s.showUpgrade = false

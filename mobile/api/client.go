@@ -4,7 +4,9 @@
 package api
 
 import (
+	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -110,6 +112,34 @@ func (c *ChatID) UnmarshalJSON(data []byte) error {
 type Message struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
+
+	// The backend stores how long each answer took, so web and mobile show
+	// the same timing. Meta is built from these fields.
+	ResponseSeconds  *float64 `json:"response_seconds"`
+	FirstWordSeconds *float64 `json:"first_word_seconds"`
+
+	Meta *ResponseMeta `json:"-"`
+}
+
+func seconds(f float64) time.Duration { return time.Duration(f * float64(time.Second)) }
+
+// fillMeta turns the stored timing fields into Meta.
+func (m *Message) fillMeta() {
+	if m.Role != "assistant" || m.ResponseSeconds == nil {
+		return
+	}
+	meta := ResponseMeta{Total: seconds(*m.ResponseSeconds)}
+	if m.FirstWordSeconds != nil {
+		meta.First = seconds(*m.FirstWordSeconds)
+	}
+	m.Meta = &meta
+}
+
+// ResponseMeta is the timing shown under an assistant answer.
+type ResponseMeta struct {
+	Total       time.Duration `json:"total"`
+	First       time.Duration `json:"first"` // time to the first word; 0 if unknown
+	Interrupted bool          `json:"interrupted,omitempty"`
 }
 
 type AskRequest struct {
@@ -124,6 +154,18 @@ type AskResponse struct {
 	UpgradeRequired bool   `json:"upgrade_required"`
 	Reason          string `json:"reason"`
 	Message         string `json:"message"`
+}
+
+// StreamResult is the outcome of AskStream. Tokens are delivered through
+// the callback; this carries what can't be streamed.
+type StreamResult struct {
+	UpgradeRequired bool
+	Reason          string
+	Message         string
+
+	Meta ResponseMeta
+	// Streamed reports whether any answer text was received.
+	Streamed bool
 }
 
 // PaymentStatus mirrors GET /payment/status.
@@ -254,6 +296,9 @@ func (c *Client) Messages(chatID string) ([]Message, error) {
 	if err := c.do(http.MethodGet, "/chat/"+chatID+"/messages", nil, &out); err != nil {
 		return nil, err
 	}
+	for i := range out {
+		out[i].fillMeta()
+	}
 	return out, nil
 }
 
@@ -267,6 +312,137 @@ func (c *Client) Ask(chatID, question string) (AskResponse, error) {
 		return AskResponse{}, err
 	}
 	return out, nil
+}
+
+// streamEvent is one `data:` line of /chat/{id}/ask/stream (SSE).
+type streamEvent struct {
+	Token string   `json:"token"`
+	Done  bool     `json:"done"`
+	Error string   `json:"error"`
+	Total *float64 `json:"total"` // server-measured, sent with "done"
+	First *float64 `json:"first"`
+}
+
+// AskStream is the streaming version of Ask: it calls onToken with each
+// piece of the answer as the server produces it (POST /chat/{id}/ask/stream,
+// server-sent events), so the UI can show text as it is written.
+//
+// Like Ask, a free-plan limit comes back as UpgradeRequired (a plain JSON
+// body instead of an event stream) with no tokens delivered.
+func (c *Client) AskStream(chatID, question string, onToken func(string)) (StreamResult, error) {
+	var res StreamResult
+
+	buf, err := json.Marshal(AskRequest{Question: question})
+	if err != nil {
+		return res, fmt.Errorf("encode request: %w", err)
+	}
+
+	// No overall client timeout: an answer may stream for a while. The
+	// context bounds it instead.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		c.BaseURL+"/chat/"+chatID+"/ask/stream", bytes.NewReader(buf))
+	if err != nil {
+		return res, fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+	if token := c.Token(); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	start := time.Now()
+
+	resp, err := (&http.Client{Transport: c.http.Transport}).Do(req)
+	if err != nil {
+		return res, fmt.Errorf("network error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return res, ErrUnauthorized
+	}
+
+	// Errors and upgrade_required arrive as ordinary JSON.
+	if !strings.Contains(resp.Header.Get("Content-Type"), "text/event-stream") {
+		raw, _ := io.ReadAll(resp.Body)
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			var eb errorBody
+			_ = json.Unmarshal(raw, &eb)
+			if eb.Detail != "" {
+				return res, errors.New(eb.Detail)
+			}
+			return res, fmt.Errorf("request failed (%d)", resp.StatusCode)
+		}
+
+		var ar AskResponse
+		if err := json.Unmarshal(raw, &ar); err != nil {
+			return res, fmt.Errorf("decode response: %w", err)
+		}
+		res.UpgradeRequired = ar.UpgradeRequired
+		res.Reason = ar.Reason
+		res.Message = ar.Message
+		return res, nil
+	}
+
+	var (
+		streamErr   string
+		serverTotal *float64
+		serverFirst *float64
+	)
+	reader := bufio.NewReader(resp.Body)
+
+	for {
+		line, readErr := reader.ReadString('\n')
+		line = strings.TrimSpace(line)
+
+		if strings.HasPrefix(line, "data:") {
+			var ev streamEvent
+			if json.Unmarshal([]byte(strings.TrimSpace(line[5:])), &ev) == nil {
+				switch {
+				case ev.Error != "":
+					streamErr = ev.Error
+				case ev.Done:
+					if ev.Total != nil {
+						serverTotal = ev.Total
+						serverFirst = ev.First
+					}
+				case ev.Token != "":
+					if !res.Streamed {
+						res.Streamed = true
+						res.Meta.First = time.Since(start)
+					}
+					onToken(ev.Token)
+				}
+			}
+		}
+
+		if readErr != nil {
+			break
+		}
+	}
+
+	res.Meta.Total = time.Since(start)
+
+	// Prefer the server's timing so web and mobile agree.
+	if serverTotal != nil {
+		res.Meta.Total = seconds(*serverTotal)
+		res.Meta.First = 0
+		if serverFirst != nil {
+			res.Meta.First = seconds(*serverFirst)
+		}
+	}
+
+	switch {
+	case streamErr != "" && !res.Streamed:
+		return res, errors.New(streamErr)
+	case streamErr != "":
+		res.Meta.Interrupted = true
+	}
+	return res, nil
 }
 
 // PaymentStatus reports whether the current user is on the free plan
