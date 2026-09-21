@@ -1,8 +1,10 @@
 package ui
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"time"
 
 	"gioui.org/f32"
 	"gioui.org/font"
@@ -15,6 +17,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+
+	"chatwithrepo/mobile/api"
 )
 
 // Palette holds the small, fixed color set used throughout the app.
@@ -222,7 +226,7 @@ func upgradeMessageFor(reason string) string {
 // right (user, green gradient) or left (assistant, dark bordered card).
 // Assistant text goes through the Markdown renderer; user text is shown
 // as typed.
-func Bubble(th *material.Theme, role, content string) layout.Widget {
+func Bubble(th *material.Theme, role, content string, meta *api.ResponseMeta) layout.Widget {
 	isUser := role == "user"
 	align := layout.W
 	fg := authTitle
@@ -254,7 +258,16 @@ func Bubble(th *material.Theme, role, content string) layout.Widget {
 				}),
 				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16), Top: unit.Dp(12), Bottom: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return renderMarkdown(gtx, th, content, fg, !isUser)
+						md := func(gtx layout.Context) layout.Dimensions {
+							return renderMarkdown(gtx, th, content, fg, !isUser)
+						}
+						if isUser || meta == nil {
+							return md(gtx)
+						}
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(md),
+							layout.Rigid(responseFooter(th, meta)),
+						)
 					})
 				}),
 			)
@@ -284,4 +297,81 @@ func newShaper() *text.Shaper {
 		coll = append(coll, emojiFace)
 	}
 	return text.NewShaper(text.WithCollection(coll))
+}
+
+// formatSeconds renders a duration like the web UI: 4.2s, 12s.
+func formatSeconds(d time.Duration) string {
+	sec := d.Seconds()
+	if sec < 10 {
+		return fmt.Sprintf("%.1fs", sec)
+	}
+	return fmt.Sprintf("%.0fs", sec)
+}
+
+// responseFooter is the line under an assistant answer: a divider, a clock
+// icon and "Responded in 4.2s · first word 1.8s".
+func responseFooter(th *material.Theme, meta *api.ResponseMeta) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		label := func(txt string, col color.NRGBA, bold bool) layout.Widget {
+			return func(gtx layout.Context) layout.Dimensions {
+				l := material.Label(th, authSp(12), txt)
+				l.Color = col
+				if bold {
+					l.Font.Weight = font.Bold
+				}
+				return l.Layout(gtx)
+			}
+		}
+
+		rest := ""
+		if meta.First > 0 {
+			rest += " · first word " + formatSeconds(meta.First)
+		}
+		if meta.Interrupted {
+			rest += " · interrupted"
+		}
+
+		return layout.Inset{Top: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					w, h := gtx.Constraints.Max.X, gtx.Dp(unit.Dp(1))
+					paint.FillShape(gtx.Ops, authCardBorder, clip.Rect{Max: image.Pt(w, h)}.Op())
+					return layout.Dimensions{Size: image.Pt(w, h+gtx.Dp(unit.Dp(9)))}
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							return clockIcon(gtx, authLink, gtx.Dp(unit.Dp(13)))
+						}),
+						layout.Rigid(spacerX(6)),
+						layout.Rigid(label("Responded in ", authHint, false)),
+						layout.Rigid(label(formatSeconds(meta.Total), authBody, true)),
+						layout.Rigid(label(rest, authHint, false)),
+					)
+				}),
+			)
+		})
+	}
+}
+
+// clockIcon draws a small outlined clock (circle with two hands).
+func clockIcon(gtx layout.Context, col color.NRGBA, d int) layout.Dimensions {
+	stroke := float32(gtx.Dp(unit.Dp(1.4)))
+	r := float32(d) / 2
+	c := f32.Pt(r, r)
+
+	circle := clip.Ellipse{
+		Min: image.Pt(int(stroke/2), int(stroke/2)),
+		Max: image.Pt(d-int(stroke/2), d-int(stroke/2)),
+	}.Path(gtx.Ops)
+	paint.FillShape(gtx.Ops, col, clip.Stroke{Path: circle, Width: stroke}.Op())
+
+	var p clip.Path
+	p.Begin(gtx.Ops)
+	p.MoveTo(f32.Pt(c.X, c.Y-r*0.55))
+	p.LineTo(c)
+	p.LineTo(f32.Pt(c.X+r*0.45, c.Y+r*0.25))
+	paint.FillShape(gtx.Ops, col, clip.Stroke{Path: p.End(), Width: stroke}.Op())
+
+	return layout.Dimensions{Size: image.Pt(d, d)}
 }

@@ -10,6 +10,9 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
     Date,
+    Float,
+    inspect,
+    text,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
@@ -72,6 +75,11 @@ class Message(Base):
     content = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # How long the assistant took to answer (assistant messages only), so the
+    # web and mobile apps show the same timing.
+    response_seconds = Column(Float, nullable=True)
+    first_word_seconds = Column(Float, nullable=True)
+
     chat = relationship("Chat")
 
 class DailyUsage(Base):
@@ -83,3 +91,20 @@ class DailyUsage(Base):
     questions_used = Column(Integer, default=0)
 
 Base.metadata.create_all(bind=engine)
+
+
+def _add_missing_columns():
+    """
+    create_all() never alters existing tables, so add the timing columns to
+    databases created before they existed.
+    """
+
+    existing = {c["name"] for c in inspect(engine).get_columns("messages")}
+
+    with engine.begin() as conn:
+        for name in ("response_seconds", "first_word_seconds"):
+            if name not in existing:
+                conn.execute(text(f"ALTER TABLE messages ADD COLUMN {name} DOUBLE PRECISION"))
+
+
+_add_missing_columns()

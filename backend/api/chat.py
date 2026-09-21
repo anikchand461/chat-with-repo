@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 from uuid import uuid4
 import traceback
@@ -307,6 +308,8 @@ def ask(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    started = time.perf_counter()
+
     prepared = _prepare_ask(chat_id, current_user, db)
 
     if isinstance(prepared, dict):
@@ -315,16 +318,24 @@ def ask(
     chat, usage, rag, history = prepared
 
     answer = rag.ask(question=req.question, history=history)
+    total = time.perf_counter() - started
 
     db.add(Message(chat_id=chat.id, role="user", content=req.question))
-    db.add(Message(chat_id=chat.id, role="assistant", content=answer))
+    db.add(
+        Message(
+            chat_id=chat.id,
+            role="assistant",
+            content=answer,
+            response_seconds=total,
+        )
+    )
 
     if current_user.plan == "FREE":
         usage.questions_used += 1
 
     db.commit()
 
-    return {"answer": answer}
+    return {"answer": answer, "response_seconds": total}
 
 
 @router.post("/{chat_id}/ask/stream")
@@ -339,10 +350,13 @@ def ask_stream(
 
     Events (each `data:` line is JSON):
       {"token": "..."}  - a piece of the answer
-      {"done": true}    - the full answer has been saved
+      {"done": true, "total": s, "first": s} - the answer has been saved;
+                        total/first are the server-measured response times
       {"error": "..."}  - generation failed (nothing is saved)
     If the daily limit is hit, a plain JSON upgrade_required body is returned.
     """
+
+    started = time.perf_counter()
 
     prepared = _prepare_ask(chat_id, current_user, db)
 
@@ -361,9 +375,12 @@ def ask_stream(
 
     def event_stream():
         parts = []
+        first_word = None
 
         try:
             for token in rag.ask_stream(question=question, history=history):
+                if first_word is None:
+                    first_word = time.perf_counter() - started
                 parts.append(token)
                 yield sse({"token": token})
         except Exception as e:
@@ -371,12 +388,20 @@ def ask_stream(
             yield sse({"error": str(e)})
             return
 
+        total = time.perf_counter() - started
+
         # The request-scoped session may already be closed while streaming,
         # so persist the turn with a fresh one.
         with SessionLocal() as session:
             session.add(Message(chat_id=chat_pk, role="user", content=question))
             session.add(
-                Message(chat_id=chat_pk, role="assistant", content="".join(parts))
+                Message(
+                    chat_id=chat_pk,
+                    role="assistant",
+                    content="".join(parts),
+                    response_seconds=total,
+                    first_word_seconds=first_word,
+                )
             )
 
             if is_free:
@@ -393,7 +418,7 @@ def ask_stream(
 
             session.commit()
 
-        yield sse({"done": True})
+        yield sse({"done": True, "total": total, "first": first_word})
 
     return StreamingResponse(
         event_stream(),
@@ -424,4 +449,12 @@ def get_messages(
         .all()
     )
 
-    return [{"role": m.role, "content": m.content} for m in messages]
+    return [
+        {
+            "role": m.role,
+            "content": m.content,
+            "response_seconds": m.response_seconds,
+            "first_word_seconds": m.first_word_seconds,
+        }
+        for m in messages
+    ]
