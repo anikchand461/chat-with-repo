@@ -13,7 +13,7 @@
 [![Gio](https://img.shields.io/badge/Gio-Android-00ADD8?style=for-the-badge)](https://gioui.org/)
 [![Status](https://img.shields.io/badge/status-active-17b57f?style=for-the-badge)](#)
 
-**[Live Demo](https://chatwithrepo-nine.vercel.app/) · [Android App](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0) · [Problem](#-the-problem) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Installation](#-installation)**
+**[Live Demo](https://chatwithrepo-nine.vercel.app/) · [Android App](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.2.0) · [Problem](#-the-problem) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Installation](#-installation)**
 
 </div>
 
@@ -39,18 +39,27 @@ This is the core of the project — a multi-stage retrieval pipeline, not a sing
 
 | Stage | Model / Method | Purpose |
 |---|---|---|
-| Query Classification | Groq — `llama-3.1-8b-instant` | Routes the question as `lookup` (file/function/usage) or `analysis` (architecture/design) |
-| Multi-Query Generation | Groq — `llama-3.1-8b-instant` | Rephrases the question into 2 alternate search queries to widen recall |
+| Query Classification | Keyword / length heuristic (no LLM call) | Routes the question as `lookup` (file/function/usage) or `analysis` (architecture/design) |
+| Multi-Query Generation | Groq — `openai/gpt-oss-20b` | Rephrases the question into alternate search queries to widen recall (skipped for lookups) |
 | Embedding & Retrieval | Cohere `embed-v4.0` + Chroma | Vector search over chunked repo documents |
 | Fusion | Reciprocal Rank Fusion (RRF) | Merges results from the original + generated queries into one ranked list |
 | Reranking | Cohere `rerank-v3.5` | Re-scores the fused results against the original question for precision |
-| Answer Generation | Gemini `3.1-flash-lite` | Synthesizes the final answer from the top reranked chunks |
+| Repository Overview | Built from the repo data | Name, description, topics, full file tree and README are sent with **every** question, so broad questions never depend on what retrieval happened to return |
+| Answer Generation | Gemini `3.1-flash-lite` | Streams the final answer from the overview plus the top reranked chunks |
 
 Before any of this, ingestion turns a raw repo into searchable documents:
 
 **GitHub API → Loader → Converter → Chunker → Embeddings → Vector Store**
 
-Synthetic repository-level summary documents are also generated to improve high-level "explain this codebase" queries.
+- Lockfiles and generated files (`package-lock.json`, `yarn.lock`, `go.sum`, `*.min.js`, …) are skipped — language-agnostic, so any stack works.
+- Every chunk is prefixed with its file path so it stays meaningful on its own.
+- Synthetic repository-level summary documents are also generated to improve high-level "explain this codebase" queries.
+- Embedding runs in paced batches and waits out provider rate limits instead of failing.
+- If a chat's index is missing or empty (new machine, wiped disk), it is rebuilt automatically on the first question.
+
+### Streaming & response time
+
+Answers stream in token by token (server-sent events on `/chat/{id}/ask/stream`), on the web and in the Android app. Under every answer you get the time it took — *Responded in 4.2s · first word 1.8s*. The server measures and stores it with the message, so the web and mobile apps always show the same value for the same answer.
 
 ---
 
@@ -71,7 +80,8 @@ The Android app acts as a mobile client for the existing Chat With Repo backend.
 ### Mobile Features
 
 - Login and registration
-- Repository chat
+- Repository chat with live, token-by-token streaming answers
+- Response time under every answer, synced with the web
 - Repository management
 - Bearer-token authentication
 - Native Android UI
@@ -86,7 +96,7 @@ The Android app acts as a mobile client for the existing Chat With Repo backend.
 
 ### Android Release
 
-**[Download ChatWithRepo Android v1.0.0](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0)**
+**[Download ChatWithRepo Android v1.2.0](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.2.0)**
 
 The release contains `ChatWithRepo.apk`.
 
@@ -105,7 +115,7 @@ To install it, download the APK from the release page and install it on your And
 ```bash
 git clone https://github.com/anikchand461/chat-with-repo.git
 cd chat-with-repo
-uv sync
+uv sync                        # or: pip install -r requirements.txt
 ```
 
 **Step 2 — Configure environment variables**
@@ -123,7 +133,17 @@ DODO_PRODUCT_ID=dodo_product_id
 APP_URL=http://127.0.0.1:5500/
 DODO_BASE_URL=https://test.dodopayments.com
 DATABASE_URL=postgresql+psycopg://neondb_owner:YOUR_PASSWORD@ep-cool-heart-azo2wz85-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+
+# Optional
+GITHUB_TOKEN=github_token      # server-wide fallback; raises the GitHub API limit from 60 to 5000/hour
+DATA_DIR=/path/to/data         # where downloaded repos are stored (default: <project>/data)
+CHROMA_DIR=/path/to/chroma_db  # where vector indexes are stored (default: <project>/chroma_db)
+EMBED_TOKENS_PER_MINUTE=80000  # embedding pacing; set 0 with a production Cohere key
 ```
+
+> **Cohere trial keys** are limited to 40 calls and 100k embedding tokens per minute, so indexing a large repo takes a couple of minutes. A production key removes the limit.
+>
+> **Hosting note:** indexes live on disk. On hosts with a temporary disk (e.g. Render's free tier) they are rebuilt automatically after a redeploy; attach a persistent disk and point `DATA_DIR` / `CHROMA_DIR` at it to avoid that.
 
 **Step 3 — Run the backend**
 
@@ -144,9 +164,11 @@ Visit `http://127.0.0.1:5500/index.html`.
 
 ### Android
 
+To develop against a local backend, change `baseURL` in `mobile/main.go` (`127.0.0.1:8000` for the desktop build, `10.0.2.2:8000` for the Android emulator) and switch it back before committing.
+
 The Android APK is distributed through GitHub Releases rather than committed to the repository.
 
-**[Download the latest Android release](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0)**
+**[Download the latest Android release](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.2.0)**
 
 1. Download `ChatWithRepo.apk`.
 2. Transfer it to your Android device if necessary.
@@ -167,7 +189,7 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 ![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![Gio](https://img.shields.io/badge/Gio-Android-00ADD8?style=flat-square)
 
-![Groq](https://img.shields.io/badge/Groq-Llama%203.1%208B%20Instant-F55036?style=flat-square)
+![Groq](https://img.shields.io/badge/Groq-GPT--OSS%2020B-F55036?style=flat-square)
 ![Cohere](https://img.shields.io/badge/Cohere-Embed%20v4%20%7C%20Rerank%20v3.5-39594D?style=flat-square)
 ![Gemini](https://img.shields.io/badge/Gemini-Flash--Lite-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
 
@@ -193,7 +215,7 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 
 | Version | Platform | Download |
 |---|---|---|
-| v1.0.0 | Android | **[ChatWithRepo.apk](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.0.0)** |
+| v1.2.0 | Android | **[ChatWithRepo.apk](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.2.0)** |
 
 ---
 
