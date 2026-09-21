@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 from .repository_summary import RepositorySummary
+from .filters import is_noise_path
 from langchain_core.documents import Document
 from bs4 import BeautifulSoup
 
@@ -47,6 +48,10 @@ class DocumentConverter:
                 continue
 
             path = file.get("path", "unknown")
+
+            if is_noise_path(path):
+                continue
+
             filename = Path(path).name
             extension = Path(path).suffix.lower()
 
