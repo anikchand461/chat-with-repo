@@ -281,3 +281,21 @@ input {
         transform:translateY(0);
     }
 }
+
+.message .response-meta,
+.response-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  font-size: 12px;
+  line-height: 1;
+  color: color-mix(in srgb, currentColor 55%, transparent);
+  user-select: none;
+}
+.response-meta svg { flex: none; color: var(--brand-500, #17b57f); }
+.response-meta b { font-weight: 600; color: color-mix(in srgb, currentColor 80%, transparent); }
+.response-meta span + span::before { content: "·"; margin-right: 6px; }

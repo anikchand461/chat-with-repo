@@ -288,6 +288,8 @@ async function loadChats() {
 
 /* ==================== chat ==================== */
 
+let chatMessageCount = 0;
+
 async function setupChat() {
   const id = new URLSearchParams(location.search).get("id");
   if (!id) return;
@@ -332,7 +334,18 @@ async function setupChat() {
         '<div class="empty"><h2>Ask your repository</h2><p>Ask anything about the indexed codebase — architecture, files, functions or bugs.</p></div>';
     }
 
-    messages.forEach((m) => addMessage(m.content, m.role));
+    let times = {};
+    try {
+      times = JSON.parse(localStorage.getItem(`rt_${id}`) || "{}");
+    } catch (_) {}
+
+    messages.forEach((m, i) => {
+      const node = addMessage(m.content, m.role);
+      if (m.role === "assistant" && times[i]) {
+        node.appendChild(buildResponseMeta(times[i]));
+      }
+    });
+    chatMessageCount = messages.length;
   } catch (err) {
     console.error(err);
   }
@@ -351,31 +364,159 @@ async function setupChat() {
       input.value = "";
 
       const typing = showTyping();
+      const startedAt = performance.now();
 
       try {
-        const data = await request(`/chat/${id}/ask`, {
-          method: "POST",
-          body: JSON.stringify({ question: q }),
-        });
-
-        typing.remove();
-
-        if (data.upgrade_required) {
-          addMessage(
-            "⚠️ " + data.message + "\n\nUpgrade to Pro to continue chatting.",
-            "assistant"
-          );
-          showUpgradeModal(data.reason);
-          return;
-        }
-
-        addMessage(data.answer, "assistant");
+        await streamAnswer(id, q, typing, startedAt);
       } catch (error) {
         typing.remove();
         addMessage(error.message, "assistant");
       }
     };
   }
+}
+
+// Streams /ask/stream (SSE), rendering tokens as they arrive.
+async function streamAnswer(id, question, typing, startedAt) {
+  const response = await fetch(`${API}/chat/${id}/ask/stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+    },
+    body: JSON.stringify({ question }),
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+
+  // Errors and upgrade_required come back as plain JSON.
+  if (!contentType.includes("text/event-stream")) {
+    const data = await response.json().catch(() => ({}));
+    typing.remove();
+
+    if (!response.ok) throw Error(data.detail || "Request failed");
+
+    if (data.upgrade_required) {
+      addMessage(
+        "⚠️ " + data.message + "\n\nUpgrade to Pro to continue chatting.",
+        "assistant"
+      );
+      showUpgradeModal(data.reason);
+    }
+    return;
+  }
+
+  const container = document.querySelector("#messages");
+  const node = document.createElement("div");
+  node.className = "message assistant";
+
+  let text = "";
+  let firstTokenAt = null;
+  let started = false;
+  let pending = false;
+  let failed = null;
+
+  const render = () => {
+    pending = false;
+    node.innerHTML = renderMarkdown(text);
+    container.scrollTop = container.scrollHeight;
+  };
+
+  const handle = (payload) => {
+    if (payload.error) {
+      failed = payload.error;
+      return;
+    }
+    if (!payload.token) return;
+
+    if (!started) {
+      started = true;
+      firstTokenAt = performance.now();
+      typing.remove();
+      container.appendChild(node);
+    }
+
+    text += payload.token;
+    if (!pending) {
+      pending = true;
+      requestAnimationFrame(render);
+    }
+  };
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    let sep;
+    while ((sep = buffer.indexOf("\n\n")) !== -1) {
+      const event = buffer.slice(0, sep);
+      buffer = buffer.slice(sep + 2);
+
+      event.split("\n").forEach((line) => {
+        if (!line.startsWith("data:")) return;
+        try {
+          handle(JSON.parse(line.slice(5).trim()));
+        } catch (_) {}
+      });
+    }
+  }
+
+  typing.remove();
+
+  if (failed && !started) throw Error(failed);
+
+  render();
+  highlightCodeBlocks(node);
+
+  const info = {
+    total: (performance.now() - startedAt) / 1000,
+    first: firstTokenAt ? (firstTokenAt - startedAt) / 1000 : null,
+    interrupted: Boolean(failed),
+  };
+  node.appendChild(buildResponseMeta(info));
+
+  // Remember the time so it survives a page reload (keyed by message position).
+  try {
+    const key = `rt_${id}`;
+    const times = JSON.parse(localStorage.getItem(key) || "{}");
+    times[chatMessageCount + 1] = info;
+    localStorage.setItem(key, JSON.stringify(times));
+  } catch (_) {}
+  chatMessageCount += 2;
+  container.scrollTop = container.scrollHeight;
+}
+
+function formatSeconds(sec) {
+  return sec < 10 ? `${sec.toFixed(1)}s` : `${Math.round(sec)}s`;
+}
+
+// Footer shown under an assistant answer: clock icon, total time, time to first word.
+function buildResponseMeta(info) {
+  if (typeof info === "string") info = { label: info };
+
+  const meta = document.createElement("div");
+  meta.className = "response-meta";
+
+  const clock =
+    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+
+  const parts = info.label
+    ? [escapeHtml(info.label)]
+    : [`Responded in <b>${formatSeconds(info.total)}</b>`];
+
+  if (info.first != null) parts.push(`first word ${formatSeconds(info.first)}`);
+  if (info.interrupted) parts.push("interrupted");
+
+  meta.innerHTML = clock + parts.map((p) => `<span>${p}</span>`).join("");
+  return meta;
 }
 
 function showTyping() {
@@ -541,6 +682,7 @@ function addMessage(text, role) {
   const container = document.querySelector("#messages");
   container.appendChild(node);
   container.scrollTop = container.scrollHeight;
+  return node;
 }
 
 document.addEventListener("click", (e) => {
