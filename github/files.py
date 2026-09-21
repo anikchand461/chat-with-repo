@@ -1,6 +1,7 @@
 import base64
 from urllib.parse import quote
 
+from backend.rag.filters import is_noise_path
 from .client import github_get
 from .tree import get_tree
 
@@ -71,7 +72,7 @@ def get_all_files(owner, repo, branch=None, github_token=None):
 
         path = item["path"]
 
-        if path.endswith(SOURCE_EXTENSIONS):
+        if path.endswith(SOURCE_EXTENSIONS) and not is_noise_path(path):
             file = get_file(
                 owner,
                 repo,

@@ -11,6 +11,7 @@ from github import (
 )
 
 from backend.storage.json_writer import save_json
+from backend.config import DATA_DIR
 
 router = APIRouter()
 
@@ -79,7 +80,7 @@ def analyze_default(
     }
 
     filename = os.path.join(
-        "data",
+        DATA_DIR,
         f"{owner}_{repo}.json",
     )
 
@@ -147,7 +148,7 @@ def analyze_branch(
         )
 
     filename = os.path.join(
-        "data",
+        DATA_DIR,
         f"{owner}_{repo}_{branch}.json",
     )
 

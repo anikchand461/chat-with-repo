@@ -8,7 +8,7 @@ load_dotenv()
 
 class ModelFactory:
 
-    GROQ_MODEL = "llama-3.1-8b-instant"
+    GROQ_MODEL = "openai/gpt-oss-20b"
     GEMINI_MODEL = "gemini-3.1-flash-lite"
     EMBEDDING_MODEL = "embed-v4.0"
     RERANK_MODEL = "rerank-v3.5"
