@@ -1,71 +1,66 @@
-from langchain_core.prompts import ChatPromptTemplate
-from rag.model_factory import ModelFactory
+import re
+
 
 class QueryClassifier:
+    """
+    Cheap heuristic classifier (no LLM round trip).
 
-    def __init__(self):
-        self.model = ModelFactory.classifier()
+    Returns "analysis" for broad / architectural questions and "lookup"
+    for short, targeted ones.
+    """
 
-        self.prompt = ChatPromptTemplate.from_messages([
-            (
-                "system",
-                """
-Classify the user's repository question.
+    ANALYSIS_KEYWORDS = (
+        "architecture",
+        "codebase",
+        "overall",
+        "overview",
+        "summarize",
+        "summary",
+        "design",
+        "workflow",
+        "flow",
+        "dependenc",
+        "relationship",
+        "interact",
+        "implement",
+        "why",
+        "explain",
+        "how does",
+        "how do",
+        "how is",
+        "structure",
+        "contribute",
+        "compare",
+        "difference",
+        "end to end",
+        "end-to-end",
+    )
 
-Return ONLY one word:
+    LOOKUP_KEYWORDS = (
+        "where is",
+        "where are",
+        "which file",
+        "what file",
+        "show me",
+        "what command",
+        "how to run",
+        "how to install",
+        "usage of",
+        "defined",
+    )
 
-lookup
-analysis
-
-lookup:
-- asks for a function
-- asks for usage
-- asks for a file
-- asks where something is
-- asks about commands
-
-analysis:
-- architecture
-- codebase
-- module interaction
-- dependencies
-- design
-- workflow
-- reasoning
-- implementation
-- relationships
-- overall explanation
-"""
-            ),
-            ("human", "{question}")
-        ])
+    LONG_QUESTION_WORDS = 18
 
     def classify(self, question):
+        text = question.lower().strip()
 
-        chain = self.prompt | self.model
+        if any(keyword in text for keyword in self.LOOKUP_KEYWORDS):
+            return "lookup"
 
-        result = chain.invoke({
-            "question": question
-        })
+        if any(keyword in text for keyword in self.ANALYSIS_KEYWORDS):
+            return "analysis"
 
-        # Safely extract text from the model response
-        content = result.content
-
-        if isinstance(content, list):
-            text = ""
-            for item in content:
-                if isinstance(item, dict):
-                    text += item.get("text", "")
-                else:
-                    text += str(item)
-        else:
-            text = str(content)
-
-        classification = text.lower().strip()
-
-        # print(f"\nQuery Classification Result: {classification}")
-
-        if "analysis" in classification:
+        if len(re.findall(r"\w+", text)) >= self.LONG_QUESTION_WORDS:
             return "analysis"
 
         return "lookup"

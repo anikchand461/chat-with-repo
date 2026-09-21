@@ -5,8 +5,10 @@ class LLM:
     def __init__(self):
         self.model = ModelFactory.answer()
 
-    def generate(self, question: str, documents, repo_name: str, history=None):
+    HISTORY_MESSAGES = 6
+    HISTORY_CHARS = 1500
 
+    def _build_prompt(self, question: str, documents, repo_name: str, history=None):
 
         context = "\n\n".join(
             doc.page_content
@@ -19,8 +21,8 @@ class LLM:
 
         if history:
             history_text = "\n".join(
-                f"{msg['role'].capitalize()}: {msg['content']}"
-                for msg in history[-10:]   # Last 10 messages
+                f"{msg['role'].capitalize()}: {msg['content'][:self.HISTORY_CHARS]}"
+                for msg in history[-self.HISTORY_MESSAGES:]
             )
 
         # ---------------- Prompt ----------------
@@ -76,9 +78,10 @@ class LLM:
         For contribution-related questions, end your response with a short **Next Steps** section suggesting where the user should start.
         """
 
-        response = self.model.invoke(prompt)
+        return prompt
 
-        content = response.content
+    @staticmethod
+    def _extract_text(content):
 
         if isinstance(content, str):
             return content
@@ -91,3 +94,24 @@ class LLM:
             )
 
         return str(content)
+
+    def generate(self, question: str, documents, repo_name: str, history=None):
+
+        prompt = self._build_prompt(question, documents, repo_name, history)
+
+        response = self.model.invoke(prompt)
+
+        return self._extract_text(response.content)
+
+    def stream(self, question: str, documents, repo_name: str, history=None):
+        """
+        Yield the answer incrementally as the model produces it.
+        """
+
+        prompt = self._build_prompt(question, documents, repo_name, history)
+
+        for chunk in self.model.stream(prompt):
+            text = self._extract_text(chunk.content)
+
+            if text:
+                yield text
