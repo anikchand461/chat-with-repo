@@ -26,7 +26,9 @@ var assets embed.FS
 // baseURL is the only thing you need to change to point this client
 // at a different backend (e.g. a local dev server on 10.0.2.2 for the
 // Android emulator, or 127.0.0.1 when running as a desktop binary).
+
 const baseURL = "https://chat-with-repo-4vwy.onrender.com"
+// const baseURL = "http://127.0.0.1:8000"; // local testing only
 
 func main() {
 	go func() {

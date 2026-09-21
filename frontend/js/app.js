@@ -288,8 +288,6 @@ async function loadChats() {
 
 /* ==================== chat ==================== */
 
-let chatMessageCount = 0;
-
 async function setupChat() {
   const id = new URLSearchParams(location.search).get("id");
   if (!id) return;
@@ -334,18 +332,18 @@ async function setupChat() {
         '<div class="empty"><h2>Ask your repository</h2><p>Ask anything about the indexed codebase — architecture, files, functions or bugs.</p></div>';
     }
 
-    let times = {};
-    try {
-      times = JSON.parse(localStorage.getItem(`rt_${id}`) || "{}");
-    } catch (_) {}
-
-    messages.forEach((m, i) => {
+    // Timings are stored on the server, so web and mobile show the same values.
+    messages.forEach((m) => {
       const node = addMessage(m.content, m.role);
-      if (m.role === "assistant" && times[i]) {
-        node.appendChild(buildResponseMeta(times[i]));
+      if (m.role === "assistant" && m.response_seconds != null) {
+        node.appendChild(
+          buildResponseMeta({
+            total: m.response_seconds,
+            first: m.first_word_seconds,
+          })
+        );
       }
     });
-    chatMessageCount = messages.length;
   } catch (err) {
     console.error(err);
   }
@@ -415,6 +413,7 @@ async function streamAnswer(id, question, typing, startedAt) {
   let started = false;
   let pending = false;
   let failed = null;
+  let serverTimes = null; // total/first measured by the server (sent with "done")
 
   const render = () => {
     pending = false;
@@ -425,6 +424,10 @@ async function streamAnswer(id, question, typing, startedAt) {
   const handle = (payload) => {
     if (payload.error) {
       failed = payload.error;
+      return;
+    }
+    if (payload.done) {
+      serverTimes = { total: payload.total, first: payload.first };
       return;
     }
     if (!payload.token) return;
@@ -474,21 +477,17 @@ async function streamAnswer(id, question, typing, startedAt) {
   render();
   highlightCodeBlocks(node);
 
-  const info = {
-    total: (performance.now() - startedAt) / 1000,
-    first: firstTokenAt ? (firstTokenAt - startedAt) / 1000 : null,
-    interrupted: Boolean(failed),
-  };
+  // Prefer the server's timing (it is what web and mobile both see later);
+  // fall back to our own clock if the stream ended without a "done" event.
+  const info =
+    serverTimes && serverTimes.total != null
+      ? { total: serverTimes.total, first: serverTimes.first, interrupted: false }
+      : {
+          total: (performance.now() - startedAt) / 1000,
+          first: firstTokenAt ? (firstTokenAt - startedAt) / 1000 : null,
+          interrupted: Boolean(failed),
+        };
   node.appendChild(buildResponseMeta(info));
-
-  // Remember the time so it survives a page reload (keyed by message position).
-  try {
-    const key = `rt_${id}`;
-    const times = JSON.parse(localStorage.getItem(key) || "{}");
-    times[chatMessageCount + 1] = info;
-    localStorage.setItem(key, JSON.stringify(times));
-  } catch (_) {}
-  chatMessageCount += 2;
   container.scrollTop = container.scrollHeight;
 }
 

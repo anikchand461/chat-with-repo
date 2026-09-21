@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 )
 
-// tokenFile returns the path used to persist the access token on-device.
-// os.UserConfigDir() resolves to the app's private storage on Android
-// when built with gogio, and to the usual per-OS config dir elsewhere.
-func tokenFile() (string, error) {
+// appDir is the app's private storage directory. os.UserConfigDir()
+// resolves to it on Android when built with gogio, and to the usual
+// per-OS config dir elsewhere.
+func appDir() (string, error) {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		dir = os.TempDir()
@@ -17,7 +17,16 @@ func tokenFile() (string, error) {
 	if err := os.MkdirAll(appDir, 0o700); err != nil {
 		return "", err
 	}
-	return filepath.Join(appDir, "token"), nil
+	return appDir, nil
+}
+
+// tokenFile returns the path used to persist the access token on-device.
+func tokenFile() (string, error) {
+	dir, err := appDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "token"), nil
 }
 
 // SaveToken persists the access token so the user stays logged in
