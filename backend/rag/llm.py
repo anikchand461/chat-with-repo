@@ -8,7 +8,7 @@ class LLM:
     HISTORY_MESSAGES = 6
     HISTORY_CHARS = 1500
 
-    def _build_prompt(self, question: str, documents, repo_name: str, history=None):
+    def _build_prompt(self, question: str, documents, repo_name: str, history=None, overview: str = ""):
 
         context = "\n\n".join(
             doc.page_content
@@ -32,11 +32,14 @@ class LLM:
         
         Repository:
         {repo_name}
-        
+
+        Repository Overview (always provided; this is the authoritative list of what exists in the repository):
+        {overview or "(not available)"}
+
         Conversation History:
         {history_text}
         
-        Repository Context:
+        Retrieved Code and Documentation (excerpts most relevant to the question; each starts with its file path):
         {context}
         
         User Question:
@@ -50,7 +53,11 @@ class LLM:
         - Do not introduce yourself in every conversation. Mention "ChatWithRepo" only if the user explicitly asks who you are or if introducing yourself is naturally helpful.
         - For lookup questions, answer only what is asked. Keep the response concise and avoid unnecessary repository overviews.
         - Provide detailed explanations only for architecture, implementation, debugging, workflow, design, or contribution-related questions.
-        - Treat the repository context as the primary source of truth.
+        - Treat the Repository Overview and the retrieved excerpts as the primary source of truth.
+        - The Repository Overview is complete: its file tree lists every file, and its README section is the repository's README. Never claim a file, README or folder is missing if it appears there. If the README says the repository has no README, you may say so.
+        - The retrieved excerpts are only a subset of the code. If a file appears in the file tree but its contents were not retrieved, say you can see the file exists but its contents were not part of the excerpts, and infer only what its name, path and location reasonably suggest.
+        - For broad questions (architecture, structure, summary, "what is this project"), combine the description, README, file tree and excerpts to give a real answer instead of asking the user for more information.
+        - Refer to the repository by its name from the Repository field, not by internal identifiers.
         - Never invent repository-specific information.
         - Help users understand the codebase, architecture, workflow, and implementation.
         - Assist open-source contributors by suggesting relevant files, classes, functions, and implementation steps.
@@ -95,20 +102,20 @@ class LLM:
 
         return str(content)
 
-    def generate(self, question: str, documents, repo_name: str, history=None):
+    def generate(self, question: str, documents, repo_name: str, history=None, overview: str = ""):
 
-        prompt = self._build_prompt(question, documents, repo_name, history)
+        prompt = self._build_prompt(question, documents, repo_name, history, overview)
 
         response = self.model.invoke(prompt)
 
         return self._extract_text(response.content)
 
-    def stream(self, question: str, documents, repo_name: str, history=None):
+    def stream(self, question: str, documents, repo_name: str, history=None, overview: str = ""):
         """
         Yield the answer incrementally as the model produces it.
         """
 
-        prompt = self._build_prompt(question, documents, repo_name, history)
+        prompt = self._build_prompt(question, documents, repo_name, history, overview)
 
         for chunk in self.model.stream(prompt):
             text = self._extract_text(chunk.content)

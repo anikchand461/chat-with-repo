@@ -30,13 +30,40 @@ class Chunker:
         """
         Split multiple documents.
         """
-        return self.text_splitter.split_documents(documents)
+        chunks = []
+
+        for document in documents:
+            chunks.extend(self.split_document(document))
+
+        return chunks
 
     def split_document(
         self,
         document: Document
     ) -> list[Document]:
         """
-        Split a single document.
+        Split a single document. Every chunk is prefixed with the file path
+        so it stays meaningful (and searchable) on its own.
         """
-        return self.text_splitter.split_documents([document])
+        chunks = self.text_splitter.split_documents([document])
+
+        path = document.metadata.get("path")
+
+        if not path:
+            return chunks
+
+        total = len(chunks)
+
+        for index, chunk in enumerate(chunks, start=1):
+            chunk.metadata["chunk_index"] = index
+            chunk.metadata["chunk_total"] = total
+
+            # The converter already puts the file path at the top of a file's
+            # first chunk; only add it where it is missing.
+            if f"File: {path}" in chunk.page_content[:300]:
+                continue
+
+            part = f" (part {index}/{total})" if total > 1 else ""
+            chunk.page_content = f"File: {path}{part}\n\n{chunk.page_content.strip()}"
+
+        return chunks

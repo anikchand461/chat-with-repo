@@ -13,6 +13,7 @@ from backend.database import Chat, User, Message, DailyUsage
 from backend.database.db import SessionLocal
 from backend.database.session import get_db
 from backend.auth import get_current_user
+from backend.config import DATA_DIR, CHROMA_DIR
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -151,12 +152,12 @@ You can ask me things like:
             github_token=current_user.github_token,
         )
 
-        json_path = Path("data") / f"{req.owner}_{req.repo}_{branch}.json"
+        json_path = DATA_DIR / f"{req.owner}_{req.repo}_{branch}.json"
 
         rag = RAGPipeline(
             str(json_path),
             collection_name=collection_name,
-            persist_directory=str(Path("chroma_db") / "chats" / chat_key),
+            persist_directory=str(CHROMA_DIR / "chats" / chat_key),
         )
         rag.build_index()
 
@@ -251,10 +252,29 @@ def _prepare_ask(chat_id: int, current_user: User, db: Session):
     from backend.rag.pipeline import get_pipeline
 
     rag = get_pipeline(
-        f"data/{chat.owner}_{chat.repo}_{chat.branch}.json",
+        str(DATA_DIR / f"{chat.owner}_{chat.repo}_{chat.branch}.json"),
         chat.collection_name,
-        str(Path("chroma_db") / "chats" / chat.collection_name.split("_", 2)[-1]),
+        str(CHROMA_DIR / "chats" / chat.collection_name.split("_", 2)[-1]),
     )
+
+    def fetch_repository():
+        from backend.api.routes import analyze_branch
+
+        analyze_branch(
+            chat.owner,
+            chat.repo,
+            chat.branch,
+            github_token=current_user.github_token,
+        )
+
+    try:
+        rag.ensure_index(fetch_repository)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not prepare this repository for questions: {e}",
+        )
 
     messages = (
         db.query(Message)
