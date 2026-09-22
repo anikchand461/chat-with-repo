@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"gioui.org/font"
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -151,6 +152,20 @@ func (s *ProfileScreen) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	}
 	for s.backBtn.Clicked(gtx) {
 		s.app.ShowDashboard()
+	}
+
+	// Android Back returns to the Dashboard (Profile is only ever reached
+	// from there - ShowProfile). Without this, an unhandled Back here
+	// falls through to the OS default, which quits the app instead of
+	// navigating back.
+	for {
+		ev, ok := gtx.Event(key.Filter{Name: key.NameBack})
+		if !ok {
+			break
+		}
+		if e, ok := ev.(key.Event); ok && e.State == key.Press {
+			s.app.ShowDashboard()
+		}
 	}
 
 	s.mu.Lock()
