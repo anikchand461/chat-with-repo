@@ -373,7 +373,11 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 			s.app.ShowDashboard()
 			s.app.Dashboard.openUpgradeModal("repo_limit")
 		default:
-			s.app.ShowChat(string(c.ChatID), c.Title, c.Branch)
+			// Never assume the chat is ready - Dashboard.openChat checks
+			// first (and retries a failed one), same as tapping it from
+			// the dashboard's own "Previous chats" list.
+			s.app.ShowDashboard()
+			s.app.Dashboard.openChat(c)
 		}
 		break
 	}
@@ -630,7 +634,10 @@ func (s *ChatScreen) sendButton(th *material.Theme, asking bool) layout.Widget {
 // Dashboard's existing chat list) and the GitHub / Dashboard / Logout actions.
 func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, curID, email string) layout.Widget {
 	const rowH = 52
-	action := func(btn *widget.Clickable, icon bool, label string, col color.NRGBA) layout.Widget {
+	// action draws a sidebar row: icon (GitHub/Logout - see
+	// mobile/assets/{github,logout}.png) beside its label. Dashboard has
+	// no icon asset, so it's passed nil and just gets the label.
+	action := func(btn *widget.Clickable, icon *paint.ImageOp, label string, col color.NRGBA) layout.Widget {
 		return func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Min.X = gtx.Constraints.Max.X
 			h := gtx.Dp(unit.Dp(rowH))
@@ -641,16 +648,16 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 					centerY(gtx, h, func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								d := gtx.Dp(unit.Dp(22))
-								if icon && githubOp != nil {
+								d := gtx.Dp(unit.Dp(20))
+								if icon != nil {
 									g := gtx
 									g.Constraints.Min, g.Constraints.Max = image.Pt(d, d), image.Pt(d, d)
-									widget.Image{Src: *githubOp, Fit: widget.Contain, Position: layout.Center}.Layout(g)
+									widget.Image{Src: *icon, Fit: widget.Contain, Position: layout.Center}.Layout(g)
 								}
-								if !icon {
+								if icon == nil {
 									return layout.Dimensions{}
 								}
-								return layout.Dimensions{Size: image.Pt(d+gtx.Dp(unit.Dp(14)), d)}
+								return layout.Dimensions{Size: image.Pt(d+gtx.Dp(unit.Dp(12)), d)}
 							}),
 							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								l := material.Label(th, unit.Sp(16), label)
@@ -727,8 +734,8 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 		gtx.Constraints.Min = size
 		e := s.menuProg * s.menuProg * (3 - 2*s.menuProg)
 
-		dw := gtx.Dp(unit.Dp(300))
-		if lim := size.X * 84 / 100; dw > lim {
+		dw := gtx.Dp(unit.Dp(250))
+		if lim := size.X * 76 / 100; dw > lim {
 			dw = lim
 		}
 
@@ -776,9 +783,9 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 						paint.FillShape(gtx.Ops, authCardBorder, clip.Rect{Max: image.Pt(w, h)}.Op())
 						return layout.Dimensions{Size: image.Pt(w, h+gtx.Dp(unit.Dp(8)))}
 					}),
-					layout.Rigid(action(&s.githubBtn, true, "GitHub", authTitle)),
-					layout.Rigid(action(&s.dashBtn, false, "Dashboard", authTitle)),
-					layout.Rigid(action(&s.logoutBtn, false, "Logout", colorError)),
+					layout.Rigid(action(&s.githubBtn, githubOp, "GitHub", authTitle)),
+					layout.Rigid(action(&s.dashBtn, nil, "Dashboard", authTitle)),
+					layout.Rigid(action(&s.logoutBtn, logoutOp, "Logout", colorError)),
 				)
 			})
 			return layout.Dimensions{Size: gtx.Constraints.Max}

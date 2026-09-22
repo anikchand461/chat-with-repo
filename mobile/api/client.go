@@ -75,6 +75,8 @@ type MeResponse struct {
 type Chat struct {
 	ChatID ChatID `json:"chat_id"`
 	Title  string `json:"title"`
+	Owner  string `json:"owner"`
+	Repo   string `json:"repo"`
 	Branch string `json:"branch"`
 }
 
@@ -89,11 +91,29 @@ type CreateChatRequest struct {
 // hit the backend still answers 200 OK but sets UpgradeRequired
 // instead of a usable ChatID — the same "soft failure" shape used by
 // the web frontend (see js/app.js, data.upgrade_required).
+//
+// A 200 here also doesn't mean the chat is ready to open: the backend
+// indexes new (and re-indexed) chats in the background and answers
+// immediately with Indexing set, same as the web frontend's create-chat
+// progress panel. AlreadyIndexed means it's genuinely ready right now.
 type CreateChatResponse struct {
 	ChatID          ChatID `json:"chat_id"`
 	UpgradeRequired bool   `json:"upgrade_required"`
 	Reason          string `json:"reason"`
 	Message         string `json:"message"`
+	Indexing        bool   `json:"indexing"`
+	AlreadyIndexed  bool   `json:"already_indexed"`
+}
+
+// IndexStatus mirrors GET /chat/{id}/index-status: Status is one of
+// "working", "ready" or "error". Done/Total are only meaningful while
+// Stage is "indexing" (embedding chunks); zero otherwise.
+type IndexStatus struct {
+	Status  string `json:"status"`
+	Stage   string `json:"stage"`
+	Message string `json:"message"`
+	Done    int    `json:"done"`
+	Total   int    `json:"total"`
 }
 
 // ChatID represents chat_id as sent by the backend, which returns it
@@ -291,6 +311,17 @@ func (c *Client) CreateChat(owner, repo, branch string) (CreateChatResponse, err
 	return out, nil
 }
 
+// IndexStatus polls whether a chat's repository index is ready yet -
+// mirrors the web frontend's dashboard progress panel
+// (js/app.js pollIndexStatus).
+func (c *Client) IndexStatus(chatID string) (IndexStatus, error) {
+	var out IndexStatus
+	if err := c.do(http.MethodGet, "/chat/"+chatID+"/index-status", nil, &out); err != nil {
+		return IndexStatus{}, err
+	}
+	return out, nil
+}
+
 func (c *Client) Messages(chatID string) ([]Message, error) {
 	var out []Message
 	if err := c.do(http.MethodGet, "/chat/"+chatID+"/messages", nil, &out); err != nil {
@@ -464,4 +495,29 @@ func (c *Client) CreateCheckout() (string, error) {
 		return "", err
 	}
 	return out.CheckoutURL, nil
+}
+
+// githubTokenRequest mirrors POST /auth/github-token's body
+// (backend/api/auth.py's GitHubToken model).
+type githubTokenRequest struct {
+	GithubAccessToken string `json:"github_access_token"`
+}
+
+// githubTokenResponse mirrors POST /auth/github-token's response.
+type githubTokenResponse struct {
+	Saved          bool `json:"saved"`
+	HasGithubToken bool `json:"has_github_token"`
+}
+
+// SaveGithubToken saves the user's personal GitHub access token,
+// raising their GitHub API limit from 60 to 5000 requests/hour (see
+// the web frontend's profile.html for the same flow). Returns the
+// server's confirmation that a token is now on file.
+func (c *Client) SaveGithubToken(token string) (bool, error) {
+	var out githubTokenResponse
+	err := c.do(http.MethodPost, "/auth/github-token", githubTokenRequest{GithubAccessToken: token}, &out)
+	if err != nil {
+		return false, err
+	}
+	return out.HasGithubToken, nil
 }

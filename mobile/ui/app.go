@@ -27,6 +27,7 @@ const (
 	ScreenRegister
 	ScreenDashboard
 	ScreenChat
+	ScreenProfile
 )
 
 // App is the single shared shell for the whole UI. It owns the API
@@ -57,6 +58,7 @@ type App struct {
 	RegisterScreen *RegisterScreen
 	Dashboard      *DashboardScreen
 	Chat           *ChatScreen
+	Profile        *ProfileScreen
 }
 
 // NewApp wires up an App ready to run, starting on the Login screen.
@@ -71,6 +73,7 @@ func NewApp(w *app.Window, baseURL string) *App {
 	a.RegisterScreen = newRegisterScreen(a)
 	a.Dashboard = newDashboardScreen(a)
 	a.Chat = newChatScreen(a)
+	a.Profile = newProfileScreen(a)
 	return a
 }
 
@@ -125,6 +128,7 @@ func (a *App) resetSession() {
 	a.Chat.reset()
 	a.LoginScreen.reset()
 	a.RegisterScreen.reset()
+	a.Profile.reset()
 }
 
 // BeginSession starts a fresh session for a successful login/registration:
@@ -178,6 +182,13 @@ func (a *App) ShowDashboard() {
 func (a *App) ShowChat(chatID, title, branch string) {
 	a.Chat.Open(chatID, title, branch)
 	a.setScreen(ScreenChat)
+}
+
+// ShowProfile switches to the Profile screen and (re)loads the
+// current GitHub-token status, so it's never stale from a previous visit.
+func (a *App) ShowProfile() {
+	a.Profile.Load()
+	a.setScreen(ScreenProfile)
 }
 
 // HandleUnauthorized is called whenever an API call comes back with a
@@ -249,6 +260,8 @@ func (a *App) Layout(gtx layout.Context) layout.Dimensions {
 				return a.Dashboard.Layout(gtx, a.Theme)
 			case ScreenChat:
 				return a.Chat.Layout(gtx, a.Theme)
+			case ScreenProfile:
+				return a.Profile.Layout(gtx, a.Theme)
 			default:
 				return a.LoginScreen.Layout(gtx, a.Theme)
 			}

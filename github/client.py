@@ -11,6 +11,12 @@ def _rate_limit_reset_text(response):
     window, not a fixed clock hour, so this is the only reliable way to
     know when it actually opens back up. Falls back to generic wording if
     the header is missing for some reason.
+
+    Only the relative delta is shown ("in about N min"), never a guessed
+    clock time: this runs on the server, which has no idea what timezone
+    the person reading the message is in, and datetime.astimezone() with
+    no argument would silently use the *server's* local zone (typically
+    UTC on a host) mislabeled as if it were the reader's own.
     """
 
     reset_header = response.headers.get("X-RateLimit-Reset")
@@ -24,9 +30,11 @@ def _rate_limit_reset_text(response):
         return "(usually within an hour)"
 
     minutes = max(0, round((reset_at - datetime.now(timezone.utc)).total_seconds() / 60))
-    local_time = reset_at.astimezone().strftime("%-I:%M %p")
 
-    return f"(resets at {local_time}, in about {minutes} min)"
+    if minutes <= 0:
+        return "(should be available now - try again)"
+
+    return f"(in about {minutes} min)"
 
 
 def github_get(endpoint, params=None, github_token=None):

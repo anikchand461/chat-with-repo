@@ -43,7 +43,7 @@ var (
 	authIconFg      = color.NRGBA{R: 0xd5, G: 0xe6, B: 0xdf, A: 0xff}
 )
 
-var logoOp, githubOp *paint.ImageOp
+var logoOp, githubOp, profileOp, logoutOp, manualOp, webOp *paint.ImageOp
 
 // SetLogo decodes the ChatWithRepo logo (PNG bytes, supplied by main so
 // the asset stays in the mobile/ folder). A bad image just hides the logo.
@@ -65,6 +65,52 @@ func SetGitHubIcon(pngData []byte) {
 	}
 	op := paint.NewImageOp(img)
 	githubOp = &op
+}
+
+// SetProfileIcon decodes assets/profile.png, used for the "Profile"
+// row in the Dashboard drawer.
+func SetProfileIcon(pngData []byte) {
+	img, _, err := image.Decode(bytes.NewReader(pngData))
+	if err != nil {
+		return
+	}
+	op := paint.NewImageOp(img)
+	profileOp = &op
+}
+
+// SetLogoutIcon decodes assets/logout.png, used for the "Logout" row
+// in the Dashboard/Chat drawers.
+func SetLogoutIcon(pngData []byte) {
+	img, _, err := image.Decode(bytes.NewReader(pngData))
+	if err != nil {
+		return
+	}
+	op := paint.NewImageOp(img)
+	logoutOp = &op
+}
+
+// SetManualIcon decodes assets/manual.png, used for the "Manual" row
+// in the Dashboard drawer (opens the web frontend's manual.html - see
+// manualURL below - in the system browser, same as the GitHub badge).
+func SetManualIcon(pngData []byte) {
+	img, _, err := image.Decode(bytes.NewReader(pngData))
+	if err != nil {
+		return
+	}
+	op := paint.NewImageOp(img)
+	manualOp = &op
+}
+
+// SetWebIcon decodes assets/web.png, used for the "Web" row in the
+// Dashboard drawer (opens webURL - the site's landing page - in the
+// system browser, same as the GitHub badge).
+func SetWebIcon(pngData []byte) {
+	img, _, err := image.Decode(bytes.NewReader(pngData))
+	if err != nil {
+		return
+	}
+	op := paint.NewImageOp(img)
+	webOp = &op
 }
 
 // authS scales spacing, type and control heights on the auth screens so
@@ -465,6 +511,15 @@ func AuthLink(th *material.Theme, btn *widget.Clickable, label string) layout.Wi
 
 // repoURL is opened when the GitHub badge is tapped.
 const repoURL = "https://github.com/shreyaghorui222004/chat-with-repo"
+
+// manualURL is opened when the Dashboard drawer's "Manual" row is
+// tapped - the same manual.html served by the web frontend, so editing
+// that page's content updates both clients with no mobile rebuild.
+const manualURL = "http://localhost:5500/manual.html"
+
+// webURL is opened when the Dashboard drawer's "Web" row is tapped -
+// the site's landing page, for switching over to the full web version.
+const webURL = "http://localhost:5500/"
 
 // AuthGitHubButton is the round, clickable GitHub badge at the bottom of
 // the card. It draws assets/github.png and opens the repository in the

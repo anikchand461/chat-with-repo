@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"strings"
 	"time"
 
 	"gioui.org/f32"
@@ -206,6 +207,116 @@ func UpgradeModal(th *material.Theme, message string, upgradeBtn, cancelBtn *wid
 			)
 		})
 	}
+}
+
+// IndexingModal mirrors the web frontend's dashboard create-chat
+// progress panel (js/app.js pollIndexStatus / #index-progress): a short
+// predefined stage message, with a done/total progress bar once one
+// exists, while a chat's repository is indexed in the background - or
+// the failure, with a link to the Profile page when it's the GitHub
+// rate-limit message, if indexing didn't finish.
+func IndexingModal(th *material.Theme, message string, done, total int, errMsg string, closeBtn, profileBtn *widget.Clickable) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Max.X = gtx.Constraints.Max.X * 88 / 100
+			gtx.Constraints.Min.X = gtx.Constraints.Max.X
+			return layout.Stack{}.Layout(gtx,
+				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+					borderedRRect(gtx, gtx.Constraints.Min, unit.Dp(26), authCard, authCardBorder)
+					return layout.Dimensions{Size: gtx.Constraints.Min}
+				}),
+				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+					return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						children := []layout.FlexChild{
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								title := material.H6(th, "Setting up your chat")
+								title.Color = colorText
+								return title.Layout(gtx)
+							}),
+							layout.Rigid(spacer(12)),
+						}
+
+						if errMsg == "" {
+							children = append(children,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+											return dotsIndicator(gtx, authAccent, gtx.Dp(unit.Dp(4)))
+										}),
+										layout.Rigid(spacerX(10)),
+										layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+											lbl := material.Body2(th, message)
+											lbl.Color = colorSubtleText
+											return lbl.Layout(gtx)
+										}),
+									)
+								}),
+							)
+							if total > 0 {
+								children = append(children,
+									layout.Rigid(spacer(14)),
+									layout.Rigid(progressBar(done, total)),
+								)
+							}
+						} else {
+							children = append(children,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									lbl := material.Body2(th, errMsg)
+									lbl.Color = colorError
+									return lbl.Layout(gtx)
+								}),
+							)
+						}
+
+						children = append(children, layout.Rigid(spacer(18)))
+
+						if errMsg != "" {
+							if isRateLimitMessage(errMsg) {
+								children = append(children,
+									layout.Rigid(AuthButton(th, profileBtn, "Go to profile", false)),
+									layout.Rigid(spacer(8)),
+								)
+							}
+							children = append(children, layout.Rigid(AuthSecondaryButton(th, closeBtn, "Close")))
+						}
+
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx, children...)
+					})
+				}),
+			)
+		})
+	}
+}
+
+// progressBar draws a thin, rounded, percentage-filled bar - the
+// mobile equivalent of the web frontend's #index-progress-bar.
+func progressBar(done, total int) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		w := gtx.Constraints.Max.X
+		h := gtx.Dp(unit.Dp(6))
+		r := gtx.Dp(unit.Dp(3))
+
+		frac := float64(done) / float64(total)
+		if frac > 1 {
+			frac = 1
+		}
+		if frac < 0 {
+			frac = 0
+		}
+
+		paint.FillShape(gtx.Ops, authFieldBorder, clip.RRect{Rect: image.Rect(0, 0, w, h), NE: r, NW: r, SE: r, SW: r}.Op(gtx.Ops))
+		if fw := int(float64(w) * frac); fw > 0 {
+			paint.FillShape(gtx.Ops, authAccent, clip.RRect{Rect: image.Rect(0, 0, fw, h), NE: r, NW: r, SE: r, SW: r}.Op(gtx.Ops))
+		}
+		return layout.Dimensions{Size: image.Pt(w, h)}
+	}
+}
+
+// isRateLimitMessage matches the web frontend's /rate limit/i.test(message)
+// check (js/app.js) - the backend sends this exact wording when GitHub's
+// API limit is hit (github/client.py).
+func isRateLimitMessage(msg string) bool {
+	return strings.Contains(strings.ToLower(msg), "rate limit")
 }
 
 // upgradeMessageFor mirrors the web frontend's showUpgradeModal()

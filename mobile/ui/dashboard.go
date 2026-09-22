@@ -54,6 +54,9 @@ type DashboardScreen struct {
 	menuBtn     widget.Clickable
 	menuScrim   widget.Clickable
 	menuSheet   widget.Clickable
+	menuProfile widget.Clickable
+	menuManual  widget.Clickable
+	menuWeb     widget.Clickable
 	menuGithub  widget.Clickable
 
 	// "New Repository" modal
@@ -74,6 +77,25 @@ type DashboardScreen struct {
 	upgradeCancel widget.Clickable
 	checkingOut   bool
 	checkoutErr   string
+
+	// "Setting up your chat" progress modal, shown whenever a chat isn't
+	// actually ready yet - a brand new chat, one being re-indexed, or an
+	// existing one whose status turns out not to be "ready" when tapped.
+	// Mirrors the web frontend's dashboard progress panel (js/app.js
+	// pollIndexStatus / #index-progress). indexSeq is bumped every time a
+	// new wait starts, so a stale poll loop from a previous chat notices
+	// and stops instead of clobbering a newer one's state.
+	indexSeq        uint64
+	showIndexing    bool
+	indexChatID     string
+	indexTitle      string
+	indexBranch     string
+	indexMsg        string
+	indexErr        string
+	indexDone       int
+	indexTotal      int
+	indexCloseBtn   widget.Clickable
+	indexProfileBtn widget.Clickable
 }
 
 func newDashboardScreen(app *App) *DashboardScreen {
@@ -315,7 +337,165 @@ func (s *DashboardScreen) submitCreate() {
 
 		title := owner + "/" + repo
 		s.Reload()
-		s.app.ShowChat(string(resp.ChatID), title, branch)
+
+		if resp.AlreadyIndexed {
+			// Reopening a chat that's already indexed - nothing to wait for.
+			s.app.ShowChat(string(resp.ChatID), title, branch)
+			return
+		}
+
+		// New (or re-indexing) chat: the backend builds it in the
+		// background. Show the same progress the web frontend does and
+		// jump in automatically once it's ready.
+		seq := s.beginIndexingWait(string(resp.ChatID), title, branch, "Setting up your chat…")
+		s.pollIndexStatus(seq, string(resp.ChatID), title, branch)
+	}()
+}
+
+// beginIndexingWait shows the "Setting up your chat" modal and returns
+// the sequence number this wait owns. Bumping indexSeq invalidates any
+// older in-flight poll loop (see pollIndexStatus), so opening a second
+// chat while the first is still being checked can't have the two race
+// and clobber each other's state.
+func (s *DashboardScreen) beginIndexingWait(chatID, title, branch, initialMsg string) uint64 {
+	s.mu.Lock()
+	s.indexSeq++
+	seq := s.indexSeq
+	s.showModal = false
+	s.showIndexing = true
+	s.indexChatID = chatID
+	s.indexTitle = title
+	s.indexBranch = branch
+	s.indexMsg = initialMsg
+	s.indexErr = ""
+	s.indexDone, s.indexTotal = 0, 0
+	s.mu.Unlock()
+	s.app.Window.Invalidate()
+	return seq
+}
+
+func (s *DashboardScreen) closeIndexingWait() {
+	s.mu.Lock()
+	s.indexSeq++ // invalidates any poll loop still running for this wait
+	s.showIndexing = false
+	s.mu.Unlock()
+	s.app.Window.Invalidate()
+}
+
+// pollIndexStatus polls GET /chat/{id}/index-status roughly every 1.5s
+// (matching the web frontend) until it reports "ready" (opens the
+// chat), "error" (shows it, with a Profile link when it's the GitHub
+// rate-limit message), or ~10 minutes pass. seq must match s.indexSeq
+// on every check - if it doesn't, a newer wait has taken over and this
+// loop stops touching shared state.
+func (s *DashboardScreen) pollIndexStatus(seq uint64, chatID, title, branch string) {
+	gen := s.app.Generation()
+
+	go func() {
+		const maxAttempts = 400 // ~10 min at 1.5s/poll - generous for a large repo
+		for attempt := 0; attempt < maxAttempts; attempt++ {
+			if attempt > 0 {
+				time.Sleep(1500 * time.Millisecond)
+			}
+			if !s.app.IsCurrent(gen) {
+				return
+			}
+			s.mu.Lock()
+			stale := s.indexSeq != seq
+			s.mu.Unlock()
+			if stale {
+				return
+			}
+
+			status, err := s.app.Client.IndexStatus(chatID)
+			if !s.app.IsCurrent(gen) {
+				return
+			}
+			if err == api.ErrUnauthorized {
+				s.app.HandleUnauthorized()
+				return
+			}
+			if err != nil {
+				continue // transient network hiccup - keep polling
+			}
+
+			s.mu.Lock()
+			if s.indexSeq != seq {
+				s.mu.Unlock()
+				return
+			}
+			switch status.Status {
+			case "ready":
+				s.showIndexing = false
+				s.mu.Unlock()
+				s.Reload()
+				s.app.ShowChat(chatID, title, branch)
+				return
+			case "error":
+				s.indexMsg = "Couldn't finish indexing"
+				s.indexErr = status.Message
+				s.mu.Unlock()
+				s.app.Window.Invalidate()
+				return
+			default:
+				s.indexMsg = status.Message
+				s.indexDone, s.indexTotal = status.Done, status.Total
+				s.mu.Unlock()
+				s.app.Window.Invalidate()
+			}
+		}
+
+		s.mu.Lock()
+		if s.indexSeq == seq {
+			s.indexMsg = "Couldn't finish indexing"
+			s.indexErr = "This is taking longer than expected. It may still finish in the background - check back in a bit, or open the chat again."
+		}
+		s.mu.Unlock()
+		s.app.Window.Invalidate()
+	}()
+}
+
+// openChat is the tap handler for a chat in "Previous chats". It never
+// assumes the chat is ready: it checks first, same as the web
+// frontend's chat.html guard. If indexing had failed, opening the chat
+// counts as the deliberate action that retries it (via the same
+// /chat/create path the create form uses) - a passive status check
+// alone must never retry on its own, or a permanent failure like "no
+// GitHub token configured" would silently retry forever.
+func (s *DashboardScreen) openChat(c api.Chat) {
+	gen := s.app.Generation()
+	chatID, title, branch := string(c.ChatID), c.Title, c.Branch
+	seq := s.beginIndexingWait(chatID, title, branch, "Checking status…")
+
+	go func() {
+		status, err := s.app.Client.IndexStatus(chatID)
+		if !s.app.IsCurrent(gen) {
+			return
+		}
+		if err == api.ErrUnauthorized {
+			s.app.HandleUnauthorized()
+			return
+		}
+		if err == nil && status.Status == "ready" {
+			s.mu.Lock()
+			if s.indexSeq == seq {
+				s.showIndexing = false
+			}
+			s.mu.Unlock()
+			s.app.ShowChat(chatID, title, branch)
+			return
+		}
+		if err == nil && status.Status == "error" && c.Owner != "" && c.Repo != "" {
+			_, _ = s.app.Client.CreateChat(c.Owner, c.Repo, branch)
+		}
+
+		s.mu.Lock()
+		stale := s.indexSeq != seq
+		s.mu.Unlock()
+		if stale {
+			return
+		}
+		s.pollIndexStatus(seq, chatID, title, branch)
 	}()
 }
 
@@ -337,6 +517,12 @@ type dashboardSnapshot struct {
 	upgradeMsg  string
 	checkingOut bool
 	checkoutErr string
+
+	showIndexing bool
+	indexMsg     string
+	indexErr     string
+	indexDone    int
+	indexTotal   int
 }
 
 func (s *DashboardScreen) snapshot() dashboardSnapshot {
@@ -348,19 +534,24 @@ func (s *DashboardScreen) snapshot() dashboardSnapshot {
 	// without holding s.mu is safe and keeps each widget.Clickable's
 	// identity stable across frames (required for click tracking).
 	return dashboardSnapshot{
-		loading:     s.loading,
-		errMsg:      s.errMsg,
-		chats:       s.chats,
-		chatBtns:    s.chatBtns,
-		isPro:       s.isPro,
-		email:       s.email,
-		showModal:   s.showModal,
-		creating:    s.creating,
-		formErr:     s.formErr,
-		showUpgrade: s.showUpgrade,
-		upgradeMsg:  s.upgradeMsg,
-		checkingOut: s.checkingOut,
-		checkoutErr: s.checkoutErr,
+		loading:      s.loading,
+		errMsg:       s.errMsg,
+		chats:        s.chats,
+		chatBtns:     s.chatBtns,
+		isPro:        s.isPro,
+		email:        s.email,
+		showModal:    s.showModal,
+		creating:     s.creating,
+		formErr:      s.formErr,
+		showUpgrade:  s.showUpgrade,
+		upgradeMsg:   s.upgradeMsg,
+		checkingOut:  s.checkingOut,
+		checkoutErr:  s.checkoutErr,
+		showIndexing: s.showIndexing,
+		indexMsg:     s.indexMsg,
+		indexErr:     s.indexErr,
+		indexDone:    s.indexDone,
+		indexTotal:   s.indexTotal,
 	}
 }
 
@@ -390,6 +581,18 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 	}
 	for s.menuSheet.Clicked(gtx) {
 	}
+	for s.menuProfile.Clicked(gtx) {
+		s.showMenu = false
+		s.app.ShowProfile()
+	}
+	for s.menuManual.Clicked(gtx) {
+		s.showMenu = false
+		go func() { _ = openURL(manualURL) }()
+	}
+	for s.menuWeb.Clicked(gtx) {
+		s.showMenu = false
+		go func() { _ = openURL(webURL) }()
+	}
 	for s.menuGithub.Clicked(gtx) {
 		s.showMenu = false
 		go func() { _ = openURL(repoURL) }()
@@ -415,8 +618,7 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 				s.openUpgradeModal("repo_limit")
 				break
 			}
-			c := chats[i]
-			s.app.ShowChat(string(c.ChatID), c.Title, c.Branch)
+			s.openChat(chats[i])
 			break
 		}
 	}
@@ -434,10 +636,17 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 	for s.cancelBtn.Clicked(gtx) {
 		s.closeModal()
 	}
+	for s.indexCloseBtn.Clicked(gtx) {
+		s.closeIndexingWait()
+	}
+	for s.indexProfileBtn.Clicked(gtx) {
+		s.closeIndexingWait()
+		s.app.ShowProfile()
+	}
 
 	// Android Back closes the topmost overlay; with nothing open no filter
 	// is registered, so Back keeps its default (leave the app).
-	if snap.showUpgrade || showModal || s.showMenu {
+	if snap.showUpgrade || showModal || snap.showIndexing || s.showMenu {
 		for {
 			ev, ok := gtx.Event(key.Filter{Name: key.NameBack})
 			if !ok {
@@ -449,6 +658,8 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 					s.closeUpgradeModal()
 				case showModal:
 					s.closeModal()
+				case snap.showIndexing:
+					s.closeIndexingWait()
 				default:
 					s.showMenu = false
 				}
@@ -474,18 +685,23 @@ func (s *DashboardScreen) Layout(gtx layout.Context, th *material.Theme) layout.
 		)
 	})
 
-	open := snap.showUpgrade || showModal
+	open := snap.showUpgrade || showModal || snap.showIndexing
 	s.overlay.step(gtx, open)
 	switch {
 	case snap.showUpgrade:
 		s.overlayKind = 2
+	case snap.showIndexing:
+		s.overlayKind = 3
 	case showModal:
 		s.overlayKind = 1
 	}
 	if s.overlay.visible() {
 		dialog := s.modal(th, creating, formErr)
-		if s.overlayKind == 2 {
+		switch s.overlayKind {
+		case 2:
 			dialog = UpgradeModal(th, snap.upgradeMsg, &s.upgradeBtn, &s.upgradeCancel, snap.checkingOut, snap.checkoutErr)
+		case 3:
+			dialog = IndexingModal(th, snap.indexMsg, snap.indexDone, snap.indexTotal, snap.indexErr, &s.indexCloseBtn, &s.indexProfileBtn)
 		}
 		return layout.Stack{}.Layout(gtx,
 			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
@@ -588,32 +804,31 @@ func centerY(gtx layout.Context, h int, w layout.Widget) layout.Dimensions {
 
 // drawer is the dimmed scrim plus the menu panel sliding in from the right.
 func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
-	row := func(btn *widget.Clickable, icon bool, label string, col color.NRGBA) layout.Widget {
+	// row draws a drawer button: icon (Profile/GitHub/Logout - see
+	// mobile/assets/{profile,github,logout}.png) beside its label.
+	row := func(btn *widget.Clickable, icon *paint.ImageOp, label string, col color.NRGBA) layout.Widget {
 		return func(gtx layout.Context) layout.Dimensions {
 			return layout.Inset{Top: unit.Dp(4), Bottom: unit.Dp(4)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				gtx.Constraints.Min.X = gtx.Constraints.Max.X
-				h := gtx.Dp(unit.Dp(56))
+				h := gtx.Dp(unit.Dp(52))
 				return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					sz := image.Pt(gtx.Constraints.Max.X, h)
 					borderedRRect(gtx, sz, unit.Dp(16), authField, authFieldBorder)
 					pressOverlay(gtx, btn, sz, gtx.Dp(unit.Dp(16)), pressLight)
-					return layout.Inset{Left: unit.Dp(16), Right: unit.Dp(16)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Inset{Left: unit.Dp(14), Right: unit.Dp(14)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						centerY(gtx, h, func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									if !icon {
-										return layout.Dimensions{}
-									}
-									d := gtx.Dp(unit.Dp(24))
-									if githubOp != nil {
+									d := gtx.Dp(unit.Dp(20))
+									if icon != nil {
 										g := gtx
 										g.Constraints.Min, g.Constraints.Max = image.Pt(d, d), image.Pt(d, d)
-										widget.Image{Src: *githubOp, Fit: widget.Contain, Position: layout.Center}.Layout(g)
+										widget.Image{Src: *icon, Fit: widget.Contain, Position: layout.Center}.Layout(g)
 									}
-									return layout.Dimensions{Size: image.Pt(d+gtx.Dp(unit.Dp(14)), d)}
+									return layout.Dimensions{Size: image.Pt(d+gtx.Dp(unit.Dp(10)), d)}
 								}),
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									l := material.Label(th, unit.Sp(17), label)
+									l := material.Label(th, unit.Sp(15), label)
 									l.Color = col
 									l.Font.Weight = font.Bold
 									return l.Layout(gtx)
@@ -632,8 +847,8 @@ func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
 		gtx.Constraints.Min = size
 		e := s.menuProg * s.menuProg * (3 - 2*s.menuProg) // smoothstep
 
-		dw := gtx.Dp(unit.Dp(280))
-		if lim := size.X * 80 / 100; dw > lim {
+		dw := gtx.Dp(unit.Dp(220))
+		if lim := size.X * 72 / 100; dw > lim {
 			dw = lim
 		}
 
@@ -656,8 +871,11 @@ func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
 			layout.Inset{Left: unit.Dp(20), Right: unit.Dp(20), Top: unit.Dp(72) + sysInsets.Top}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(greeting(th, s.snapshot().email)),
-					layout.Rigid(row(&s.menuGithub, true, "GitHub", authTitle)),
-					layout.Rigid(row(&s.logoutBtn, false, "Logout", colorError)),
+					layout.Rigid(row(&s.menuProfile, profileOp, "Profile", authTitle)),
+					layout.Rigid(row(&s.menuManual, manualOp, "Manual", authTitle)),
+					layout.Rigid(row(&s.menuWeb, webOp, "Web", authTitle)),
+					layout.Rigid(row(&s.menuGithub, githubOp, "GitHub", authTitle)),
+					layout.Rigid(row(&s.logoutBtn, logoutOp, "Logout", colorError)),
 				)
 			})
 			return layout.Dimensions{Size: gtx.Constraints.Max}
@@ -845,18 +1063,27 @@ func (s *DashboardScreen) modal(th *material.Theme, creating bool, formErr strin
 
 var greetingYellow = color.NRGBA{R: 0xfa, G: 0xcc, B: 0x15, A: 0xff}
 
-// greeting renders "Hi <Name>" from the logged-in user's email (the part
-// before "@", first letter capitalised). It draws nothing when the email
-// is unknown.
+// nameFromEmail extracts the display name shown by greeting() and
+// ProfileScreen's title (the part of the email before "@", first
+// letter capitalised). Returns "" when the email is unknown.
+func nameFromEmail(email string) string {
+	name, _, _ := strings.Cut(strings.TrimSpace(email), "@")
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return ""
+	}
+	r := []rune(name)
+	return strings.ToUpper(string(r[0])) + string(r[1:])
+}
+
+// greeting renders "Hi <Name>" from the logged-in user's email. It
+// draws nothing when the email is unknown.
 func greeting(th *material.Theme, email string) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
-		name, _, _ := strings.Cut(strings.TrimSpace(email), "@")
-		name = strings.TrimSpace(name)
+		name := nameFromEmail(email)
 		if name == "" {
 			return layout.Dimensions{}
 		}
-		r := []rune(name)
-		name = strings.ToUpper(string(r[0])) + string(r[1:])
 		return layout.Inset{Left: unit.Dp(4), Bottom: unit.Dp(16)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			part := func(txt string, col color.NRGBA, truncate bool) layout.Widget {
 				return func(gtx layout.Context) layout.Dimensions {
@@ -906,6 +1133,11 @@ func (s *DashboardScreen) reset() {
 	s.upgradeMsg = ""
 	s.checkingOut = false
 	s.checkoutErr = ""
+	s.indexSeq++ // invalidates any poll loop still running for the old account
+	s.showIndexing = false
+	s.indexMsg = ""
+	s.indexErr = ""
+	s.indexDone, s.indexTotal = 0, 0
 	s.uiReset = true
 	s.mu.Unlock()
 }
