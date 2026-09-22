@@ -232,14 +232,6 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 
 ---
 
-## ◈ Android Release
-
-| Version | Platform | Download |
-|---|---|---|
-| v1.3.0 | Android | **[ChatWithRepo.apk](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.3.0)** |
-
----
-
 <div align="center">
 
 Built by [anikchand461](https://github.com/anikchand461)
