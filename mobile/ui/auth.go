@@ -515,11 +515,11 @@ const repoURL = "https://github.com/shreyaghorui222004/chat-with-repo"
 // manualURL is opened when the Dashboard drawer's "Manual" row is
 // tapped - the same manual.html served by the web frontend, so editing
 // that page's content updates both clients with no mobile rebuild.
-const manualURL = "http://localhost:5500/manual.html"
+const manualURL = "https://chatwithrepo-nine.vercel.app/manual.html"
 
 // webURL is opened when the Dashboard drawer's "Web" row is tapped -
 // the site's landing page, for switching over to the full web version.
-const webURL = "http://localhost:5500/"
+const webURL = "https://chatwithrepo-nine.vercel.app/"
 
 // AuthGitHubButton is the round, clickable GitHub badge at the bottom of
 // the card. It draws assets/github.png and opens the repository in the
