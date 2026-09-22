@@ -58,6 +58,18 @@ func run(w *app.Window) error {
 	if b, err := assets.ReadFile("assets/github.png"); err == nil {
 		ui.SetGitHubIcon(b)
 	}
+	if b, err := assets.ReadFile("assets/profile.png"); err == nil {
+		ui.SetProfileIcon(b)
+	}
+	if b, err := assets.ReadFile("assets/logout.png"); err == nil {
+		ui.SetLogoutIcon(b)
+	}
+	if b, err := assets.ReadFile("assets/manual.png"); err == nil {
+		ui.SetManualIcon(b)
+	}
+	if b, err := assets.ReadFile("assets/web.png"); err == nil {
+		ui.SetWebIcon(b)
+	}
 	a := ui.NewApp(w, baseURL)
 	a.Bootstrap()
 

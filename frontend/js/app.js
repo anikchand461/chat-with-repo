@@ -15,6 +15,7 @@ if (
   page !== "login.html" &&
   page !== "register.html" &&
   page !== "index.html" &&
+  page !== "manual.html" &&
   page !== ""
 ) {
   location.href = "login.html";
