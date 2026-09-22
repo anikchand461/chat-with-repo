@@ -135,21 +135,36 @@ DODO_BASE_URL=https://test.dodopayments.com
 DATABASE_URL=postgresql+psycopg://neondb_owner:YOUR_PASSWORD@ep-cool-heart-azo2wz85-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
 
 # Optional
-GITHUB_TOKEN=github_token      # server-wide fallback; raises the GitHub API limit from 60 to 5000/hour
-DATA_DIR=/path/to/data         # where downloaded repos are stored (default: <project>/data)
-CHROMA_DIR=/path/to/chroma_db  # where vector indexes are stored (default: <project>/chroma_db)
+# GITHUB_TOKEN=github_token     # server-wide fallback, applied to every user who hasn't saved their
+                                 # own token. Intentionally left unset by default: without it, indexing
+                                 # a repo requires each user to save their own token on the Profile page
+                                 # first (see POST /auth/github-token) - GitHub's public API allows only
+                                 # 60 requests/hour, not enough for most repos. Only set this if you want
+                                 # every user to get a working default without configuring anything.
+DATA_DIR=/path/to/data         # where downloaded repos (raw JSON) are stored (default: <project>/data)
+QDRANT_URL=https://your-cluster-id.region.aws.cloud.qdrant.io  # Qdrant Cloud cluster endpoint
+QDRANT_API_KEY=qdrant_api_key  # Qdrant Cloud API key
 EMBED_TOKENS_PER_MINUTE=80000  # embedding pacing; set 0 with a production Cohere key
 ```
 
 > **Cohere trial keys** are limited to 40 calls and 100k embedding tokens per minute, so indexing a large repo takes a couple of minutes. A production key removes the limit.
 >
-> **Hosting note:** indexes live on disk. On hosts with a temporary disk (e.g. Render's free tier) they are rebuilt automatically after a redeploy; attach a persistent disk and point `DATA_DIR` / `CHROMA_DIR` at it to avoid that.
+> **Vector storage:** vector indexes live in Qdrant Cloud (`QDRANT_URL` / `QDRANT_API_KEY`), one collection per chat, so they survive backend restarts and redeploys.
+>
+> **Hosting note:** the raw repo JSON (`DATA_DIR`) still lives on local disk. On hosts with a temporary disk (e.g. Render's free tier), that file is lost on every spin-down, which triggers a GitHub re-fetch (but *not* a re-embed — the existing Qdrant vectors are reused) on the next question. Point `DATA_DIR` at a persistent disk to avoid even that.
 
 **Step 3 — Run the backend**
 
 ```bash
-uv run uvicorn backend.app:app --reload
+uv run uvicorn backend.app:app --reload --reload-dir backend
 ```
+
+`--reload-dir backend` matters: without it, `--reload` watches the whole
+project root by default, including `data/` and `chroma_db/` - both of which
+the app itself writes to while indexing a repo. That triggers uvicorn to
+restart mid-request (dropping whatever was in flight, e.g. a "network error"
+on `/chat/create` a few seconds in) every time indexing writes a file.
+Scoping the watch to `backend/` (the only place source code lives) fixes it.
 
 API comes up at `http://127.0.0.1:8000` — docs at `/docs`.
 

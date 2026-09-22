@@ -1,6 +1,33 @@
+from datetime import datetime, timezone
+
 import requests
 from copy import deepcopy
 from backend.config import BASE_URL, HEADERS, GITHUB_TOKEN
+
+def _rate_limit_reset_text(response):
+    """
+    GitHub sends the exact reset time as a Unix timestamp in
+    X-RateLimit-Reset - unauthenticated limits are a rolling 60/hour
+    window, not a fixed clock hour, so this is the only reliable way to
+    know when it actually opens back up. Falls back to generic wording if
+    the header is missing for some reason.
+    """
+
+    reset_header = response.headers.get("X-RateLimit-Reset")
+
+    if not reset_header:
+        return "(usually within an hour)"
+
+    try:
+        reset_at = datetime.fromtimestamp(int(reset_header), tz=timezone.utc)
+    except (TypeError, ValueError):
+        return "(usually within an hour)"
+
+    minutes = max(0, round((reset_at - datetime.now(timezone.utc)).total_seconds() / 60))
+    local_time = reset_at.astimezone().strftime("%-I:%M %p")
+
+    return f"(resets at {local_time}, in about {minutes} min)"
+
 
 def github_get(endpoint, params=None, github_token=None):
     headers = deepcopy(HEADERS)
@@ -32,7 +59,8 @@ def github_get(endpoint, params=None, github_token=None):
     ):
         raise Exception(
             "GitHub API rate limit reached. Add a GitHub token in your profile "
-            "(or set GITHUB_TOKEN on the server) and try again later."
+            "(or set GITHUB_TOKEN on the server) and try again later "
+            f"{_rate_limit_reset_text(response)}."
         )
 
     response.raise_for_status()

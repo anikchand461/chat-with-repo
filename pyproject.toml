@@ -5,5 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "langchain-core>=1.5.1",
+    # langchain-google-genai requires langchain-core>=1.6.1 (needs ModelAPIError,
+    # added there); pin the floor here so `uv run`'s auto-sync can't drop back
+    # to an older, incompatible langchain-core.
+    "langchain-core>=1.6.1,<2.0.0",
 ]
