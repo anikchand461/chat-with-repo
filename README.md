@@ -95,16 +95,6 @@ Chat With Repo also has a native Android application built with **Go + Gio**.
 
 The Android app acts as a mobile client for the existing Chat With Repo backend. The mobile UI communicates with the deployed backend through API endpoints, keeping the mobile frontend and backend separate.
 
-<div align="center">
-<img src="frontend/assets/phone_images/login.png" width="230"/>
-<img src="frontend/assets/phone_images/dashboard.png" width="230"/>
-<img src="frontend/assets/phone_images/create_repo.png" width="230"/>
-<br/>
-<img src="frontend/assets/phone_images/dashboard_hamburger.png" width="230"/>
-<img src="frontend/assets/phone_images/chat-hamburger.png" width="230"/>
-<img src="frontend/assets/phone_images/profile.png" width="230"/>
-</div>
-
 ### Mobile Features
 
 - Login and registration
