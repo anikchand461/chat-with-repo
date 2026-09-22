@@ -5,7 +5,7 @@ from uuid import uuid4
 import traceback
 from datetime import date, datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -33,9 +33,63 @@ class AskRequest(BaseModel):
     question: str
 
 
+def _index_new_chat(chat_id, owner, repo, branch, github_token, collection_name, user_id, is_free):
+    """
+    Runs in the background after /chat/create returns, so the request
+    doesn't block for however long indexing takes. Progress is published
+    to rag.progress for the frontend to poll via /chat/{id}/index-status.
+    """
+
+    from backend.api.routes import analyze_branch
+    from backend.rag.pipeline import get_pipeline
+    from backend.rag import progress
+
+    def on_stage(stage, detail=None, done=None, total=None):
+        progress.set_stage(chat_id, stage, detail, done=done, total=total)
+
+    try:
+        on_stage("fetching")
+
+        analyze_branch(
+            owner,
+            repo,
+            branch,
+            github_token=github_token,
+        )
+
+        json_path = DATA_DIR / f"{owner}_{repo}_{branch}.json"
+
+        rag = get_pipeline(
+            str(json_path),
+            collection_name,
+            str(CHROMA_DIR / "chats" / collection_name.split("_", 2)[-1]),
+        )
+
+        # Same lock ensure_index() uses (the /ask fallback path) - belt and
+        # suspenders alongside progress.claim() above, so build_index() can
+        # never run twice concurrently for the same pipeline no matter which
+        # path triggered it.
+        with rag._index_lock:
+            rag.build_index(on_stage=on_stage)
+
+        progress.set_ready(chat_id)
+
+        if is_free:
+            with SessionLocal() as session:
+                user = session.query(User).filter(User.id == user_id).first()
+                if user:
+                    user.used_repo_count += 1
+                    session.commit()
+
+    except Exception as e:
+        traceback.print_exc()
+        progress.set_error(chat_id, str(e))
+
+
 @router.post("/create", status_code=201)
 def create_chat(
     req: CreateChatRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -56,6 +110,8 @@ def create_chat(
     print("TOKEN ON USER:", bool(current_user.github_token))
     print("=" * 50)
 
+    from backend.rag import progress
+
     # Same owner/repo/branch → reopen existing chat (does not use a new slot)
     existing_chat = (
         db.query(Chat)
@@ -69,8 +125,84 @@ def create_chat(
     )
 
     if existing_chat:
-        if current_user.plan == "FREE":
+        # If a background index for this chat is already running (e.g. the
+        # user re-clicked "create" after a dropped connection, while the
+        # first attempt is still indexing in the background), don't decide
+        # readiness from a live vector count - vector_store.count() > 0
+        # goes true after the very first batch, long before indexing is
+        # actually done, which would wrongly fast-path into an incomplete
+        # chat. Defer to the tracked job's real status instead, and don't
+        # start a second, redundant indexing run on top of it.
+        if progress.is_tracked(existing_chat.id):
+            tracked = progress.get(existing_chat.id)
+
+            if tracked["status"] == "ready":
+                base = {
+                    "chat_id": existing_chat.id,
+                    "title": existing_chat.title,
+                    "owner": existing_chat.owner,
+                    "repo": existing_chat.repo,
+                    "branch": existing_chat.branch,
+                    "already_indexed": True,
+                }
+                if current_user.plan != "FREE":
+                    base["can_reindex"] = True
+                return base
+
+            if tracked["status"] == "error":
+                # A previous attempt finished (failed) - e.g. it hit
+                # GitHub's rate limit before a token was configured. This is
+                # the user coming back to retry, most likely with a token
+                # saved now, so actually retry rather than replaying the
+                # same stale error forever. claim() is still atomic, so if
+                # something else claims it in the same instant, this backs
+                # off instead of scheduling a duplicate job.
+                if progress.claim(existing_chat.id):
+                    background_tasks.add_task(
+                        _index_new_chat,
+                        existing_chat.id,
+                        existing_chat.owner,
+                        existing_chat.repo,
+                        existing_chat.branch,
+                        current_user.github_token,
+                        existing_chat.collection_name,
+                        current_user.id,
+                        False,
+                    )
+                return {
+                    "chat_id": existing_chat.id,
+                    "title": existing_chat.title,
+                    "owner": existing_chat.owner,
+                    "repo": existing_chat.repo,
+                    "branch": existing_chat.branch,
+                    "indexing": True,
+                }
+
+            # Still actively working - report status without scheduling a
+            # second job on top of it.
             return {
+                "chat_id": existing_chat.id,
+                "title": existing_chat.title,
+                "owner": existing_chat.owner,
+                "repo": existing_chat.repo,
+                "branch": existing_chat.branch,
+                "indexing": True,
+            }
+
+        from backend.rag.pipeline import get_pipeline
+
+        rag = get_pipeline(
+            str(DATA_DIR / f"{existing_chat.owner}_{existing_chat.repo}_{existing_chat.branch}.json"),
+            existing_chat.collection_name,
+            str(CHROMA_DIR / "chats" / existing_chat.collection_name.split("_", 2)[-1]),
+        )
+
+        if rag.is_indexed():
+            # Nothing tracked this chat in this process, and it genuinely
+            # has vectors - treat as ready. (Still imperfect for a chat that
+            # was left half-indexed by a crash in an *earlier* process, since
+            # there's no durable "fully indexed" marker - see is_indexed().)
+            base = {
                 "chat_id": existing_chat.id,
                 "title": existing_chat.title,
                 "owner": existing_chat.owner,
@@ -78,6 +210,35 @@ def create_chat(
                 "branch": existing_chat.branch,
                 "already_indexed": True,
             }
+            if current_user.plan != "FREE":
+                base["can_reindex"] = True
+            return base
+
+        # The chat exists but its index doesn't (e.g. the vector store was
+        # cleared, or a previous indexing attempt failed) - (re)index it the
+        # same way as a brand new chat, so the frontend shows the same
+        # progress panel and only opens the chat once it's actually ready.
+        #
+        # claim() is atomic - if a concurrent request (e.g. this same form's
+        # own automatic retry, racing a first attempt that's still in
+        # flight) already claimed this chat between the is_tracked() check
+        # above and here, this returns False and we must NOT schedule a
+        # second job. Two background jobs rebuilding the same Qdrant
+        # collection at once is exactly what caused the write timeouts /
+        # crash seen indexing chat-with-repo (2752 chunks, two upsert
+        # streams hammering the same free-tier cluster).
+        if progress.claim(existing_chat.id):
+            background_tasks.add_task(
+                _index_new_chat,
+                existing_chat.id,
+                existing_chat.owner,
+                existing_chat.repo,
+                existing_chat.branch,
+                current_user.github_token,
+                existing_chat.collection_name,
+                current_user.id,
+                False,  # reopening an existing chat never uses a new FREE slot
+            )
 
         return {
             "chat_id": existing_chat.id,
@@ -85,8 +246,7 @@ def create_chat(
             "owner": existing_chat.owner,
             "repo": existing_chat.repo,
             "branch": existing_chat.branch,
-            "already_indexed": True,
-            "can_reindex": True,
+            "indexing": True,
         }
 
     # FREE: hard max of 2 chats total
@@ -142,35 +302,21 @@ You can ask me things like:
     )
     db.commit()
 
-    try:
-        from backend.api.routes import analyze_branch
-        from backend.rag.pipeline import RAGPipeline
-
-        analyze_branch(
+    # chat.id is a brand new row nobody else knows about yet, so claim()
+    # will always succeed here - used for consistency with the other two
+    # scheduling sites, which do rely on it being atomic.
+    if progress.claim(chat.id):
+        background_tasks.add_task(
+            _index_new_chat,
+            chat.id,
             req.owner,
             req.repo,
             branch,
-            github_token=current_user.github_token,
+            current_user.github_token,
+            collection_name,
+            current_user.id,
+            current_user.plan == "FREE",
         )
-
-        json_path = DATA_DIR / f"{req.owner}_{req.repo}_{branch}.json"
-
-        rag = RAGPipeline(
-            str(json_path),
-            collection_name=collection_name,
-            persist_directory=str(CHROMA_DIR / "chats" / chat_key),
-        )
-        rag.build_index()
-
-        if current_user.plan == "FREE":
-            current_user.used_repo_count += 1
-            db.commit()
-
-    except Exception as e:
-        traceback.print_exc()
-        db.delete(chat)
-        db.commit()
-        raise HTTPException(status_code=500, detail=str(e))
 
     return {
         "chat_id": chat.id,
@@ -179,7 +325,74 @@ You can ask me things like:
         "repo": chat.repo,
         "branch": chat.branch,
         "collection_name": collection_name,
+        "indexing": True,
     }
+
+
+@router.get("/{chat_id}/index-status")
+def index_status(
+    chat_id: int,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    chat = (
+        db.query(Chat)
+        .filter(Chat.id == chat_id, Chat.user_id == current_user.id)
+        .first()
+    )
+
+    if not chat:
+        raise HTTPException(404, "Chat not found")
+
+    from backend.rag import progress
+
+    tracked = progress.get(chat_id) if progress.is_tracked(chat_id) else None
+
+    # IMPORTANT: this is a passive GET, polled automatically every ~1.5s by
+    # the dashboard while a chat is indexing, plus once by chat.html's own
+    # guard. It must never *retry* a failed job on its own - claim() would
+    # immediately overwrite "error" back to "working" before the response
+    # below even reads it, so the caller would never actually observe the
+    # error at all. With no token configured, every auto-retry fails almost
+    # instantly on the first GitHub call, so the very next poll (1.5s later,
+    # sometimes sooner) would see "error" and retry again - forever, with
+    # the error never surfacing. (This used to live here; it was the actual
+    # cause of the indexing spinner that never stopped.) A failed chat is
+    # only ever retried by a deliberate action - see chat.html's guard,
+    # which calls POST /chat/create once when it sees "error" - not by
+    # simply checking status.
+    if tracked is None:
+        # Nothing in this process has indexed (or attempted to index) this
+        # chat yet - e.g. it's from an earlier server run, or its vectors
+        # were cleared. Check for real, and self-heal if it's not actually
+        # ready, instead of reporting a stale "ready" and only discovering
+        # the problem later when a question gets asked inside the chat page.
+        from backend.rag.pipeline import get_pipeline
+
+        rag = get_pipeline(
+            str(DATA_DIR / f"{chat.owner}_{chat.repo}_{chat.branch}.json"),
+            chat.collection_name,
+            str(CHROMA_DIR / "chats" / chat.collection_name.split("_", 2)[-1]),
+        )
+
+        if not rag.is_indexed() and progress.claim(chat_id):
+            # claim() is atomic - guards against a concurrent poll (or the
+            # create-modal's own retry) racing this same self-heal check
+            # and scheduling a second indexing job for the same chat.
+            background_tasks.add_task(
+                _index_new_chat,
+                chat.id,
+                chat.owner,
+                chat.repo,
+                chat.branch,
+                current_user.github_token,
+                chat.collection_name,
+                current_user.id,
+                False,
+            )
+
+    return progress.get(chat_id)
 
 
 @router.get("/list")
@@ -251,6 +464,7 @@ def _prepare_ask(chat_id: int, current_user: User, db: Session):
         }
 
     from backend.rag.pipeline import get_pipeline
+    from backend.rag import progress
 
     rag = get_pipeline(
         str(DATA_DIR / f"{chat.owner}_{chat.repo}_{chat.branch}.json"),
@@ -268,10 +482,19 @@ def _prepare_ask(chat_id: int, current_user: User, db: Session):
             github_token=current_user.github_token,
         )
 
+    # Same short predefined stages as chat creation (rag.progress.STAGES),
+    # so the frontend can show the same "indexing X/Y" message here too -
+    # this path runs whenever a chat's index needs rebuilding after the
+    # chat already exists (e.g. the vector store was cleared).
+    def on_stage(stage, detail=None, done=None, total=None):
+        progress.set_stage(chat_id, stage, detail, done=done, total=total)
+
     try:
-        rag.ensure_index(fetch_repository)
+        rag.ensure_index(fetch_repository, on_stage=on_stage)
+        progress.set_ready(chat_id)
     except Exception as e:
         traceback.print_exc()
+        progress.set_error(chat_id, str(e))
         raise HTTPException(
             status_code=500,
             detail=f"Could not prepare this repository for questions: {e}",

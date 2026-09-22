@@ -488,6 +488,9 @@
         0%, 60%, 100% { transform: none; opacity: 0.45; }
         30% { transform: translateY(-4px); opacity: 1; }
       }
+      /* Assistant message that points the user at adding a GitHub token */
+      .message.assistant.token-prompt p { margin: 0 0 10px; }
+      .message.assistant.token-prompt .button { margin: 4px 0 0; }
 
       .empty {
         margin: auto;
@@ -710,6 +713,6 @@
       });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="js/app.js?v=4"></script>
+    <script src="js/app.js?v=6"></script>
   </body>
 </html>

@@ -1,7 +1,9 @@
 import os
 import time
 
-from langchain_chroma import Chroma
+from qdrant_client import QdrantClient
+from qdrant_client.http import models as qmodels
+from langchain_qdrant import QdrantVectorStore
 
 from rag.embedding import EmbeddingModel
 
@@ -11,7 +13,7 @@ class VectorStore:
     def __init__(
         self,
         repository_name: str,
-        persist_directory: str = "chroma_db",
+        persist_directory: str = "chroma_db",  # unused now; kept so existing callers don't need to change
         collection_name: str | None = None,
     ):
 
@@ -24,11 +26,45 @@ class VectorStore:
             .replace(" ", "_")
         )
 
-        self.db = Chroma(
-            collection_name=self.collection_name,
-            persist_directory=persist_directory,
-            embedding_function=self.embedding,
+        self.client = QdrantClient(
+            url=os.getenv("QDRANT_URL"),
+            api_key=os.getenv("QDRANT_API_KEY"),
         )
+
+        if not self.client.collection_exists(self.collection_name):
+            self._vector_size = len(self.embedding.embed_query("dimension probe"))
+            self._create_collection()
+        else:
+            info = self.client.get_collection(self.collection_name)
+            self._vector_size = info.config.params.vectors.size
+
+        self.db = QdrantVectorStore(
+            client=self.client,
+            collection_name=self.collection_name,
+            embedding=self.embedding,
+        )
+
+    def _create_collection(self):
+        self.client.create_collection(
+            collection_name=self.collection_name,
+            vectors_config=qmodels.VectorParams(
+                size=self._vector_size,
+                distance=qmodels.Distance.COSINE,
+            ),
+        )
+
+    def count(self):
+        """
+        Number of vectors currently stored for this repository's collection.
+        """
+
+        try:
+            return self.client.count(
+                collection_name=self.collection_name,
+                exact=True,
+            ).count
+        except Exception:
+            return 0
 
     def clear(self):
         """
@@ -36,11 +72,8 @@ class VectorStore:
         """
 
         try:
-            ids = self.db.get()["ids"]
-
-            if ids:
-                self.db.delete(ids=ids)
-
+            self.client.delete_collection(self.collection_name)
+            self._create_collection()
         except Exception:
             pass
 
@@ -53,11 +86,14 @@ class VectorStore:
     RATE_LIMIT_WAIT = 20   # seconds to wait after a 429 before retrying
     MAX_ATTEMPTS = 6
 
-    def add_documents(self, documents):
+    def add_documents(self, documents, on_progress=None):
         """
         Embed and store documents in small batches. Embedding APIs rate-limit
         (Cohere trial keys allow 40 calls/minute), so pace the calls and wait
         out 429s instead of failing the whole indexing run.
+
+        `on_progress(done, total)`, if given, is called after each batch -
+        used to surface a short "indexing X/Y" status to the frontend.
         """
 
         total = len(documents)
@@ -70,18 +106,36 @@ class VectorStore:
                     self.db.add_documents(batch)
                     break
                 except Exception as e:
-                    rate_limited = "429" in str(e) or "TooManyRequests" in type(e).__name__
+                    # Retry both Cohere rate limits (429) and transient
+                    # network/timeout errors talking to Qdrant (e.g.
+                    # httpx.WriteTimeout wrapped in
+                    # qdrant_client.http.exceptions.ResponseHandlingException,
+                    # seen upserting to the free-tier cluster under load) -
+                    # a single hiccup shouldn't fail the whole indexing run.
+                    msg = str(e).lower()
+                    err_type = type(e).__name__
+                    transient = (
+                        "429" in str(e)
+                        or "TooManyRequests" in err_type
+                        or "timed out" in msg
+                        or "timeout" in err_type.lower()
+                        or "ResponseHandlingException" in err_type
+                    )
 
-                    if not rate_limited or attempt == self.MAX_ATTEMPTS:
+                    if not transient or attempt == self.MAX_ATTEMPTS:
                         raise
 
                     print(
-                        f"Embedding rate limited, waiting {self.RATE_LIMIT_WAIT}s "
+                        f"Batch upsert failed ({err_type}), waiting {self.RATE_LIMIT_WAIT}s "
                         f"(attempt {attempt}/{self.MAX_ATTEMPTS})..."
                     )
                     time.sleep(self.RATE_LIMIT_WAIT)
 
-            print(f"Indexed {min(start + self.BATCH_SIZE, total)}/{total} chunks")
+            done = min(start + self.BATCH_SIZE, total)
+            print(f"Indexed {done}/{total} chunks")
+
+            if on_progress:
+                on_progress(done, total)
 
             if start + self.BATCH_SIZE < total:
                 pause = self.BATCH_PAUSE

@@ -46,32 +46,52 @@ class RAGPipeline:
 
     def is_indexed(self):
         """
-        True when the vector store has documents and the repo data file exists.
+        True when the vector store (Qdrant) already has vectors for this repo.
+        Independent of the local JSON cache, which can be lost separately
+        (e.g. an ephemeral host disk) without the vectors themselves going away.
         """
 
         try:
-            has_vectors = self.vector_store.db._collection.count() > 0
+            return self.vector_store.count() > 0
         except Exception:
-            has_vectors = False
+            return False
 
-        return has_vectors and Path(self.json_path).exists()
-
-    def ensure_index(self, fetch_repository):
+    def ensure_index(self, fetch_repository, on_stage=None):
         """
         Rebuild the index if it is missing or empty (e.g. the chat was created
-        on another machine or the local data was cleared). `fetch_repository`
-        downloads the repo JSON and is only called when the file is missing.
+        on another machine or the vector store was cleared). `fetch_repository`
+        downloads the repo JSON. `on_stage(stage, detail=None)`, if given, is
+        called with short progress updates (see rag.progress.STAGES).
+
+        The vectors (Qdrant) and the local repo JSON cache can go missing
+        independently, so they're handled separately:
+        - vectors missing -> full rebuild (fetch + chunk + re-embed).
+        - vectors present but the local JSON is gone -> just re-fetch the
+          JSON (needed for the repo overview sent with every question);
+          the existing vector index is left untouched, no re-embedding.
         """
 
         with self._index_lock:
+            json_exists = Path(self.json_path).exists()
+
             if self.is_indexed():
+                if not json_exists:
+                    try:
+                        if on_stage:
+                            on_stage("fetching")
+                        fetch_repository()
+                        self.overview, self.display_name = self._load_overview()
+                    except Exception as e:
+                        print(f"Could not re-fetch {self.repo_name} JSON cache: {e}")
                 return
 
-            if not Path(self.json_path).exists():
+            if not json_exists:
+                if on_stage:
+                    on_stage("fetching")
                 fetch_repository()
 
             print(f"Index for {self.repo_name} missing or empty - rebuilding...")
-            self.build_index()
+            self.build_index(on_stage=on_stage)
 
     def _load_overview(self):
         """
@@ -86,7 +106,7 @@ class RAGPipeline:
             print(f"Overview unavailable: {e}")
             return "", self.repo_name
 
-    def build_index(self):
+    def build_index(self, on_stage=None):
 
         data = self.loader.load()
 
@@ -96,8 +116,25 @@ class RAGPipeline:
 
         self.vector_store.clear()
 
+        def _report(done, total):
+            if on_stage:
+                on_stage(
+                    "indexing",
+                    f"Indexing the repository for search… ({done}/{total} chunks)",
+                    done=done,
+                    total=total,
+                )
+
+        if on_stage:
+            on_stage(
+                "indexing",
+                f"Indexing the repository for search… (0/{len(chunks)} chunks)",
+                done=0,
+                total=len(chunks),
+            )
+
         try:
-            self.vector_store.add_documents(chunks)
+            self.vector_store.add_documents(chunks, on_progress=_report)
         except Exception:
             # Never leave a half-built index behind; it would look complete.
             self.vector_store.clear()

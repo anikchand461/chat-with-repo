@@ -655,6 +655,12 @@
         border: 1px solid var(--line);
         box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
       }
+      /* .modal .card's own `display: flex` (2 class selectors) otherwise
+         beats the browser default `[hidden] { display: none }` rule (1
+         attribute selector) - without this, toggling `.hidden = true` on
+         #create-form / #index-progress via JS does nothing, and both cards
+         render stacked side by side at once. */
+      .modal .card[hidden] { display: none; }
       .modal h2 {
         margin: 0;
         font-family: "Plus Jakarta Sans", sans-serif;
@@ -702,6 +708,55 @@
       .modal .button:not(.secondary) {
         color: #052e16;
         background: linear-gradient(135deg, var(--brand-bright), var(--brand-dim));
+      }
+
+      /* ---- Index progress panel (shown in the create-chat modal) ---- */
+      .index-progress-body {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 0 2px;
+      }
+      .spinner-ring {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        border: 2.5px solid var(--line);
+        border-top-color: var(--brand);
+        border-radius: 50%;
+        animation: index-spin 0.8s linear infinite;
+      }
+      @keyframes index-spin { to { transform: rotate(360deg); } }
+      #index-progress-message {
+        margin: 0;
+        font-size: 14px;
+        color: var(--ink);
+      }
+      .progress-bar-wrap {
+        width: 100%;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--line);
+        overflow: hidden;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--brand-bright), var(--brand-dim));
+        transition: width 0.35s ease;
+      }
+      #index-progress-hint {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--ink-muted);
+        line-height: 1.5;
+      }
+      #index-progress-error-text {
+        margin: 0;
+        font-size: 13.5px;
+        color: var(--danger);
+        line-height: 1.5;
       }
 
       /* ---- Mobile ---- */
@@ -794,16 +849,16 @@
             <div class="badge">Repository intelligence</div>
             <h1>Your codebase,<br /><span class="accent">in conversation.</span></h1>
             <p>
-              Each chat indexes exactly one repository into its own Chroma collection
+              Each chat indexes exactly one repository into its own vector collection
               — ask questions, get answers grounded in real code.
             </p>
 
             <div id="github-warning" hidden class="warning">
-              <strong>⚠ GitHub Token Not Configured</strong>
+              <strong>⚠ GitHub Token Required</strong>
               <p>
-                ChatWithRepo works without a token, but GitHub’s public API has a lower rate limit.
-                Add your Personal Access Token from the
-                <a href="profile.html">Profile</a> page for better performance.
+                Without a token, GitHub's public API allows only 60 requests/hour — not
+                enough to index most repositories. Add your Personal Access Token from the
+                <a href="profile.html">Profile</a> page before creating a chat.
               </p>
             </div>
 
@@ -879,6 +934,25 @@
         <button class="button block" type="submit">Analyze and open chat</button>
         <button id="cancel" type="button" class="button secondary block">Cancel</button>
       </form>
+
+      <div id="index-progress" class="card" hidden>
+        <h2>Setting up your chat</h2>
+        <div class="index-progress-body">
+          <span class="spinner-ring"></span>
+          <p id="index-progress-message">Setting up your chat…</p>
+        </div>
+        <div id="index-progress-bar-wrap" class="progress-bar-wrap" hidden>
+          <div id="index-progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="index-progress-hint">This can take a minute for larger repositories — you'll jump into the chat automatically once it's ready.</p>
+
+        <div id="index-progress-error" hidden>
+          <p id="index-progress-error-text"></p>
+          <a id="index-progress-token-link" href="profile.html" class="button block" hidden>Go to profile → add a GitHub token</a>
+        </div>
+
+        <button type="button" id="index-progress-close" class="button secondary block" hidden>Close</button>
+      </div>
     </div>
 
     <!-- Upgrade modal -->
@@ -931,6 +1005,6 @@
         }
       });
     </script>
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=6"></script>
   </body>
 </html>
