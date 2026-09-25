@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io"
 	"net/url"
 	"strings"
 	"sync"
@@ -11,6 +12,7 @@ import (
 
 	"gioui.org/f32"
 	"gioui.org/font"
+	"gioui.org/io/clipboard"
 	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -48,6 +50,13 @@ type ChatScreen struct {
 	// (setSources), driving the "Searching the codebase…" reveal
 	// animation shown until the first token arrives - see messageList.
 	searchStart time.Time
+
+	// copyBtns[i]/copiedAt[i] back messages[i]'s "Copy" action - same
+	// per-message parallel-array pattern as sourceBtns, grown/resized
+	// alongside it in Layout. copiedAt[i] is when that message's button
+	// was last tapped (zero if never), driving the brief "Copied" swap.
+	copyBtns []widget.Clickable
+	copiedAt []time.Time
 
 	list     widget.List
 	question widget.Editor
@@ -100,6 +109,8 @@ func (s *ChatScreen) Open(chatID, title, branch string) {
 	s.messages = nil
 	s.sourceBtns = nil
 	s.searchStart = time.Time{}
+	s.copyBtns = nil
+	s.copiedAt = nil
 	s.streaming = false
 	s.errMsg = ""
 	s.loadingHist = true
@@ -451,6 +462,10 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	for len(s.sourceBtns) < len(snap.messages) {
 		s.sourceBtns = append(s.sourceBtns, nil)
 	}
+	for len(s.copyBtns) < len(snap.messages) {
+		s.copyBtns = append(s.copyBtns, widget.Clickable{})
+		s.copiedAt = append(s.copiedAt, time.Time{})
+	}
 	for i, m := range snap.messages {
 		if len(s.sourceBtns[i]) != len(m.Sources) {
 			s.sourceBtns[i] = make([]widget.Clickable, len(m.Sources))
@@ -461,6 +476,10 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 			}
 			url := githubFileURL(repoOwner, repoName, snap.branch, m.Sources[j])
 			go func(u string) { _ = openURL(u) }(url)
+		}
+		if m.Role == "assistant" && s.copyBtns[i].Clicked(gtx) {
+			gtx.Execute(clipboard.WriteCmd{Type: "application/text", Data: io.NopCloser(strings.NewReader(m.Content))})
+			s.copiedAt[i] = gtx.Now
 		}
 	}
 
@@ -498,7 +517,7 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	content := withInsets(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(s.topBar(th, snap.title, snap.branch)),
-			layout.Flexed(1, s.messageList(th, snap.messages, s.sourceBtns, snap.searchStart, snap.loadingHist, snap.asking && !snap.streaming)),
+			layout.Flexed(1, s.messageList(th, snap.messages, s.sourceBtns, s.copyBtns, s.copiedAt, snap.searchStart, snap.loadingHist, snap.asking && !snap.streaming)),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				if snap.errMsg == "" {
 					return layout.Dimensions{}
@@ -558,7 +577,7 @@ func (s *ChatScreen) topBar(th *material.Theme, title, branch string) layout.Wid
 	}
 }
 
-func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, sourceBtns [][]widget.Clickable, searchStart time.Time, loadingHist, typing bool) layout.Widget {
+func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, sourceBtns [][]widget.Clickable, copyBtns []widget.Clickable, copiedAt []time.Time, searchStart time.Time, loadingHist, typing bool) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
 		if loadingHist && len(messages) == 0 {
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -598,7 +617,16 @@ func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, sou
 				if i < len(sourceBtns) {
 					chips = sourceBtns[i]
 				}
-				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content, m.Meta, m.Sources, chips))
+				var copyBtn *widget.Clickable
+				var copied bool
+				if m.Role == "assistant" && i < len(copyBtns) {
+					copyBtn = &copyBtns[i]
+					if !copiedAt[i].IsZero() && gtx.Now.Sub(copiedAt[i]) < 1200*time.Millisecond {
+						copied = true
+						gtx.Execute(op.InvalidateCmd{}) // keep repainting until the "Copied" state expires
+					}
+				}
+				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content, m.Meta, m.Sources, chips, copyBtn, copied))
 			})
 		})
 	}
@@ -1008,6 +1036,8 @@ func (s *ChatScreen) reset() {
 	s.messages = nil
 	s.sourceBtns = nil
 	s.searchStart = time.Time{}
+	s.copyBtns = nil
+	s.copiedAt = nil
 	s.loadingHist = false
 	s.asking = false
 	s.streaming = false

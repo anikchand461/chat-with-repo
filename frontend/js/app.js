@@ -1,4 +1,4 @@
-const API = "https://chat-with-repo-4vwy.onrender.com";
+// const API = "https://chat-with-repo-4vwy.onrender.com";
 // const API = "http://127.0.0.1:8000"; // local testing only
 
 // Change this to your repository (username/repo)
@@ -576,10 +576,10 @@ async function setupChat() {
       const node = addMessage(m.content, m.role, m.sources, current);
       if (m.role === "assistant" && m.response_seconds != null) {
         node.appendChild(
-          buildResponseMeta({
-            total: m.response_seconds,
-            first: m.first_word_seconds,
-          })
+          buildResponseMeta(
+            { total: m.response_seconds, first: m.first_word_seconds },
+            () => m.content
+          )
         );
       }
     });
@@ -775,7 +775,7 @@ async function streamAnswer(id, question, typing, startedAt, repoInfo) {
           first: firstTokenAt ? (firstTokenAt - startedAt) / 1000 : null,
           interrupted: Boolean(failed),
         };
-  node.appendChild(buildResponseMeta(info));
+  node.appendChild(buildResponseMeta(info, () => text));
   container.scrollTop = container.scrollHeight;
 }
 
@@ -783,8 +783,9 @@ function formatSeconds(sec) {
   return sec < 10 ? `${sec.toFixed(1)}s` : `${Math.round(sec)}s`;
 }
 
-// Footer shown under an assistant answer: clock icon, total time, time to first word.
-function buildResponseMeta(info) {
+// Footer shown under an assistant answer: clock icon, total time, time to
+// first word, and (when getText is given) a "Copy" button at the end.
+function buildResponseMeta(info, getText) {
   if (typeof info === "string") info = { label: info };
 
   const meta = document.createElement("div");
@@ -803,7 +804,51 @@ function buildResponseMeta(info) {
   if (info.interrupted) parts.push("interrupted");
 
   meta.innerHTML = clock + parts.map((p) => `<span>${p}</span>`).join("");
+
+  if (getText) {
+    meta.appendChild(buildCopyButton(getText));
+  }
+
   return meta;
+}
+
+const COPY_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
+  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<rect x="9" y="9" width="12" height="12" rx="2"/>' +
+  '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
+const CHECK_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
+  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<polyline points="20 6 9 17 4 12"/></svg>';
+
+// "Copy" action appended to an assistant answer's footer, ChatGPT-style.
+// getText is a function (not a plain string) so a still-streaming answer's
+// button, built once the answer is done, always copies the final text.
+function buildCopyButton(getText) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "msg-copy-btn";
+  btn.setAttribute("aria-label", "Copy response");
+  btn.innerHTML = COPY_ICON_SVG + "<span>Copy</span>";
+
+  btn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(getText());
+    } catch (_) {
+      return;
+    }
+    btn.innerHTML = CHECK_ICON_SVG + "<span>Copied</span>";
+    btn.classList.add("copied");
+    clearTimeout(btn._resetTimer);
+    btn._resetTimer = setTimeout(() => {
+      btn.innerHTML = COPY_ICON_SVG + "<span>Copy</span>";
+      btn.classList.remove("copied");
+    }, 1400);
+  });
+
+  return btn;
 }
 
 function showTyping() {

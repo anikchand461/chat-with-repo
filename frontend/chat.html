@@ -456,6 +456,30 @@
       .response-meta b { font-weight: 600; color: var(--ink); }
       .response-meta span + span::before { content: "·"; margin-right: 6px; }
 
+      /* "Copy" action at the end of the response footer, ChatGPT-style */
+      .msg-copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+        padding: 4px 8px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--ink-soft);
+        font: inherit;
+        font-size: 12px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+      }
+      .msg-copy-btn svg { color: inherit; }
+      .msg-copy-btn:hover {
+        background: color-mix(in srgb, var(--brand-500) 12%, transparent);
+        color: var(--brand-600);
+      }
+      .msg-copy-btn.copied { color: var(--brand-600); }
+
       @keyframes msg-in {
         from { opacity: 0; transform: translateY(6px); }
         to   { opacity: 1; transform: none; }
@@ -831,6 +855,6 @@
       });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="js/app.js?v=13"></script>
+    <script src="js/app.js?v=14"></script>
   </body>
 </html>
