@@ -1,12 +1,16 @@
 import re
 
+from rag import smalltalk
+
 
 class QueryClassifier:
     """
     Cheap heuristic classifier (no LLM round trip).
 
-    Returns "analysis" for broad / architectural questions and "lookup"
-    for short, targeted ones.
+    Returns "smalltalk" for greetings/thanks/farewells/"who are you"
+    questions (see rag.smalltalk - exact match only), "analysis" for
+    broad / architectural questions, and "lookup" for short, targeted
+    ones.
     """
 
     ANALYSIS_KEYWORDS = (
@@ -52,6 +56,9 @@ class QueryClassifier:
     LONG_QUESTION_WORDS = 18
 
     def classify(self, question):
+        if smalltalk.detect(question) is not None:
+            return "smalltalk"
+
         text = question.lower().strip()
 
         if any(keyword in text for keyword in self.LOOKUP_KEYWORDS):

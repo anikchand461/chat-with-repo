@@ -10,6 +10,14 @@ from rag.retriever import Retriever
 from rag.reranker import Reranker
 from rag.llm import LLM
 from rag.overview import RepositoryOverview
+from rag.exact_file import (
+    detect_file_query,
+    resolve_file,
+    format_found,
+    format_ambiguous,
+    format_not_found,
+)
+from rag import smalltalk
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -96,14 +104,25 @@ class RAGPipeline:
     def _load_overview(self):
         """
         Build the overview sent with every question (repo name, file tree,
-        README). Missing or unreadable data just means no overview.
+        README), and cache the raw file list (path + original content) used
+        for deterministic exact-file retrieval.
+
+        `self._files_loaded` distinguishes "the repo JSON hasn't been fetched
+        yet / failed to load" from "it loaded fine and this file just isn't
+        in it" - exact-file lookups must never report a file as missing
+        just because the fetch hasn't finished yet (see _exact_file_answer).
         """
 
         try:
-            overview = RepositoryOverview(self.loader.load())
+            data = self.loader.load()
+            overview = RepositoryOverview(data)
+            self._files = overview.files
+            self._files_loaded = True
             return overview.build(), overview.name or self.repo_name
         except Exception as e:
             print(f"Overview unavailable: {e}")
+            self._files = []
+            self._files_loaded = False
             return "", self.repo_name
 
     def build_index(self, on_stage=None):
@@ -199,7 +218,63 @@ class RAGPipeline:
             print(f"Multi Query Error: {e}")
             return [question]
 
+    def _exact_file_answer(self, question):
+        """
+        Deterministic path for "give me the full code of <file>" style
+        requests: served directly from the repository JSON's original file
+        content, bypassing embeddings/Qdrant/RRF/reranking/LLM generation
+        entirely. Returns None when `question` isn't an exact-file request,
+        in which case the caller should fall through to normal RAG.
+
+        If it IS a file request but the repo JSON hasn't loaded yet (e.g. a
+        background fetch is still in flight), this says so explicitly
+        rather than reporting the file as missing - self._files being empty
+        is not evidence the file doesn't exist, only that we can't check
+        yet.
+        """
+
+        candidate = detect_file_query(question)
+        if candidate is None:
+            return None
+
+        if not self._files_loaded:
+            return (
+                f"I can't check **{candidate}** yet - this repository's file "
+                "data is still loading. Please ask again in a few seconds."
+            )
+
+        result = resolve_file(self._files, candidate)
+
+        if result["status"] == "found":
+            return format_found(result["file"])
+        if result["status"] == "ambiguous":
+            return format_ambiguous(candidate, result["candidates"])
+        return format_not_found(candidate)
+
+    def _smalltalk_answer(self, question):
+        """
+        Deterministic path for greetings/thanks/farewells/"who are you"
+        style questions - exact-match only (rag.smalltalk), a random pick
+        among a few fixed response variants, no embeddings/RAG/LLM. Returns
+        None when `question` doesn't exactly match a known small-talk
+        phrase, in which case the caller falls through to normal RAG.
+        """
+
+        category = smalltalk.detect(question)
+        if category is None:
+            return None
+
+        return smalltalk.respond(category)
+
     def ask(self, question, history=None):
+
+        exact = self._exact_file_answer(question)
+        if exact is not None:
+            return exact
+
+        smalltalk_answer = self._smalltalk_answer(question)
+        if smalltalk_answer is not None:
+            return smalltalk_answer
 
         docs = self._retrieve_and_rerank(question)
 
@@ -220,7 +295,19 @@ class RAGPipeline:
     def ask_stream(self, question, history=None):
         """
         Same as ask(), but yields answer text as the LLM produces it.
+        Exact-file requests still short-circuit RAG/LLM entirely - the
+        whole formatted file is yielded as a single chunk.
         """
+
+        exact = self._exact_file_answer(question)
+        if exact is not None:
+            yield exact
+            return
+
+        smalltalk_answer = self._smalltalk_answer(question)
+        if smalltalk_answer is not None:
+            yield smalltalk_answer
+            return
 
         docs = self._retrieve_and_rerank(question)
 
