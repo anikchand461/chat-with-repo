@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     Date,
     Float,
+    JSON,
     inspect,
     text,
 )
@@ -80,6 +81,13 @@ class Message(Base):
     response_seconds = Column(Float, nullable=True)
     first_word_seconds = Column(Float, nullable=True)
 
+    # The real repository file paths retrieval used for this answer (assistant
+    # messages only, streamed answers only - see backend/api/chat.py's
+    # ask_stream). Persisted so the "which files" chips shown while an answer
+    # is live also show up consistently when the chat is reopened, on the
+    # same device or a different one - both read the same row.
+    sources = Column(JSON, nullable=True)
+
     chat = relationship("Chat")
 
 class DailyUsage(Base):
@@ -95,16 +103,22 @@ Base.metadata.create_all(bind=engine)
 
 def _add_missing_columns():
     """
-    create_all() never alters existing tables, so add the timing columns to
-    databases created before they existed.
+    create_all() never alters existing tables, so add columns introduced
+    after a database already existed here.
     """
 
     existing = {c["name"] for c in inspect(engine).get_columns("messages")}
 
+    columns_to_add = {
+        "response_seconds": "DOUBLE PRECISION",
+        "first_word_seconds": "DOUBLE PRECISION",
+        "sources": "JSON",
+    }
+
     with engine.begin() as conn:
-        for name in ("response_seconds", "first_word_seconds"):
+        for name, sql_type in columns_to_add.items():
             if name not in existing:
-                conn.execute(text(f"ALTER TABLE messages ADD COLUMN {name} DOUBLE PRECISION"))
+                conn.execute(text(f"ALTER TABLE messages ADD COLUMN {name} {sql_type}"))
 
 
 _add_missing_columns()

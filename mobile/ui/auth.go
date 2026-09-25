@@ -149,10 +149,10 @@ func authGap(dp int) layout.Widget {
 	}
 }
 
-// authScreen lays out the shared Login/Register chrome: gradient
-// background, logo + wordmark, and a rounded card containing body.
-// Nothing scrolls: everything is sized from the viewport so it fits.
-func authScreen(gtx layout.Context, th *material.Theme, title, subtitle string, body layout.Widget) layout.Dimensions {
+// authScreen lays out the shared Login/Register/Profile chrome: gradient
+// background, an optional logo + wordmark, and a rounded card containing
+// body. Nothing scrolls: everything is sized from the viewport so it fits.
+func authScreen(gtx layout.Context, th *material.Theme, showLogo bool, title, subtitle string, body layout.Widget) layout.Dimensions {
 	authS = authScale(gtx)
 	authBackground(gtx)
 	gtx.Constraints.Min = gtx.Constraints.Max
@@ -165,11 +165,17 @@ func authScreen(gtx layout.Context, th *material.Theme, title, subtitle string, 
 			}
 			gtx.Constraints.Min.X, gtx.Constraints.Max.X = maxW, maxW
 			gtx.Constraints.Min.Y = 0
-			return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
-				layout.Rigid(authLogo),
-				layout.Rigid(authGap(10)),
-				layout.Rigid(authWordmark(th)),
-				layout.Rigid(authGap(18)),
+
+			rows := []layout.FlexChild{}
+			if showLogo {
+				rows = append(rows,
+					layout.Rigid(authLogo),
+					layout.Rigid(authGap(10)),
+					layout.Rigid(authWordmark(th)),
+					layout.Rigid(authGap(18)),
+				)
+			}
+			rows = append(rows,
 				layout.Rigid(authCardWidget(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -189,6 +195,7 @@ func authScreen(gtx layout.Context, th *material.Theme, title, subtitle string, 
 					)
 				})),
 			)
+			return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx, rows...)
 		})
 	})
 }

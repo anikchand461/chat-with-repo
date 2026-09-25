@@ -569,9 +569,11 @@ async function setupChat() {
         '<div class="empty"><h2>Ask your repository</h2><p>Ask anything about the indexed codebase — architecture, files, functions or bugs.</p></div>';
     }
 
-    // Timings are stored on the server, so web and mobile show the same values.
+    // Timings (and now sources) are stored on the server, so web and mobile
+    // show the same values regardless of which client the question was
+    // originally asked from.
     messages.forEach((m) => {
-      const node = addMessage(m.content, m.role);
+      const node = addMessage(m.content, m.role, m.sources, current);
       if (m.role === "assistant" && m.response_seconds != null) {
         node.appendChild(
           buildResponseMeta({
@@ -1067,11 +1069,13 @@ function highlightCodeBlocks(scope) {
   });
 }
 
-function addMessage(text, role) {
+function addMessage(text, role, sources, repoInfo) {
   const node = document.createElement("div");
   node.className = `message ${role}`;
   node.innerHTML =
-    role === "user" ? `<p>${escapeHtml(text)}</p>` : renderMarkdown(text);
+    role === "user"
+      ? `<p>${escapeHtml(text)}</p>`
+      : sourcesRowHtml(sources, repoInfo) + renderMarkdown(text);
 
   highlightCodeBlocks(node);
 
