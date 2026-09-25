@@ -1,4 +1,4 @@
-// const API = "https://chat-with-repo-4vwy.onrender.com";
+const API = "https://chat-with-repo-4vwy.onrender.com";
 // const API = "http://127.0.0.1:8000"; // local testing only
 
 // Change this to your repository (username/repo)
