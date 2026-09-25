@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 from .repository_summary import RepositorySummary
-from .filters import is_noise_path
+from .filters import is_noise_path, is_repo_dump_json
 from langchain_core.documents import Document
 from bs4 import BeautifulSoup
 
@@ -54,6 +54,9 @@ class DocumentConverter:
 
             filename = Path(path).name
             extension = Path(path).suffix.lower()
+
+            if extension == ".json" and is_repo_dump_json(content):
+                continue
 
             # -----------------------------------------
             # README

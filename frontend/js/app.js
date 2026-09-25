@@ -1,5 +1,5 @@
-const API = "https://chat-with-repo-4vwy.onrender.com";
-// const API = "http://127.0.0.1:8000"; // local testing only
+// const API = "https://chat-with-repo-4vwy.onrender.com";
+const API = "http://127.0.0.1:8000"; // local testing only
 
 // Change this to your repository (username/repo)
 const GITHUB_REPO = "shreyaghorui222004/chat-with-repo";
@@ -602,7 +602,7 @@ async function setupChat() {
       const startedAt = performance.now();
 
       try {
-        await streamAnswer(id, q, typing, startedAt);
+        await streamAnswer(id, q, typing, startedAt, current);
       } catch (error) {
         typing.remove();
 
@@ -636,11 +636,30 @@ function addTokenPromptMessage(message) {
   return node;
 }
 
+// Assistant-style bubble used when a free-plan limit (daily questions or
+// repo count) is hit mid-chat. chat.html has no upgrade modal of its own
+// (only dashboard.html does), so this renders an inline button that starts
+// the same Dodo checkout flow directly instead of silently no-opping.
+function addUpgradePromptMessage(message) {
+  const node = document.createElement("div");
+  node.className = "message assistant token-prompt";
+  node.innerHTML = `
+    <p>⚠️ ${escapeHtml(message)}</p>
+    <button type="button" class="button">Upgrade to Pro</button>
+  `;
+  node.querySelector("button").addEventListener("click", startCheckout);
+
+  const container = document.querySelector("#messages");
+  container.appendChild(node);
+  container.scrollTop = container.scrollHeight;
+  return node;
+}
+
 // Streams /ask/stream (SSE), rendering tokens as they arrive.
 // Indexing waits happen on the dashboard page (setupChat() redirects there
 // if a chat isn't ready before this ever runs), so this assumes the index
 // is already built and doesn't show any indexing progress of its own.
-async function streamAnswer(id, question, typing, startedAt) {
+async function streamAnswer(id, question, typing, startedAt, repoInfo) {
   const response = await fetch(`${API}/chat/${id}/ask/stream`, {
     method: "POST",
     headers: {
@@ -660,11 +679,7 @@ async function streamAnswer(id, question, typing, startedAt) {
     if (!response.ok) throw Error(data.detail || "Request failed");
 
     if (data.upgrade_required) {
-      addMessage(
-        "⚠️ " + data.message + "\n\nUpgrade to Pro to continue chatting.",
-        "assistant"
-      );
-      showUpgradeModal(data.reason);
+      addUpgradePromptMessage(data.message);
     }
     return;
   }
@@ -674,6 +689,7 @@ async function streamAnswer(id, question, typing, startedAt) {
   node.className = "message assistant";
 
   let text = "";
+  let sources = [];
   let firstTokenAt = null;
   let started = false;
   let pending = false;
@@ -682,7 +698,7 @@ async function streamAnswer(id, question, typing, startedAt) {
 
   const render = () => {
     pending = false;
-    node.innerHTML = renderMarkdown(text);
+    node.innerHTML = sourcesRowHtml(sources, repoInfo) + renderMarkdown(text);
     container.scrollTop = container.scrollHeight;
   };
 
@@ -693,6 +709,11 @@ async function streamAnswer(id, question, typing, startedAt) {
     }
     if (payload.done) {
       serverTimes = { total: payload.total, first: payload.first };
+      return;
+    }
+    if (payload.sources) {
+      sources = payload.sources;
+      showSources(typing, payload.sources);
       return;
     }
     if (!payload.token) return;
@@ -793,6 +814,117 @@ function showTyping() {
   container.appendChild(node);
   container.scrollTop = container.scrollHeight;
   return node;
+}
+
+// Morphs the "typing" placeholder into a list of the files the answer's
+// context came from, revealed one at a time. It stays in place of the
+// typing dots until the first real answer token arrives, at which point
+// the caller's usual `typing.remove()` clears it away.
+function showSources(panel, files) {
+  if (!panel || !panel.isConnected || !files || !files.length) return;
+
+  panel.className = "sources-panel";
+  panel.setAttribute("aria-label", "Searching the codebase");
+  panel.innerHTML = `
+    <div class="sources-header"><i class="sources-dot"></i> Searching the codebase…</div>
+    <ul class="sources-list"></ul>
+  `;
+
+  const list = panel.querySelector(".sources-list");
+  const container = document.querySelector("#messages");
+
+  files.slice(0, 8).forEach((path, i) => {
+    const li = document.createElement("li");
+    li.textContent = path;
+    li.style.animationDelay = `${i * 90}ms`;
+    list.appendChild(li);
+  });
+
+  container.scrollTop = container.scrollHeight;
+}
+
+// Per-extension color for the small dot on each source chip - not exact
+// brand logos (no bundled/CDN icon set), just a recognizable color cue next
+// to the real filename. Full path is on hover via the native title tooltip.
+const SOURCE_COLORS = {
+  py: "#3776AB",
+  js: "#F7DF1E", mjs: "#F7DF1E", cjs: "#F7DF1E",
+  jsx: "#61DAFB",
+  ts: "#3178C6", tsx: "#3178C6",
+  go: "#00ADD8", mod: "#00ADD8", sum: "#00ADD8",
+  java: "#EA2D2E",
+  rb: "#CC342D",
+  php: "#777BB4",
+  c: "#5C6BC0", h: "#5C6BC0",
+  cpp: "#00599C", cc: "#00599C", hpp: "#00599C",
+  cs: "#9B4F96",
+  rs: "#DEA584",
+  kt: "#7F52FF",
+  swift: "#F05138",
+  scala: "#DC322F",
+  dart: "#0175C2",
+  vue: "#42B883",
+  svelte: "#FF3E00",
+  html: "#E34F26", htm: "#E34F26",
+  css: "#1572B6",
+  scss: "#CC6699", sass: "#CC6699",
+  json: "#8A8A8A",
+  yaml: "#CB171E", yml: "#CB171E",
+  toml: "#9C4221",
+  md: "#4A5568", mdx: "#4A5568",
+  sql: "#336791",
+  sh: "#4EAA25", bash: "#4EAA25",
+  dockerfile: "#2496ED",
+  xml: "#0060AC",
+  ini: "#6B7280", cfg: "#6B7280", txt: "#6B7280",
+};
+const DEFAULT_SOURCE_COLOR = "#6B7280";
+
+function fileExtension(path) {
+  const name = path.split("/").pop() || path;
+  const dot = name.lastIndexOf(".");
+  return dot > 0 ? name.slice(dot + 1).toLowerCase() : name.toLowerCase();
+}
+
+function fileBaseName(path) {
+  return path.split("/").pop() || path;
+}
+
+// github.com/{owner}/{repo}/blob/{branch}/{path}, each path segment (and
+// the branch) individually percent-encoded so filenames with spaces/etc.
+// still produce a valid URL. null when repoInfo isn't available (e.g. the
+// owner/repo/branch lookup failed) - callers fall back to a plain chip.
+function githubFileUrl(repoInfo, path) {
+  if (!repoInfo || !repoInfo.owner || !repoInfo.repo) return null;
+
+  const branch = encodeURIComponent(repoInfo.branch || "main");
+  const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+
+  return `https://github.com/${repoInfo.owner}/${repoInfo.repo}/blob/${branch}/${encodedPath}`;
+}
+
+// Row of small per-file chips shown at the top of a finished answer bubble
+// - the real filenames its context actually came from, in the order
+// retrieval ranked them, each with a language-colored dot, the full path on
+// hover, and (when repoInfo is known) a link to that file on GitHub.
+// Empty string (not just "") when there are none, so callers can safely
+// prepend it unconditionally.
+function sourcesRowHtml(files, repoInfo) {
+  if (!files || !files.length) return "";
+
+  const chips = files.slice(0, 8).map((path) => {
+    const color = SOURCE_COLORS[fileExtension(path)] || DEFAULT_SOURCE_COLOR;
+    const inner =
+      `<i class="source-dot" style="background:${color}"></i>` +
+      `${escapeHtml(fileBaseName(path))}`;
+    const url = githubFileUrl(repoInfo, path);
+
+    return url
+      ? `<a class="source-chip" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(path)}">${inner}</a>`
+      : `<span class="source-chip" title="${escapeHtml(path)}">${inner}</span>`;
+  });
+
+  return `<div class="sources-row">${chips.join("")}</div>`;
 }
 
 /* ---- markdown rendering ---- */
@@ -1056,6 +1188,35 @@ function setupProfile() {
     }
   }
 
+  // Plan status (Free vs Pro) + upgrade button
+  const planBanner = document.querySelector("#plan-status");
+  const planTitle = document.querySelector("#plan-title");
+  const planDesc = document.querySelector("#plan-desc");
+  const upgradeBtn = document.querySelector("#upgrade-btn");
+
+  if (planBanner) {
+    request("/payment/status")
+      .then((sub) => {
+        const isPro = Boolean(sub && sub.is_pro);
+        planBanner.className = "token-status " + (isPro ? "configured" : "missing");
+        planBanner.querySelector(".icon").innerHTML = isPro ? ICON_OK : ICON_WARN;
+        planTitle.textContent = isPro ? "Pro plan" : "Free plan";
+        planDesc.textContent = isPro
+          ? "Unlimited questions and repository chats."
+          : "10 questions/day and 2 repository chats. Upgrade for unlimited access.";
+        if (upgradeBtn) upgradeBtn.hidden = isPro;
+      })
+      .catch((err) => {
+        console.error("payment/status failed:", err);
+        planBanner.className = "token-status";
+        planBanner.querySelector(".icon").innerHTML = ICON_WARN;
+        planTitle.textContent = "Couldn't check your plan";
+        planDesc.textContent = "The server didn't answer. Refresh the page to try again.";
+      });
+  }
+
+  if (upgradeBtn) upgradeBtn.addEventListener("click", startCheckout);
+
   // 1) Show what we already know straight away (email typed at login / JWT)
   showUser(localStorage.getItem("devlens_email") || emailFromToken());
 
@@ -1187,17 +1348,6 @@ async function upgradeToPro() {
     window.location.href = data.checkout_url;
   } catch (err) {
     alert(err.message);
-  }
-}
-
-async function loadSubscription() {
-  try {
-    const status = await request("/payment/status");
-    const badge = document.querySelector("#plan");
-    if (!badge) return;
-    badge.textContent = status.plan;
-  } catch (err) {
-    console.error(err);
   }
 }
 

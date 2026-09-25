@@ -292,32 +292,56 @@ class RAGPipeline:
 
         return answer
 
+    @staticmethod
+    def _source_paths(docs):
+        """
+        Distinct file paths behind the retrieved/reranked chunks, in the
+        order they were retrieved. Synthetic documents (repo summary/readme
+        overview blocks from RepositorySummary) carry no "path" and are
+        skipped - only real files show up as "sources".
+        """
+
+        seen = []
+        for doc in docs:
+            path = (getattr(doc, "metadata", None) or {}).get("path")
+            if path and path not in seen:
+                seen.append(path)
+        return seen
+
     def ask_stream(self, question, history=None):
         """
-        Same as ask(), but yields answer text as the LLM produces it.
-        Exact-file requests still short-circuit RAG/LLM entirely - the
-        whole formatted file is yielded as a single chunk.
+        Same as ask(), but yields typed events as the answer is produced:
+          {"type": "sources", "files": [...]}  - once, before generation,
+              the real files the reranked context came from (only for the
+              normal RAG path - exact-file/smalltalk skip retrieval, so
+              there's nothing to report).
+          {"type": "token", "text": "..."}     - streamed answer text.
+          {"type": "answer", "text": "..."}    - a whole answer in one
+              shot (exact-file/smalltalk short-circuits).
         """
 
         exact = self._exact_file_answer(question)
         if exact is not None:
-            yield exact
+            yield {"type": "answer", "text": exact}
             return
 
         smalltalk_answer = self._smalltalk_answer(question)
         if smalltalk_answer is not None:
-            yield smalltalk_answer
+            yield {"type": "answer", "text": smalltalk_answer}
             return
 
         docs = self._retrieve_and_rerank(question)
 
-        yield from self.llm.stream(
+        yield {"type": "sources", "files": self._source_paths(docs)}
+
+        for chunk in self.llm.stream(
             question=question,
             history=history,
             documents=docs,
             repo_name=self.display_name,
             overview=self.overview,
-        )
+        ):
+            yield {"type": "token", "text": chunk}
 
 
 _pipelines = {}
