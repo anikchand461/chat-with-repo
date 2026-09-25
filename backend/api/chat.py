@@ -598,13 +598,15 @@ def ask_stream(
 
     def event_stream():
         parts = []
+        sources = []
         first_word = None
 
         try:
             for event in rag.ask_stream(question=question, history=history):
                 if event["type"] == "sources":
-                    if event["files"]:
-                        yield sse({"sources": event["files"]})
+                    sources = event["files"]
+                    if sources:
+                        yield sse({"sources": sources})
                     continue
 
                 text = event["text"]
@@ -630,6 +632,7 @@ def ask_stream(
                     content="".join(parts),
                     response_seconds=total,
                     first_word_seconds=first_word,
+                    sources=sources or None,
                 )
             )
 
@@ -684,6 +687,7 @@ def get_messages(
             "content": m.content,
             "response_seconds": m.response_seconds,
             "first_word_seconds": m.first_word_seconds,
+            "sources": m.sources,
         }
         for m in messages
     ]

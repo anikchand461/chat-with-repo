@@ -117,7 +117,7 @@ func (s *RegisterScreen) Layout(gtx layout.Context, th *material.Theme) layout.D
 	s.email.ReadOnly = loading
 	s.password.ReadOnly = loading
 
-	return authScreen(gtx, th, "Create account", "Index your first repository in under a minute.",
+	return authScreen(gtx, th, true, "Create account", "Index your first repository in under a minute.",
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(AuthField(th, &s.email, "Email", "you@example.com")),

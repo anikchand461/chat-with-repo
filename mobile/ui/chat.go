@@ -1,8 +1,10 @@
 package ui
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -37,6 +39,15 @@ type ChatScreen struct {
 	lastPaint     time.Time
 	errMsg        string
 	scrollPending bool
+
+	// sourceBtns[i] holds one Clickable per messages[i].Sources entry - a
+	// UI-only, Gio-specific parallel structure, grown/resized once per
+	// frame in Layout, never touched from the background goroutines above.
+	sourceBtns [][]widget.Clickable
+	// searchStart is when the in-flight answer's sources became known
+	// (setSources), driving the "Searching the codebase…" reveal
+	// animation shown until the first token arrives - see messageList.
+	searchStart time.Time
 
 	list     widget.List
 	question widget.Editor
@@ -87,6 +98,8 @@ func (s *ChatScreen) Open(chatID, title, branch string) {
 	s.title = title
 	s.branch = branch
 	s.messages = nil
+	s.sourceBtns = nil
+	s.searchStart = time.Time{}
 	s.streaming = false
 	s.errMsg = ""
 	s.loadingHist = true
@@ -149,6 +162,28 @@ func (s *ChatScreen) appendToken(gen uint64, chatID, token string) {
 	}
 }
 
+// setSources attaches the real files retrieval used to the assistant
+// message being written, creating it on first arrival exactly like
+// appendToken - the "sources" event always arrives before any token, so
+// this is normally what creates the message shell for a streamed answer
+// (a short-circuited exact-file/smalltalk answer never sends one, and
+// appendToken creates the shell itself in that case).
+func (s *ChatScreen) setSources(gen uint64, chatID string, sources []string) {
+	s.mu.Lock()
+	if !s.app.IsCurrent(gen) || s.chatID != chatID {
+		s.mu.Unlock()
+		return
+	}
+	if !s.streaming {
+		s.streaming = true
+		s.messages = append(s.messages, api.Message{Role: "assistant"})
+	}
+	s.messages[len(s.messages)-1].Sources = sources
+	s.searchStart = time.Now()
+	s.mu.Unlock()
+	s.app.Window.Invalidate()
+}
+
 func (s *ChatScreen) submitAsk() {
 	question := strings.TrimSpace(s.question.Text())
 	if question == "" {
@@ -166,9 +201,10 @@ func (s *ChatScreen) submitAsk() {
 	s.app.Window.Invalidate()
 
 	go func() {
-		res, err := s.app.Client.AskStream(chatID, question, func(tok string) {
-			s.appendToken(gen, chatID, tok)
-		})
+		res, err := s.app.Client.AskStream(chatID, question,
+			func(tok string) { s.appendToken(gen, chatID, tok) },
+			func(srcs []string) { s.setSources(gen, chatID, srcs) },
+		)
 		if !s.app.IsCurrent(gen) {
 			return
 		}
@@ -279,6 +315,7 @@ type chatSnapshot struct {
 	streaming     bool
 	errMsg        string
 	scrollPending bool
+	searchStart   time.Time
 
 	showUpgrade bool
 	upgradeMsg  string
@@ -302,6 +339,7 @@ func (s *ChatScreen) snapshot() chatSnapshot {
 		streaming:     s.streaming,
 		errMsg:        s.errMsg,
 		scrollPending: scrollPending,
+		searchStart:   s.searchStart,
 		showUpgrade:   s.showUpgrade,
 		upgradeMsg:    s.upgradeMsg,
 		checkingOut:   s.checkingOut,
@@ -399,6 +437,33 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 		s.list.ScrollToEnd = true
 	}
 
+	// Keep sourceBtns in lockstep with snap.messages, and process taps -
+	// resized here (UI thread only, once a frame) rather than at every
+	// place s.messages can grow, so it can never drift out of sync with
+	// however that ends up happening.
+	var repoOwner, repoName string
+	for _, c := range dash.chats {
+		if string(c.ChatID) == curID {
+			repoOwner, repoName = c.Owner, c.Repo
+			break
+		}
+	}
+	for len(s.sourceBtns) < len(snap.messages) {
+		s.sourceBtns = append(s.sourceBtns, nil)
+	}
+	for i, m := range snap.messages {
+		if len(s.sourceBtns[i]) != len(m.Sources) {
+			s.sourceBtns[i] = make([]widget.Clickable, len(m.Sources))
+		}
+		for j := range s.sourceBtns[i] {
+			if !s.sourceBtns[i][j].Clicked(gtx) {
+				continue
+			}
+			url := githubFileURL(repoOwner, repoName, snap.branch, m.Sources[j])
+			go func(u string) { _ = openURL(u) }(url)
+		}
+	}
+
 	// Once a daily-question limit hits, further asking is blocked
 	// until the user upgrades — don't let them keep hammering a send
 	// button that will only come back with the same limit message.
@@ -433,7 +498,7 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	content := withInsets(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(s.topBar(th, snap.title, snap.branch)),
-			layout.Flexed(1, s.messageList(th, snap.messages, snap.loadingHist, snap.asking && !snap.streaming)),
+			layout.Flexed(1, s.messageList(th, snap.messages, s.sourceBtns, snap.searchStart, snap.loadingHist, snap.asking && !snap.streaming)),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				if snap.errMsg == "" {
 					return layout.Dimensions{}
@@ -493,7 +558,7 @@ func (s *ChatScreen) topBar(th *material.Theme, title, branch string) layout.Wid
 	}
 }
 
-func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, loadingHist, typing bool) layout.Widget {
+func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, sourceBtns [][]widget.Clickable, searchStart time.Time, loadingHist, typing bool) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
 		if loadingHist && len(messages) == 0 {
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -520,7 +585,20 @@ func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, loa
 					return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, typingBubble)
 				}
 				m := messages[i]
-				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content, m.Meta))
+				// The "sources" event always arrives before any answer
+				// text - while content is still empty but sources are
+				// known, show the animated "Searching the codebase…"
+				// panel instead of an oddly-empty answer bubble. The
+				// moment the first token lands, content becomes non-empty
+				// and this flips over to the real, growing Bubble below.
+				if m.Role == "assistant" && m.Content == "" && len(m.Sources) > 0 {
+					return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, searchingPanel(th, m.Sources, searchStart))
+				}
+				var chips []widget.Clickable
+				if i < len(sourceBtns) {
+					chips = sourceBtns[i]
+				}
+				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content, m.Meta, m.Sources, chips))
 			})
 		})
 	}
@@ -793,6 +871,24 @@ func (s *ChatScreen) sidebar(th *material.Theme, chats []api.Chat, isPro bool, c
 	}
 }
 
+// githubFileURL mirrors the web frontend's githubFileUrl() (js/app.js):
+// github.com/{owner}/{repo}/blob/{branch}/{path}, each path segment (and
+// the branch) individually percent-encoded so filenames with spaces/etc.
+// still produce a valid URL. Empty owner/repo (e.g. the chat's owner/repo
+// couldn't be found in the Dashboard's chat list yet) still returns a URL
+// - openURL failing on it is no worse than not opening anything.
+func githubFileURL(owner, repo, branch, path string) string {
+	segments := strings.Split(path, "/")
+	for i, seg := range segments {
+		segments[i] = url.PathEscape(seg)
+	}
+	if branch == "" {
+		branch = "main"
+	}
+	return fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s",
+		url.PathEscape(owner), url.PathEscape(repo), url.PathEscape(branch), strings.Join(segments, "/"))
+}
+
 // spacerX returns a fixed-width blank widget for horizontal gaps.
 func spacerX(dp int) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
@@ -910,6 +1006,8 @@ func (s *ChatScreen) reset() {
 	s.mu.Lock()
 	s.chatID, s.title, s.branch = "", "", ""
 	s.messages = nil
+	s.sourceBtns = nil
+	s.searchStart = time.Time{}
 	s.loadingHist = false
 	s.asking = false
 	s.streaming = false

@@ -139,6 +139,13 @@ type Message struct {
 	FirstWordSeconds *float64 `json:"first_word_seconds"`
 
 	Meta *ResponseMeta `json:"-"`
+
+	// Sources are the real repository files retrieval used for this
+	// answer (see the "sources" SSE event in AskStream) - which files it
+	// actually checked, shown as chips under the answer, same as the web
+	// frontend. The backend persists these alongside the message, so they
+	// come back from Messages() too, not just a just-streamed answer.
+	Sources []string `json:"sources"`
 }
 
 func seconds(f float64) time.Duration { return time.Duration(f * float64(time.Second)) }
@@ -347,20 +354,23 @@ func (c *Client) Ask(chatID, question string) (AskResponse, error) {
 
 // streamEvent is one `data:` line of /chat/{id}/ask/stream (SSE).
 type streamEvent struct {
-	Token string   `json:"token"`
-	Done  bool     `json:"done"`
-	Error string   `json:"error"`
-	Total *float64 `json:"total"` // server-measured, sent with "done"
-	First *float64 `json:"first"`
+	Token   string   `json:"token"`
+	Sources []string `json:"sources"` // sent once, before any token - see AskStream
+	Done    bool     `json:"done"`
+	Error   string   `json:"error"`
+	Total   *float64 `json:"total"` // server-measured, sent with "done"
+	First   *float64 `json:"first"`
 }
 
 // AskStream is the streaming version of Ask: it calls onToken with each
-// piece of the answer as the server produces it (POST /chat/{id}/ask/stream,
-// server-sent events), so the UI can show text as it is written.
+// piece of the answer as the server produces it, and onSources once - if
+// at all - with the real files retrieval used for this answer, sent by the
+// server before any token (POST /chat/{id}/ask/stream, server-sent
+// events), so the UI can show text as it is written.
 //
 // Like Ask, a free-plan limit comes back as UpgradeRequired (a plain JSON
 // body instead of an event stream) with no tokens delivered.
-func (c *Client) AskStream(chatID, question string, onToken func(string)) (StreamResult, error) {
+func (c *Client) AskStream(chatID, question string, onToken func(string), onSources func([]string)) (StreamResult, error) {
 	var res StreamResult
 
 	buf, err := json.Marshal(AskRequest{Question: question})
@@ -440,6 +450,10 @@ func (c *Client) AskStream(chatID, question string, onToken func(string)) (Strea
 					if ev.Total != nil {
 						serverTotal = ev.Total
 						serverFirst = ev.First
+					}
+				case len(ev.Sources) > 0:
+					if onSources != nil {
+						onSources(ev.Sources)
 					}
 				case ev.Token != "":
 					if !res.Streamed {

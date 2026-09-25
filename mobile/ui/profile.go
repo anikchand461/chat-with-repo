@@ -8,6 +8,7 @@ import (
 	"gioui.org/font"
 	"gioui.org/io/key"
 	"gioui.org/layout"
+	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 
@@ -45,9 +46,18 @@ type ProfileScreen struct {
 	errMsg    string
 	statusMsg string
 
-	token   widget.Editor
-	saveBtn widget.Clickable
-	backBtn widget.Clickable
+	// Free vs Pro plan status (GET /payment/status) and the "Upgrade to
+	// Pro" button - mirrors the web frontend's profile.html plan card,
+	// reusing the same POST /payment/checkout flow already used by the
+	// Dashboard and Chat screens' upgrade modals.
+	isPro       bool
+	checkingOut bool
+	checkoutErr string
+
+	token      widget.Editor
+	saveBtn    widget.Clickable
+	backBtn    widget.Clickable
+	upgradeBtn widget.Clickable
 }
 
 func newProfileScreen(app *App) *ProfileScreen {
@@ -80,6 +90,10 @@ func (s *ProfileScreen) Load() {
 			return
 		}
 
+		// Plan status is best-effort, same reasoning as Dashboard.Reload:
+		// on failure, treat the account as free (the safer default).
+		status, statusErr := s.app.Client.PaymentStatus()
+
 		s.mu.Lock()
 		s.loading = false
 		if err != nil {
@@ -88,15 +102,59 @@ func (s *ProfileScreen) Load() {
 			s.email = me.Email
 			s.hasToken = me.HasGithubToken
 		}
+		s.isPro = statusErr == nil && status.IsPro
 		s.mu.Unlock()
 		s.app.Window.Invalidate()
 	}()
 }
 
-func (s *ProfileScreen) snapshot() (loading, saving, hasToken bool, email, errMsg, statusMsg string) {
+// startCheckout mirrors DashboardScreen/ChatScreen.startCheckout: fetch a
+// hosted payment session and open it in the system browser.
+func (s *ProfileScreen) startCheckout() {
+	gen := s.app.Generation()
+	s.mu.Lock()
+	s.checkingOut = true
+	s.checkoutErr = ""
+	s.mu.Unlock()
+	s.app.Window.Invalidate()
+
+	go func() {
+		url, err := s.app.Client.CreateCheckout()
+		if !s.app.IsCurrent(gen) {
+			return
+		}
+		if err == api.ErrUnauthorized {
+			s.app.HandleUnauthorized()
+			return
+		}
+		s.mu.Lock()
+		if !s.app.IsCurrent(gen) {
+			s.mu.Unlock()
+			return
+		}
+		s.checkingOut = false
+		if err != nil {
+			s.checkoutErr = err.Error()
+		}
+		s.mu.Unlock()
+		s.app.Window.Invalidate()
+
+		if err != nil {
+			return
+		}
+		if openErr := openURL(url); openErr != nil {
+			s.mu.Lock()
+			s.checkoutErr = "Couldn't open a browser automatically. Payment link: " + url
+			s.mu.Unlock()
+			s.app.Window.Invalidate()
+		}
+	}()
+}
+
+func (s *ProfileScreen) snapshot() (loading, saving, hasToken, isPro, checkingOut bool, email, errMsg, statusMsg, checkoutErr string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.loading, s.saving, s.hasToken, s.email, s.errMsg, s.statusMsg
+	return s.loading, s.saving, s.hasToken, s.isPro, s.checkingOut, s.email, s.errMsg, s.statusMsg, s.checkoutErr
 }
 
 // save sends the pasted token to the backend. A bare submit with an
@@ -153,6 +211,9 @@ func (s *ProfileScreen) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	for s.backBtn.Clicked(gtx) {
 		s.app.ShowDashboard()
 	}
+	for s.upgradeBtn.Clicked(gtx) {
+		s.startCheckout()
+	}
 
 	// Android Back returns to the Dashboard (Profile is only ever reached
 	// from there - ShowProfile). Without this, an unhandled Back here
@@ -176,17 +237,30 @@ func (s *ProfileScreen) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		s.token.SetText("")
 	}
 
-	loading, saving, hasToken, email, errMsg, statusMsg := s.snapshot()
+	loading, saving, hasToken, isPro, checkingOut, email, errMsg, statusMsg, checkoutErr := s.snapshot()
 	s.token.ReadOnly = saving
 
 	title := "Profile"
 	if name := nameFromEmail(email); name != "" {
-		title = "Hi " + name
+		title = "Hi, " + name + " 👋"
 	}
 
-	return authScreen(gtx, th, title, email,
+	return authScreen(gtx, th, false, title, email,
 		func(gtx layout.Context) layout.Dimensions {
 			rows := []layout.FlexChild{
+				layout.Rigid(planBanner(th, loading, isPro)),
+			}
+			if !loading && !isPro {
+				rows = append(rows,
+					layout.Rigid(authGap(14)),
+					layout.Rigid(AuthButton(th, &s.upgradeBtn, "Upgrade to Pro", checkingOut)),
+				)
+			}
+			if checkoutErr != "" {
+				rows = append(rows, layout.Rigid(authGap(6)), layout.Rigid(ErrorText(th, checkoutErr)))
+			}
+			rows = append(rows,
+				layout.Rigid(authGap(20)),
 				layout.Rigid(tokenBanner(th, loading, hasToken)),
 				layout.Rigid(authGap(18)),
 				layout.Rigid(AuthField(th, &s.token, "GitHub access token", "ghp_xxxxxxxxxxxxxxxxxxxx")),
@@ -198,7 +272,7 @@ func (s *ProfileScreen) Layout(gtx layout.Context, th *material.Theme) layout.Di
 				}),
 				layout.Rigid(authGap(10)),
 				layout.Rigid(ErrorText(th, errMsg)),
-			}
+			)
 			if statusMsg != "" {
 				rows = append(rows, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					l := material.Body2(th, statusMsg)
@@ -216,33 +290,58 @@ func (s *ProfileScreen) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		})
 }
 
+// planBanner mirrors the web profile page's plan card (GET
+// /payment/status): amber "Free plan" with its limits, or green "Pro
+// plan" with unlimited access, swapped once the status answers.
+func planBanner(th *material.Theme, loading, isPro bool) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		kind, title, body := "", "Checking your plan…", ""
+		bg, border, col := authField, authFieldBorder, authHint
+
+		switch {
+		case loading:
+			// keep the checking state above
+		case isPro:
+			kind, title, body = "ok", "Pro plan", "Unlimited questions and repository chats."
+			bg, border, col = profileOkBg, profileOkBorder, profileOkText
+		default:
+			kind, title, body = "warn", "Free plan", "10 questions/day and 2 repository chats. Upgrade for unlimited access."
+			bg, border, col = profileWarnBg, profileWarnBorder, profileWarnText
+		}
+
+		return warningBox(gtx, th, bg, border, col, kind, title, body)
+	}
+}
+
 // tokenBanner mirrors the web profile page's status banner: amber
 // "not configured" or green "configured", swapped once /auth/me answers.
 func tokenBanner(th *material.Theme, loading, hasToken bool) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
-		title, body := "Checking your GitHub token…", ""
+		kind, title, body := "", "Checking your GitHub token…", ""
 		bg, border, col := authField, authFieldBorder, authHint
 
 		switch {
 		case loading:
 			// keep the checking state above
 		case hasToken:
-			title = "GitHub token configured"
+			kind, title = "ok", "GitHub token configured"
 			body = "Private repos and higher rate limits are available."
 			bg, border, col = profileOkBg, profileOkBorder, profileOkText
 		default:
-			title = "GitHub token not configured"
+			kind, title = "warn", "GitHub token not configured"
 			body = "Without one, GitHub's public API allows only 60 requests/hour - not enough to index most repositories."
 			bg, border, col = profileWarnBg, profileWarnBorder, profileWarnText
 		}
 
-		return warningBox(gtx, th, bg, border, col, title, body)
+		return warningBox(gtx, th, bg, border, col, kind, title, body)
 	}
 }
 
-// warningBox draws a rounded, bordered status card: a bold title line
-// plus an optional muted body line below it.
-func warningBox(gtx layout.Context, th *material.Theme, bg, border, titleCol color.NRGBA, title, body string) layout.Dimensions {
+// warningBox draws a rounded, bordered status card: an icon (warning
+// triangle / checkmark, matching the web frontend's SVGs - "" shows none,
+// used only for the transient "checking…" state) beside a bold title line
+// and an optional muted body line below it.
+func warningBox(gtx layout.Context, th *material.Theme, bg, border, titleCol color.NRGBA, kind, title, body string) layout.Dimensions {
 	return layout.Stack{}.Layout(gtx,
 		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 			borderedRRect(gtx, gtx.Constraints.Min, authDp(14), bg, border)
@@ -251,25 +350,42 @@ func warningBox(gtx layout.Context, th *material.Theme, bg, border, titleCol col
 		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Min.X = gtx.Constraints.Max.X
 			return layout.UniformInset(authDp(14)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				children := []layout.FlexChild{
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						l := material.Label(th, authSp(14), title)
-						l.Color = titleCol
-						l.Font.Weight = font.Bold
-						return l.Layout(gtx)
-					}),
-				}
-				if body != "" {
-					children = append(children,
-						layout.Rigid(authGap(4)),
+				text := func(gtx layout.Context) layout.Dimensions {
+					children := []layout.FlexChild{
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							l := material.Label(th, authSp(12.5), body)
-							l.Color = authBody
+							l := material.Label(th, authSp(14), title)
+							l.Color = titleCol
+							l.Font.Weight = font.Bold
 							return l.Layout(gtx)
 						}),
-					)
+					}
+					if body != "" {
+						children = append(children,
+							layout.Rigid(authGap(4)),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								l := material.Label(th, authSp(12.5), body)
+								l.Color = authBody
+								return l.Layout(gtx)
+							}),
+						)
+					}
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx, children...)
 				}
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx, children...)
+
+				if kind == "" {
+					return text(gtx)
+				}
+				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						d := gtx.Dp(unit.Dp(20))
+						if kind == "ok" {
+							return checkCircleIcon(gtx, titleCol, d)
+						}
+						return warningTriangleIcon(gtx, titleCol, d)
+					}),
+					layout.Rigid(spacerX(10)),
+					layout.Flexed(1, text),
+				)
 			})
 		}),
 	)
@@ -282,6 +398,9 @@ func (s *ProfileScreen) reset() {
 	s.saving = false
 	s.email = ""
 	s.hasToken = false
+	s.isPro = false
+	s.checkingOut = false
+	s.checkoutErr = ""
 	s.errMsg = ""
 	s.statusMsg = ""
 	s.uiReset = true

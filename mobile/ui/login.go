@@ -101,7 +101,7 @@ func (s *LoginScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 	s.email.ReadOnly = loading
 	s.password.ReadOnly = loading
 
-	return authScreen(gtx, th, "Welcome back", "Log in to continue to your repository chats.",
+	return authScreen(gtx, th, true, "Welcome back", "Log in to continue to your repository chats.",
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(AuthField(th, &s.email, "Email", "you@example.com")),

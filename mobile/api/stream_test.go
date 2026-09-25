@@ -17,6 +17,7 @@ func TestAskStreamDeliversTokensAndTiming(t *testing.T) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		f := w.(http.Flusher)
 		time.Sleep(50 * time.Millisecond)
+		fmt.Fprint(w, "data: {\"sources\": [\"backend/app.py\", \"backend/api/chat.py\"]}\n\n")
 		for _, tok := range []string{"Hel", "lo ", "world"} {
 			fmt.Fprintf(w, "data: {\"token\": %q}\n\n", tok)
 			f.Flush()
@@ -26,12 +27,19 @@ func TestAskStreamDeliversTokensAndTiming(t *testing.T) {
 	defer srv.Close()
 
 	var got []string
-	res, err := NewClient(srv.URL).AskStream("7", "hi", func(s string) { got = append(got, s) })
+	var gotSources []string
+	res, err := NewClient(srv.URL).AskStream("7", "hi",
+		func(s string) { got = append(got, s) },
+		func(sr []string) { gotSources = sr },
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if strings.Join(got, "") != "Hello world" || !res.Streamed {
 		t.Fatalf("tokens = %q streamed=%v", got, res.Streamed)
+	}
+	if strings.Join(gotSources, ",") != "backend/app.py,backend/api/chat.py" {
+		t.Fatalf("sources = %q", gotSources)
 	}
 	// Server-measured timing wins over the local clock.
 	if res.Meta.Total != 4200*time.Millisecond || res.Meta.First != 1800*time.Millisecond {
@@ -73,11 +81,11 @@ func TestAskStreamUpgradeRequiredAndErrors(t *testing.T) {
 	defer srv.Close()
 	c := NewClient(srv.URL)
 
-	res, err := c.AskStream("1", "q", func(string) { t.Error("no tokens expected") })
+	res, err := c.AskStream("1", "q", func(string) { t.Error("no tokens expected") }, nil)
 	if err != nil || !res.UpgradeRequired || res.Reason != "daily_questions" {
 		t.Fatalf("res=%+v err=%v", res, err)
 	}
-	if _, err := c.AskStream("2", "q", func(string) {}); err == nil || err.Error() != "boom" {
+	if _, err := c.AskStream("2", "q", func(string) {}, nil); err == nil || err.Error() != "boom" {
 		t.Fatalf("err = %v", err)
 	}
 }
@@ -89,7 +97,7 @@ func TestAskStreamMidStreamError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	res, err := NewClient(srv.URL).AskStream("1", "q", func(string) {})
+	res, err := NewClient(srv.URL).AskStream("1", "q", func(string) {}, nil)
 	if err != nil || !res.Meta.Interrupted {
 		t.Fatalf("want interrupted partial answer, got res=%+v err=%v", res, err)
 	}
