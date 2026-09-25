@@ -341,8 +341,12 @@ func upgradeMessageFor(reason string) string {
 // answer's context came from" chip row above the text, same as the web
 // frontend's source chips - chipBtns must be pre-sized to len(sources) by
 // the caller (see ChatScreen.sourceBtns) since Gio's Clickable needs a
-// stable identity across frames to detect taps.
-func Bubble(th *material.Theme, role, content string, meta *api.ResponseMeta, sources []string, chipBtns []widget.Clickable) layout.Widget {
+// stable identity across frames to detect taps. copyBtn (assistant only,
+// nil for user messages) draws a "copy response" button at the bottom,
+// same as the web frontend; copied swaps its icon to a checkmark briefly
+// after a tap - the caller (ChatScreen) owns both the click handling and
+// the "still showing checkmark" timing.
+func Bubble(th *material.Theme, role, content string, meta *api.ResponseMeta, sources []string, chipBtns []widget.Clickable, copyBtn *widget.Clickable, copied bool) layout.Widget {
 	isUser := role == "user"
 	align := layout.W
 	fg := authTitle
@@ -387,6 +391,12 @@ func Bubble(th *material.Theme, role, content string, meta *api.ResponseMeta, so
 						children = append(children, layout.Rigid(md))
 						if !isUser && meta != nil {
 							children = append(children, layout.Rigid(responseFooter(th, meta)))
+						}
+						if !isUser && copyBtn != nil {
+							children = append(children,
+								layout.Rigid(spacer(8)),
+								layout.Rigid(copyButtonRow(th, copyBtn, copied)),
+							)
 						}
 						if len(children) == 1 {
 							return md(gtx)
@@ -712,6 +722,74 @@ func newShaper() *text.Shaper {
 }
 
 // formatSeconds renders a duration like the web UI: 4.2s, 12s.
+// copyButtonRow draws the small "Copy" action under an assistant answer,
+// mirroring the web frontend's copy button in the same spot. Tapping is
+// handled by the caller (ChatScreen.Layout checks copyBtn.Clicked(gtx) and
+// writes to the clipboard); copied just controls which icon+label to show.
+func copyButtonRow(th *material.Theme, copyBtn *widget.Clickable, copied bool) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		return copyBtn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					d := gtx.Dp(unit.Dp(13))
+					if copied {
+						return checkGlyph(gtx, authLink, d)
+					}
+					return copyGlyph(gtx, authHint, d)
+				}),
+				layout.Rigid(spacerX(6)),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					label := "Copy"
+					if copied {
+						label = "Copied"
+					}
+					l := material.Label(th, authSp(12), label)
+					l.Color = authHint
+					if copied {
+						l.Color = authLink
+					}
+					return l.Layout(gtx)
+				}),
+			)
+		})
+	}
+}
+
+// copyGlyph draws a small two-rectangle "copy" icon.
+func copyGlyph(gtx layout.Context, col color.NRGBA, d int) layout.Dimensions {
+	stroke := float32(gtx.Dp(unit.Dp(1.3)))
+	r := gtx.Dp(unit.Dp(2))
+	inset := d * 3 / 10
+	frontSz := d - inset
+
+	back := clip.RRect{Rect: image.Rect(0, 0, frontSz, frontSz), SE: r, SW: r, NE: r, NW: r}
+	paint.FillShape(gtx.Ops, col, clip.Stroke{Path: back.Path(gtx.Ops), Width: stroke}.Op())
+
+	off := op.Offset(image.Pt(inset, inset)).Push(gtx.Ops)
+	front := clip.RRect{Rect: image.Rect(0, 0, frontSz, frontSz), SE: r, SW: r, NE: r, NW: r}
+	paint.FillShape(gtx.Ops, col, clip.Stroke{Path: front.Path(gtx.Ops), Width: stroke}.Op())
+	off.Pop()
+
+	return layout.Dimensions{Size: image.Pt(d, d)}
+}
+
+// checkGlyph draws a small plain checkmark (no circle - copyButtonRow
+// already pairs it with a "Copied" label, unlike checkCircleIcon's
+// standalone status-box use).
+func checkGlyph(gtx layout.Context, col color.NRGBA, d int) layout.Dimensions {
+	stroke := float32(gtx.Dp(unit.Dp(1.6)))
+	w, h := float32(d), float32(d)
+
+	var p clip.Path
+	p.Begin(gtx.Ops)
+	p.MoveTo(f32.Pt(w*0.12, h*0.55))
+	p.LineTo(f32.Pt(w*0.4, h*0.82))
+	p.LineTo(f32.Pt(w*0.9, h*0.2))
+	paint.FillShape(gtx.Ops, col, clip.Stroke{Path: p.End(), Width: stroke}.Op())
+
+	return layout.Dimensions{Size: image.Pt(d, d)}
+}
+
 func formatSeconds(d time.Duration) string {
 	sec := d.Seconds()
 	if sec < 10 {
