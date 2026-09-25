@@ -601,11 +601,17 @@ def ask_stream(
         first_word = None
 
         try:
-            for token in rag.ask_stream(question=question, history=history):
+            for event in rag.ask_stream(question=question, history=history):
+                if event["type"] == "sources":
+                    if event["files"]:
+                        yield sse({"sources": event["files"]})
+                    continue
+
+                text = event["text"]
                 if first_word is None:
                     first_word = time.perf_counter() - started
-                parts.append(token)
-                yield sse({"token": token})
+                parts.append(text)
+                yield sse({"token": text})
         except Exception as e:
             traceback.print_exc()
             yield sse({"error": str(e)})

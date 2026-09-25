@@ -428,6 +428,18 @@
             <p class="email" id="user-email" hidden></p>
           </header>
 
+          <!-- Plan status -->
+          <div id="plan-status" class="token-status checking" role="status">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2Z"/>
+            </svg>
+            <div class="text">
+              <strong id="plan-title">Checking your plan…</strong>
+              <p id="plan-desc">One moment.</p>
+            </div>
+          </div>
+          <button type="button" class="button block" id="upgrade-btn" hidden>Upgrade to Pro</button>
+
           <!-- Token status -->
           <div id="token-status" class="token-status checking" role="status">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -524,6 +536,6 @@
         toggleVis.setAttribute("aria-label", showing ? "Show token" : "Hide token");
       });
     </script>
-    <script src="js/app.js?v=7"></script>
+    <script src="js/app.js?v=12"></script>
   </body>
 </html>
