@@ -25,24 +25,26 @@
 clone repo  →  open 40 tabs  →  grep for the entry point  →  still lost
 ```
 
-Every unfamiliar codebase costs real time before you can do anything useful in it — onboarding to a new team's repo, evaluating a library before depending on it, reviewing a contribution, or picking your own project back up after months away. The tools people reach for don't actually solve this:
+We've all been there. New repo, no map. So you reach for the usual tools — and none of them actually get you unstuck:
 
-- **Keyword search** (`grep`, GitHub's own search) finds the literal word you typed, not the concept — it won't find "where retries happen" if the code calls it `backoff`.
-- **READMEs and comments go stale** the moment the code they describe changes; they document intent, not what's actually there today.
-- **Pasting files into a general chatbot** means manually hunting down the right files first — the exact problem you were trying to avoid — and hits context limits fast on anything past a handful of files.
-- **Skimming file by file** doesn't scale past a few hundred files, and the logic you actually need (a request's real path through five modules) rarely lives in just one of them anyway.
+- `grep` finds words, not ideas. It won't find "where retries happen" if the code just calls it `backoff`.
+- READMEs go stale the moment nobody updates them. They tell you the plan, not the codebase.
+- Pasting files into a chatbot just moves the problem — now you have to guess which files matter *before* you understand the project.
+- Reading file by file works for ten files. It falls apart at a thousand.
 
 ---
 
 ## ◈ The Solution
 
-**Chat With Repo** doesn't paste code into a chatbot and hope — it turns the whole repository into a real, searchable knowledge base first, then answers from that. What makes it different from "point an LLM at some files":
+**Chat With Repo** skips the guesswork. Give it a repo, and it reads the whole thing first — then lets you just ask.
 
-- **A real retrieval pipeline, not one embed-and-search call.** Every question is classified, expanded into multiple search angles, retrieved, fused, and reranked before an answer is generated — so "how does auth work" and "where is the JWT validated" both find the right code, not just whatever shares keywords with the question.
-- **The whole repo's shape, every time.** A file tree, README, and repo metadata are sent with **every** question alongside the retrieved code, so broad questions ("summarize this project", "explain the architecture") don't depend on retrieval guessing the right five files out of thousands.
-- **Point it at a URL, not a folder.** No cloning, no uploading files, no deciding which files matter — give it an owner, a repo, and a branch, and it does the rest.
-- **The same product on web and mobile.** A native Android app and the web app talk to the exact same backend and pipeline — same answers, same response times, not a second product bolted on later.
-- **You can watch it work.** Indexing shows live progress instead of a spinner or silence, and a chat that fails to index (say, a GitHub rate limit) retries itself instead of just dying.
+- **It doesn't just search, it understands the question.** Every question gets rephrased a few different ways, searched, and reranked — so "how does auth work" and "where's the JWT checked" both land on the same right answer.
+- **It never forgets the big picture.** The file tree and README ride along with every question, so "explain this project" doesn't depend on luck.
+- **It shows its work.** Every answer comes with the files it actually read, one click from the answer to the real code on GitHub.
+- **Ask for a file, get the file.** No paraphrasing, no hallucinating — just the real contents, straight from the repo.
+- **Just paste a URL.** No cloning, no uploading, no picking files yourself.
+- **One app, two screens.** Web and Android run on the same backend, so you get the same answers either way.
+- **Nothing happens in silence.** You watch it index in real time, and if something fails, it just quietly tries again.
 
 **Try it now → [chatwithrepo-nine.vercel.app](https://chatwithrepo-nine.vercel.app/)**
 
