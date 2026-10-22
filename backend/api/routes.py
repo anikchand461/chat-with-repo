@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter
 
-from github import (
+from backend.github import (
     get_repo,
     get_branches,
     get_tree,

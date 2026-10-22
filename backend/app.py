@@ -14,7 +14,7 @@ from backend.api.chat import router as chat_router
 from backend.api.payment import router as payment_router
 
 app = FastAPI(
-    title="DevLens API",
+    title="ChatWithRepo API",
     version="0.1.0",
     description="GitHub Repo RAG Chat",
 )
@@ -45,7 +45,7 @@ app.include_router(payment_router)
 @app.get("/")
 def home():
     return {
-        "message": "✅ DevLens API is running!",
+        "message": "✅ ChatWithRepo API is running!",
         "docs": "/docs",
     }
 
