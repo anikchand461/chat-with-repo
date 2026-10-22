@@ -20,7 +20,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-print("DATABASE_URL:", DATABASE_URL)
+print("dtatbase started")
 
 engine = create_engine(
     DATABASE_URL,
