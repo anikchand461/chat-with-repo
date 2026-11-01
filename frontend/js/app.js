@@ -1,5 +1,14 @@
-const API = "https://chat-with-repo-4vwy.onrender.com";
-// const API = "http://127.0.0.1:8000"; // local testing only
+// AWS is the primary backend. Render is only used when AWS is unreachable
+// or its proxy reports the app as down (see apiFetch below).
+const API_PRIMARY = "https://chatwithrepo.duckdns.org";
+const API_FALLBACK = "https://chat-with-repo-4vwy.onrender.com";
+
+// Local testing only: set to true to send every request to a local backend
+// (no fallback). Never deploy with this set to true.
+const USE_LOCAL_API = false;
+const API_LOCAL = "http://127.0.0.1:8000";
+
+const API_BACKENDS = USE_LOCAL_API ? [API_LOCAL] : [API_PRIMARY, API_FALLBACK];
 
 // Change this to your repository (username/repo)
 const GITHUB_REPO = "shreyaghorui222004/chat-with-repo";
@@ -25,8 +34,61 @@ function token() {
   return localStorage.getItem("devlens_token") || "";
 }
 
+// POSTs that are safe to send twice (same result if AWS already handled
+// them). Every other POST - register, chat create, ask, checkout - is only
+// re-sent to Render when AWS definitely never processed it.
+const IDEMPOTENT_POSTS = new Set(["/auth/login", "/auth/github-token"]);
+
+function isRetrySafe(method, path) {
+  const m = (method || "GET").toUpperCase();
+  if (m !== "POST" && m !== "PATCH") return true;
+  return IDEMPOTENT_POSTS.has(path);
+}
+
+// True only if the FastAPI app itself answers. nginx error pages carry no
+// CORS headers, so "app down behind a live proxy" also reads as false.
+async function backendUp(base) {
+  try {
+    const response = await fetch(base + "/", { cache: "no-store" });
+    return response.ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+// fetch() against AWS first, falling back to Render once:
+// - network/TLS/CORS failure: retry-safe requests fall back directly; other
+//   POSTs fall back only if a probe confirms the AWS app is down (otherwise
+//   AWS may have processed it, so the original error is thrown).
+// - 502/503 (proxy can't reach the app): fall back.
+// - 504 (gateway timeout - the app may still be working): retry-safe only.
+// Any other status (incl. 4xx) is returned as-is. The Response is returned
+// as soon as headers arrive, so a stream that fails part-way is never
+// restarted on Render.
+async function apiFetch(path, init = {}) {
+  const [primary, fallback] = API_BACKENDS;
+  if (!fallback) return fetch(primary + path, init);
+
+  const retrySafe = isRetrySafe(init.method, path);
+
+  let response;
+  try {
+    response = await fetch(primary + path, init);
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    if (!retrySafe && (await backendUp(primary))) throw error;
+    return fetch(fallback + path, init);
+  }
+
+  const fallbackStatuses = retrySafe ? [502, 503, 504] : [502, 503];
+  if (!fallbackStatuses.includes(response.status)) return response;
+
+  response.body?.cancel().catch(() => {});
+  return fetch(fallback + path, init);
+}
+
 async function request(path, options = {}) {
-  const response = await fetch(API + path, {
+  const response = await apiFetch(path, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -662,7 +724,7 @@ function addUpgradePromptMessage(message) {
 // if a chat isn't ready before this ever runs), so this assumes the index
 // is already built and doesn't show any indexing progress of its own.
 async function streamAnswer(id, question, typing, startedAt, repoInfo) {
-  const response = await fetch(`${API}/chat/${id}/ask/stream`, {
+  const response = await apiFetch(`/chat/${id}/ask/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
