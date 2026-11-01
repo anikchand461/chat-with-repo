@@ -53,7 +53,7 @@ const PRIMARY_TIMEOUT_MS = 3000;
 // Once AWS fails, skip it for this long so only the first request pays
 // PRIMARY_TIMEOUT_MS. Kept in localStorage because every page is a full
 // reload (and so all tabs agree).
-const PRIMARY_SKIP_MS = 60000;
+const PRIMARY_SKIP_MS = 300000; // 5 minutes
 const PRIMARY_DOWN_KEY = "devlens_api_primary_down_until";
 
 function primaryMarkedDown() {

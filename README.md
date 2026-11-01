@@ -13,7 +13,7 @@
 [![Gio](https://img.shields.io/badge/Gio-Android-00ADD8?style=for-the-badge)](https://gioui.org/)
 [![Status](https://img.shields.io/badge/status-active-17b57f?style=for-the-badge)](#)
 
-**[Live Demo](https://chatwithrepo-nine.vercel.app/) · [Android App](https://github.com/shreyaghorui222004/chat-with-repo/releases/latest) · [Problem](#-the-problem) · [Solution](#-the-solution) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Installation](#-installation)**
+**[Live Demo](https://chatwithrepo-nine.vercel.app/) · [Android App](https://github.com/shreyaghorui222004/chat-with-repo/releases/latest) · [Problem](#-the-problem) · [Solution](#-the-solution) · [RAG Pipeline](#-rag-pipeline) · [Architecture](#-full-architecture) · [Installation](#-installation) · [Deployment](#-deployment)**
 
 </div>
 
@@ -156,6 +156,7 @@ DODO_PRODUCT_ID=dodo_product_id
 APP_URL=http://127.0.0.1:5500/
 DODO_BASE_URL=https://test.dodopayments.com
 DATABASE_URL=postgresql+psycopg://neondb_owner:YOUR_PASSWORD@ep-cool-heart-azo2wz85-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=long_random_string    # signs login tokens - must be identical on every backend (AWS + Render)
 
 # Optional
 # GITHUB_TOKEN=github_token     # server-wide fallback, applied to every user who hasn't saved their
@@ -200,7 +201,17 @@ python -m http.server 5500
 
 Visit `http://127.0.0.1:5500/index.html`.
 
+The frontend talks to the deployed backends by default. To use your local backend instead, set `USE_LOCAL_API = true` at the top of `frontend/js/app.js` (it then calls `http://127.0.0.1:8000` only, with no fallback) - and set it back to `false` before committing.
+
+**Tests** - the frontend's AWS → Render failover logic has a small test suite (Node 18+, no dependencies):
+
+```bash
+node --test frontend/tests/
+```
+
 ### Android
+
+The Android app talks to the Render backend only (`baseURL` in `mobile/main.go`) - it does not use the AWS primary or the failover described in [Deployment](#-deployment) yet.
 
 To develop against a local backend, change `baseURL` in `mobile/main.go` (`127.0.0.1:8000` for the desktop build, `10.0.2.2:8000` for the Android emulator) and switch it back before committing.
 
@@ -214,6 +225,142 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 2. Transfer it to your Android device if necessary.
 3. Open the APK and install it.
 4. If Android blocks the installation, allow installation from unknown sources.
+
+---
+
+## ◈ Deployment
+
+| Part | Hosted on | URL |
+|---|---|---|
+| Frontend | Vercel | [chatwithrepo-nine.vercel.app](https://chatwithrepo-nine.vercel.app/) |
+| Backend - **primary** | AWS EC2 (nginx + Let's Encrypt in front of uvicorn) | `https://chatwithrepo.duckdns.org` |
+| Backend - **fallback** | Render | `https://chat-with-repo-4vwy.onrender.com` |
+| Database | Neon PostgreSQL | shared by both backends |
+| Vector store | Qdrant Cloud | shared by both backends |
+
+Both backends run the **same FastAPI code** with the **same environment variables**, and both read and write the same Neon database and Qdrant cluster. So it doesn't matter which one answers a request: a user, their login token, their chats and their message history are identical on both.
+
+### How a request reaches the backend
+
+```text
+Browser (Vercel frontend)
+  │   apiFetch() in frontend/js/app.js
+  │
+  ├─①─► AWS EC2   chatwithrepo.duckdns.org
+  │       nginx :443 (TLS) ──► uvicorn 127.0.0.1:8000 ──► FastAPI
+  │
+  │     no response within 3s · connection/TLS error · 502 / 503 / 504
+  │
+  └─②─► Render    chat-with-repo-4vwy.onrender.com ──► FastAPI (same code)
+
+           both ──► Neon Postgres · Qdrant Cloud · GitHub API · Cohere · Groq · Gemini
+```
+
+Every API call in the web app - including the streamed answers on `/chat/{id}/ask/stream` - goes through one function, `apiFetch()` in `frontend/js/app.js`:
+
+1. **AWS first.** The request goes to AWS. If AWS answers normally (including errors like 400, 401, 403, 404 or 409), that answer is used. When AWS is up there is no extra delay.
+2. **3-second failover.** If AWS sends no response within 3 seconds, can't be reached, or its proxy returns 502/503/504, the request is cancelled and sent to Render with the same method, body and `Authorization` header.
+3. **Remember for 5 minutes.** After a failover, the browser remembers (in `localStorage`) that AWS is down and sends everything straight to Render for 5 minutes, so only the first request pays the 3 seconds. Each page load also checks AWS once in the background, so traffic moves back to AWS as soon as it is up again.
+4. **Never run a request twice.** Requests that change something - registering, creating a chat, asking a question, starting a checkout - check whether the AWS app itself is alive. If it is, it may already be working on the request, so the frontend waits for AWS instead of sending a second copy to Render. These requests also never move to Render on a 504 (the app may still be processing them).
+5. **Streams are never restarted.** Once AWS starts sending an answer, it stays on AWS. If the stream breaks part-way, the user sees the error instead of a second, duplicate answer from Render.
+
+### AWS EC2 (primary)
+
+The EC2 instance runs the API with uvicorn behind nginx. nginx terminates HTTPS (Let's Encrypt certificate for the DuckDNS domain) and proxies to uvicorn on localhost.
+
+**1. Instance and domain**
+
+- Security group: allow inbound **22** (SSH), **80** (HTTP, needed for the certificate) and **443** (HTTPS).
+- Point `chatwithrepo.duckdns.org` at the instance's public IP on [duckdns.org](https://www.duckdns.org/). Attach an **Elastic IP** to the instance - otherwise the public IP changes every time the instance is stopped and started, and the DuckDNS record must be updated again.
+
+**2. App**
+
+```bash
+git clone https://github.com/anikchand461/chat-with-repo.git
+cd chat-with-repo
+uv sync
+cp .env.example .env    # fill in - same values as the Render service (see below)
+```
+
+**3. Keep it running with systemd** - `/etc/systemd/system/chatwithrepo.service`:
+
+```ini
+[Unit]
+Description=ChatWithRepo API
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/chat-with-repo
+ExecStart=/home/ubuntu/.local/bin/uv run uvicorn backend.app:app --host 127.0.0.1 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now chatwithrepo
+```
+
+Run a **single** uvicorn worker: indexing progress and the loaded RAG pipelines are kept in memory per process, so several workers would not see each other's indexing state. `.env` is loaded by the app itself (`backend/config.py`).
+
+**4. nginx + HTTPS** - `/etc/nginx/sites-available/chatwithrepo`:
+
+```nginx
+server {
+    listen 80;
+    server_name chatwithrepo.duckdns.org;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_buffering off;      # stream answers token by token
+        proxy_read_timeout 300s;  # long answers / slow first token
+    }
+}
+```
+
+```bash
+sudo ln -s /etc/nginx/sites-available/chatwithrepo /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d chatwithrepo.duckdns.org   # adds the 443 / TLS config and auto-renewal
+```
+
+**5. Deploying an update**
+
+```bash
+cd ~/chat-with-repo && git pull && uv sync && sudo systemctl restart chatwithrepo
+```
+
+Check it: `curl https://chatwithrepo.duckdns.org/` should return `{"message": "✅ ChatWithRepo API is running!", ...}`. Logs: `journalctl -u chatwithrepo -f`.
+
+Unlike Render's free tier, the EC2 disk is persistent, so the downloaded repo data in `DATA_DIR` survives restarts.
+
+### Render (fallback)
+
+A Render web service running the same repository:
+
+- **Build command:** `pip install -r requirements.txt`
+- **Start command:** `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`
+
+On the free tier the service sleeps after about 15 minutes without traffic. Since AWS normally handles everything, Render is usually asleep, and the first request after a failover can take ~30 seconds while it wakes up. An external uptime monitor pinging `https://chat-with-repo-4vwy.onrender.com/` every 10 minutes keeps it awake.
+
+### Keep both backends in sync
+
+- **Same environment variables on both**, especially `JWT_SECRET` (otherwise a login token from one backend is rejected by the other) and `DATABASE_URL` / `QDRANT_URL` (otherwise users and chats differ between them). `JWT_SECRET` falls back to a built-in default when unset - always set it.
+- **Deploy the same commit to both.** The allowed frontend origins (CORS) are listed in `backend/app.py`; a new frontend domain must be added there and deployed to both backends.
+- **Payments:** the Dodo Payments webhook URL is configured in the Dodo dashboard and points at one backend; `APP_URL` is the frontend URL users return to after checkout.
+
+### Known limitations
+
+- **Indexing during a failover.** Indexing progress lives in the memory of the server that started it. If the frontend switches servers while a repository is being indexed, the other server doesn't see that progress and starts indexing the same chat again.
+- **The Android app** still uses Render only (see [Android](#android)).
 
 ---
 
@@ -244,6 +391,8 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
 
+![AWS EC2](https://img.shields.io/badge/AWS-EC2-FF9900?style=flat-square&logo=amazonec2&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=flat-square&logo=nginx&logoColor=white)
 ![Render](https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
 
