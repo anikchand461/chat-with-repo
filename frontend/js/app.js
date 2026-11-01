@@ -45,21 +45,37 @@ function isRetrySafe(method, path) {
   return IDEMPOTENT_POSTS.has(path);
 }
 
-// True only if the FastAPI app itself answers. nginx error pages carry no
-// CORS headers, so "app down behind a live proxy" also reads as false.
-async function backendUp(base) {
+// How long AWS gets to start answering (response headers) before we fail
+// over. A healthy request is never delayed by it, and once headers arrive
+// it no longer applies, so long streams are never cut off.
+const PRIMARY_TIMEOUT_MS = 3000;
+
+// GET / with its own time limit. True only if the FastAPI app itself
+// answers: nginx error pages carry no CORS headers, so "app down behind a
+// live proxy" also reads as false.
+async function backendUp(base, ms) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
   try {
-    const response = await fetch(base + "/", { cache: "no-store" });
+    const response = await fetch(base + "/", {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    response.body?.cancel().catch(() => {});
     return response.ok;
   } catch (_) {
     return false;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 // fetch() against AWS first, falling back to Render once:
-// - network/TLS/CORS failure: retry-safe requests fall back directly; other
-//   POSTs fall back only if a probe confirms the AWS app is down (otherwise
-//   AWS may have processed it, so the original error is thrown).
+// - no response headers within PRIMARY_TIMEOUT_MS, or a network/TLS/CORS
+//   failure: retry-safe requests abort AWS and go to Render. Other POSTs
+//   check AWS health in parallel from the start: if the app is up it may
+//   already be processing the request, so we keep waiting on AWS (or
+//   throw its error) instead of running it twice.
 // - 502/503 (proxy can't reach the app): fall back.
 // - 504 (gateway timeout - the app may still be working): retry-safe only.
 // Any other status (incl. 4xx) is returned as-is. The Response is returned
@@ -70,13 +86,29 @@ async function apiFetch(path, init = {}) {
   if (!fallback) return fetch(primary + path, init);
 
   const retrySafe = isRetrySafe(init.method, path);
+  const alive = retrySafe ? null : backendUp(primary, PRIMARY_TIMEOUT_MS);
+
+  const controller = new AbortController();
+  const attempt = fetch(primary + path, { ...init, signal: controller.signal });
+  attempt.catch(() => {}); // an abandoned attempt must not raise unhandled
+
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(null), PRIMARY_TIMEOUT_MS);
+  });
 
   let response;
   try {
-    response = await fetch(primary + path, init);
+    response = await Promise.race([attempt, timeout]);
+    if (!response && !retrySafe && (await alive)) response = await attempt;
   } catch (error) {
-    if (error.name === "AbortError") throw error;
-    if (!retrySafe && (await backendUp(primary))) throw error;
+    if (!retrySafe && (await alive)) throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!response) {
+    controller.abort();
     return fetch(fallback + path, init);
   }
 
