@@ -50,6 +50,36 @@ function isRetrySafe(method, path) {
 // it no longer applies, so long streams are never cut off.
 const PRIMARY_TIMEOUT_MS = 3000;
 
+// Once AWS fails, skip it for this long so only the first request pays
+// PRIMARY_TIMEOUT_MS. Kept in localStorage because every page is a full
+// reload (and so all tabs agree).
+const PRIMARY_SKIP_MS = 60000;
+const PRIMARY_DOWN_KEY = "devlens_api_primary_down_until";
+
+function primaryMarkedDown() {
+  try {
+    return Number(localStorage.getItem(PRIMARY_DOWN_KEY)) > Date.now();
+  } catch (_) {
+    return false;
+  }
+}
+
+function markPrimaryDown(down) {
+  try {
+    if (down) localStorage.setItem(PRIMARY_DOWN_KEY, String(Date.now() + PRIMARY_SKIP_MS));
+    else localStorage.removeItem(PRIMARY_DOWN_KEY);
+  } catch (_) {}
+}
+
+// While AWS is being skipped, check it once per page load in the background
+// so traffic returns to it as soon as it recovers - nobody waits on this.
+let primaryRecheck = null;
+function recheckPrimary(base) {
+  primaryRecheck ??= backendUp(base, PRIMARY_TIMEOUT_MS).then((up) => {
+    if (up) markPrimaryDown(false);
+  });
+}
+
 // GET / with its own time limit. True only if the FastAPI app itself
 // answers: nginx error pages carry no CORS headers, so "app down behind a
 // live proxy" also reads as false.
@@ -80,10 +110,16 @@ async function backendUp(base, ms) {
 // - 504 (gateway timeout - the app may still be working): retry-safe only.
 // Any other status (incl. 4xx) is returned as-is. The Response is returned
 // as soon as headers arrive, so a stream that fails part-way is never
-// restarted on Render.
+// restarted on Render. After a failover AWS is skipped for PRIMARY_SKIP_MS
+// (see primaryMarkedDown).
 async function apiFetch(path, init = {}) {
   const [primary, fallback] = API_BACKENDS;
   if (!fallback) return fetch(primary + path, init);
+
+  if (primaryMarkedDown()) {
+    recheckPrimary(primary);
+    return fetch(fallback + path, init);
+  }
 
   const retrySafe = isRetrySafe(init.method, path);
   const alive = retrySafe ? null : backendUp(primary, PRIMARY_TIMEOUT_MS);
@@ -109,6 +145,7 @@ async function apiFetch(path, init = {}) {
 
   if (!response) {
     controller.abort();
+    markPrimaryDown(true);
     return fetch(fallback + path, init);
   }
 
@@ -116,6 +153,7 @@ async function apiFetch(path, init = {}) {
   if (!fallbackStatuses.includes(response.status)) return response;
 
   response.body?.cancel().catch(() => {});
+  markPrimaryDown(true);
   return fetch(fallback + path, init);
 }
 

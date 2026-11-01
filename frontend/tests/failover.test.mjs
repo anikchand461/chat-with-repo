@@ -23,8 +23,9 @@ const TIMEOUT = 150;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // routes: { "<backend>[ <path>]": behaviour } where behaviour is a status
-// number, "hang", "neterr", or { status, delay }.
-function setup(routes) {
+// number, "hang", "neterr", or { status, delay }. Pass the same `store` to
+// a second setup() to simulate the next page load in the same browser.
+function setup(routes, store = new Map()) {
   const calls = [];
   let aborted = 0;
 
@@ -50,7 +51,12 @@ function setup(routes) {
     });
   };
 
-  const ctx = vm.createContext({ fetch: fakeFetch, setTimeout, clearTimeout, AbortController, Set, Promise });
+  const localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k),
+  };
+  const ctx = vm.createContext({ fetch: fakeFetch, setTimeout, clearTimeout, AbortController, Set, Promise, Date, Number, String, localStorage });
   const code = BLOCK.replace(/PRIMARY_TIMEOUT_MS = \d+/, `PRIMARY_TIMEOUT_MS = ${TIMEOUT}`);
   vm.runInContext(code + "\nthis.apiFetch = apiFetch;", ctx);
 
@@ -60,6 +66,7 @@ function setup(routes) {
     calls: () => calls.filter(real).map((c) => `${c.method} ${c.base}${c.path}`),
     raw: () => calls,
     aborted: () => aborted,
+    store,
   };
 }
 
@@ -180,4 +187,69 @@ test("chat create: AWS app down behind proxy (probe 502) -> Render", async () =>
   const s = setup({ "AWS /": 502, "AWS /chat/create": "neterr", RENDER: 201 });
   assert.equal((await s.apiFetch("/chat/create", POST({}))).status, 201);
   assert.deepEqual(s.calls(), ["POST AWS/chat/create", "POST RENDER/chat/create"]);
+});
+
+const DOWN_KEY = "devlens_api_primary_down_until";
+
+test("after a failover, later requests skip AWS with no wait", async () => {
+  const s = setup({ AWS: "hang", RENDER: 200 });
+  await s.apiFetch("/chat/list", {});
+  assert.ok(Number(s.store.get(DOWN_KEY)) > Date.now());
+
+  const t0 = Date.now();
+  await s.apiFetch("/chat/1/index-status", {});
+  await s.apiFetch("/chat/1/messages", {});
+  assert.ok(Date.now() - t0 < 50);
+  assert.deepEqual(s.calls(), [
+    "GET AWS/chat/list",
+    "GET RENDER/chat/list",
+    "GET RENDER/chat/1/index-status",
+    "GET RENDER/chat/1/messages",
+  ]);
+});
+
+test("skip survives a page reload (shared localStorage)", async () => {
+  const first = setup({ AWS: "hang", RENDER: 200 });
+  await first.apiFetch("/chat/list", {});
+
+  const next = setup({ AWS: "hang", RENDER: 200 }, first.store);
+  const t0 = Date.now();
+  await next.apiFetch("/chat/1/ask/stream", POST({ question: "q" }));
+  assert.ok(Date.now() - t0 < 50);
+  assert.deepEqual(next.calls(), ["POST RENDER/chat/1/ask/stream"]);
+});
+
+test("while skipped, one background check per page brings AWS back", async () => {
+  const store = new Map([[DOWN_KEY, String(Date.now() + 60000)]]);
+  const s = setup({ AWS: 200, RENDER: 200 }, store);
+  await s.apiFetch("/chat/list", {}); // skipped; starts the background check
+  await sleep(10);
+  assert.equal(store.has(DOWN_KEY), false);
+
+  await s.apiFetch("/auth/me", {});
+  assert.deepEqual(s.calls(), ["GET RENDER/chat/list", "GET AWS/auth/me"]);
+  assert.equal(s.raw().filter((c) => c.base === "AWS" && c.path === "/").length, 1);
+});
+
+test("skip expires and AWS is tried first again", async () => {
+  const store = new Map([[DOWN_KEY, String(Date.now() - 1)]]);
+  const s = setup({ AWS: 200 }, store);
+  await s.apiFetch("/chat/list", {});
+  assert.deepEqual(s.calls(), ["GET AWS/chat/list"]);
+});
+
+test("4xx and unsafe-POST-while-alive do not mark AWS down", async () => {
+  const a = setup({ AWS: 401 });
+  await a.apiFetch("/auth/me", {});
+  assert.equal(a.store.has(DOWN_KEY), false);
+
+  const b = setup({ "AWS /": 200, "AWS /chat/create": "neterr" });
+  await assert.rejects(b.apiFetch("/chat/create", POST({})));
+  assert.equal(b.store.has(DOWN_KEY), false);
+});
+
+test("502 marks AWS down", async () => {
+  const s = setup({ AWS: 502, RENDER: 200 });
+  await s.apiFetch("/chat/list", {});
+  assert.ok(s.store.has(DOWN_KEY));
 });
