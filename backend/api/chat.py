@@ -15,6 +15,7 @@ from backend.database.db import SessionLocal
 from backend.database.session import get_db
 from backend.auth import get_current_user
 from backend.config import DATA_DIR, CHROMA_DIR
+from backend.services import index_jobs
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -158,8 +159,8 @@ def create_chat(
                 # something else claims it in the same instant, this backs
                 # off instead of scheduling a duplicate job.
                 if progress.claim(existing_chat.id):
-                    background_tasks.add_task(
-                        _index_new_chat,
+                    index_jobs.start(
+                        background_tasks,
                         existing_chat.id,
                         existing_chat.owner,
                         existing_chat.repo,
@@ -228,8 +229,8 @@ def create_chat(
         # crash seen indexing chat-with-repo (2752 chunks, two upsert
         # streams hammering the same free-tier cluster).
         if progress.claim(existing_chat.id):
-            background_tasks.add_task(
-                _index_new_chat,
+            index_jobs.start(
+                background_tasks,
                 existing_chat.id,
                 existing_chat.owner,
                 existing_chat.repo,
@@ -306,8 +307,8 @@ You can ask me things like:
     # will always succeed here - used for consistency with the other two
     # scheduling sites, which do rely on it being atomic.
     if progress.claim(chat.id):
-        background_tasks.add_task(
-            _index_new_chat,
+        index_jobs.start(
+            background_tasks,
             chat.id,
             req.owner,
             req.repo,
@@ -380,8 +381,8 @@ def index_status(
             # claim() is atomic - guards against a concurrent poll (or the
             # create-modal's own retry) racing this same self-heal check
             # and scheduling a second indexing job for the same chat.
-            background_tasks.add_task(
-                _index_new_chat,
+            index_jobs.start(
+                background_tasks,
                 chat.id,
                 chat.owner,
                 chat.repo,
@@ -488,6 +489,35 @@ def _prepare_ask(chat_id: int, current_user: User, db: Session):
     # chat already exists (e.g. the vector store was cleared).
     def on_stage(stage, detail=None, done=None, total=None):
         progress.set_stage(chat_id, stage, detail, done=done, total=total)
+
+    # When indexing runs as a separate job (AWS), never rebuild inside this
+    # request: it could outlast the function's timeout and would race the
+    # job. Start the job instead (claim() keeps it to one) and ask the user
+    # to come back once it's done.
+    if index_jobs.runs_remotely():
+        if progress.get(chat_id)["status"] == "working":
+            raise HTTPException(
+                status_code=409,
+                detail="This repository is still being indexed. Please try again in a few minutes.",
+            )
+
+        if not rag.is_indexed():
+            if progress.claim(chat_id):
+                index_jobs.start(
+                    None,
+                    chat.id,
+                    chat.owner,
+                    chat.repo,
+                    chat.branch,
+                    current_user.github_token,
+                    chat.collection_name,
+                    current_user.id,
+                    False,
+                )
+            raise HTTPException(
+                status_code=409,
+                detail="This repository needs to be indexed again. Please try again in a few minutes.",
+            )
 
     try:
         rag.ensure_index(fetch_repository, on_stage=on_stage)

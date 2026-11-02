@@ -1,0 +1,15 @@
+fastapi
+mangum
+uvicorn
+sqlalchemy
+requests
+python-dotenv
+langchain-qdrant
+qdrant-client
+langchain_google_genai
+langchain_groq
+langchain-text-splitters
+beautifulsoup4
+langchain-cohere
+langchain_core
+psycopg[binary]

@@ -22,6 +22,20 @@ import time
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
+def _restore_json(json_path):
+    """
+    Fetch the repo JSON from the shared S3 cache if it isn't on this
+    instance's disk (AWS only; a no-op elsewhere - see storage/repo_cache.py).
+    """
+
+    try:
+        from backend.storage import repo_cache
+    except ImportError:  # run as a standalone script with only backend/ on sys.path
+        return
+
+    repo_cache.download(json_path)
+
+
 class RAGPipeline:
 
     def __init__(self, json_path, collection_name=None, persist_directory="chroma_db"):
@@ -43,6 +57,7 @@ class RAGPipeline:
         self.reranker = Reranker()
         self.llm = LLM()
 
+        _restore_json(json_path)
         self.overview, self.display_name = self._load_overview()
 
         self.query_classifier = QueryClassifier()
@@ -80,6 +95,13 @@ class RAGPipeline:
         """
 
         with self._index_lock:
+            _restore_json(self.json_path)
+
+            # The JSON became available (e.g. written by an indexing job
+            # elsewhere) after this pipeline was created without it.
+            if not self._files_loaded and Path(self.json_path).exists():
+                self.overview, self.display_name = self._load_overview()
+
             json_exists = Path(self.json_path).exists()
 
             if self.is_indexed():

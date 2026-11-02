@@ -2,7 +2,7 @@
 // Run with: node --test frontend/tests/
 //
 // app.js is a browser script, so the API config + apiFetch block is pulled
-// out of it and run in a VM against a fake fetch. The 3s timeout is shrunk
+// out of it and run in a VM against a fake fetch. The 10s timeout is shrunk
 // to keep the suite fast.
 
 import { test } from "node:test";
@@ -16,7 +16,7 @@ const BLOCK =
   between("// AWS is the primary backend", "// Change this to your repository") +
   between("// POSTs that are safe to send twice", "async function request(");
 
-const AWS = "https://chatwithrepo.duckdns.org";
+const AWS = "https://qettzfl73r7xhbres3oqvx3qt40mmqrp.lambda-url.ap-south-1.on.aws";
 const RENDER = "https://chat-with-repo-4vwy.onrender.com";
 const TIMEOUT = 150;
 
@@ -56,7 +56,9 @@ function setup(routes, store = new Map()) {
     setItem: (k, v) => store.set(k, String(v)),
     removeItem: (k) => store.delete(k),
   };
-  const ctx = vm.createContext({ fetch: fakeFetch, setTimeout, clearTimeout, AbortController, Set, Promise, Date, Number, String, localStorage });
+  const listeners = {};
+  const addEventListener = (name, fn) => (listeners[name] ??= []).push(fn);
+  const ctx = vm.createContext({ fetch: fakeFetch, setTimeout, clearTimeout, AbortController, DOMException, Set, Promise, Date, Number, String, localStorage, addEventListener });
   const code = BLOCK.replace(/PRIMARY_TIMEOUT_MS = \d+/, `PRIMARY_TIMEOUT_MS = ${TIMEOUT}`);
   vm.runInContext(code + "\nthis.apiFetch = apiFetch;", ctx);
 
@@ -66,6 +68,7 @@ function setup(routes, store = new Map()) {
     calls: () => calls.filter(real).map((c) => `${c.method} ${c.base}${c.path}`),
     raw: () => calls,
     aborted: () => aborted,
+    leavePage: () => listeners.pagehide.forEach((fn) => fn()),
     store,
   };
 }
@@ -76,8 +79,9 @@ const POST = (body) => ({
   body: JSON.stringify(body),
 });
 
-test("timeout is 3 seconds and AWS is primary", () => {
-  assert.match(SOURCE, /const PRIMARY_TIMEOUT_MS = 3000;/);
+test("timeout is 10 seconds and AWS is primary", () => {
+  assert.match(SOURCE, /const PRIMARY_TIMEOUT_MS = 10000;/);
+  assert.match(SOURCE, new RegExp(`const API_PRIMARY = "${AWS}";`));
   assert.match(SOURCE, /const USE_LOCAL_API = false;/);
   assert.match(BLOCK, /\[API_PRIMARY, API_FALLBACK\]/);
 });
@@ -115,6 +119,15 @@ test("network error falls back immediately", async () => {
   await s.apiFetch("/chat/list", {});
   assert.ok(Date.now() - t0 < 50);
   assert.deepEqual(s.calls(), ["GET AWS/chat/list", "GET RENDER/chat/list"]);
+});
+
+test("requests cancelled by leaving the page don't fail over or mark AWS down", async () => {
+  const s = setup({ AWS: "neterr", RENDER: 200 });
+  s.leavePage();
+  await assert.rejects(s.apiFetch("/auth/me", {}), { name: "AbortError" });
+  await assert.rejects(s.apiFetch("/chat/create", POST({ owner: "o", repo: "r" })), { name: "AbortError" });
+  assert.deepEqual(s.calls(), ["GET AWS/auth/me", "POST AWS/chat/create"]);
+  assert.equal(s.store.size, 0, "AWS must not be marked down");
 });
 
 for (const status of [400, 401, 403, 404, 409, 422, 500]) {

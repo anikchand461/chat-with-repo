@@ -7,8 +7,14 @@ instead of the request just hanging until the whole thing is done.
 
 This is process-local (a plain dict), matching how `rag.pipeline`'s
 `_pipelines` cache already works - fine for a single backend process.
+
+With PROGRESS_STORE=db (set on AWS, where the API runs on many Lambda
+instances and indexing runs in a separate Fargate task) every function
+here uses the Postgres-backed store in rag.progress_db instead, with the
+same behaviour.
 """
 
+import os
 import threading
 
 # Short, human-readable messages for each stage. Deliberately coarse -
@@ -24,6 +30,15 @@ _lock = threading.Lock()
 _progress = {}
 
 
+def _db_store():
+    if os.getenv("PROGRESS_STORE") != "db":
+        return None
+
+    from backend.rag import progress_db
+
+    return progress_db
+
+
 def set_stage(chat_id, stage, detail=None, done=None, total=None):
     """
     `done`/`total`, if given (only meaningful during the "indexing" stage),
@@ -31,6 +46,10 @@ def set_stage(chat_id, stage, detail=None, done=None, total=None):
     can render a real percentage-filled progress bar instead of having to
     parse them back out of "(done/total chunks)" text.
     """
+
+    store = _db_store()
+    if store:
+        return store.set_stage(chat_id, stage, detail, done=done, total=total)
 
     with _lock:
         entry = {
@@ -47,6 +66,10 @@ def set_stage(chat_id, stage, detail=None, done=None, total=None):
 
 
 def set_ready(chat_id):
+    store = _db_store()
+    if store:
+        return store.set_ready(chat_id)
+
     with _lock:
         _progress[chat_id] = {
             "status": "ready",
@@ -56,6 +79,10 @@ def set_ready(chat_id):
 
 
 def set_error(chat_id, message):
+    store = _db_store()
+    if store:
+        return store.set_error(chat_id, message)
+
     with _lock:
         _progress[chat_id] = {
             "status": "error",
@@ -65,6 +92,10 @@ def set_error(chat_id, message):
 
 
 def get(chat_id):
+    store = _db_store()
+    if store:
+        return store.get(chat_id)
+
     with _lock:
         entry = _progress.get(chat_id)
 
@@ -77,6 +108,10 @@ def get(chat_id):
 
 
 def is_tracked(chat_id):
+    store = _db_store()
+    if store:
+        return store.is_tracked(chat_id)
+
     with _lock:
         return chat_id in _progress
 
@@ -100,6 +135,10 @@ def claim(chat_id):
     running two full rebuilds against the same Qdrant collection at once.
     """
 
+    store = _db_store()
+    if store:
+        return store.claim(chat_id)
+
     with _lock:
         existing = _progress.get(chat_id)
         if existing and existing["status"] == "working":
@@ -114,5 +153,20 @@ def claim(chat_id):
 
 
 def clear(chat_id):
+    store = _db_store()
+    if store:
+        return store.clear(chat_id)
+
     with _lock:
         _progress.pop(chat_id, None)
+
+
+def touch(chat_id):
+    """
+    Heartbeat from a running indexing job (backend/jobs/index_chat.py). Only
+    the DB store tracks staleness; in memory a job can't outlive its process.
+    """
+
+    store = _db_store()
+    if store:
+        store.touch(chat_id)

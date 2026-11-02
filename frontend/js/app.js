@@ -1,6 +1,6 @@
 // AWS is the primary backend. Render is only used when AWS is unreachable
 // or its proxy reports the app as down (see apiFetch below).
-const API_PRIMARY = "https://chatwithrepo.duckdns.org";
+const API_PRIMARY = "https://qettzfl73r7xhbres3oqvx3qt40mmqrp.lambda-url.ap-south-1.on.aws";
 const API_FALLBACK = "https://chat-with-repo-4vwy.onrender.com";
 
 // Local testing only: set to true to send every request to a local backend
@@ -48,7 +48,7 @@ function isRetrySafe(method, path) {
 // How long AWS gets to start answering (response headers) before we fail
 // over. A healthy request is never delayed by it, and once headers arrive
 // it no longer applies, so long streams are never cut off.
-const PRIMARY_TIMEOUT_MS = 3000;
+const PRIMARY_TIMEOUT_MS = 10000;
 
 // Once AWS fails, skip it for this long so only the first request pays
 // PRIMARY_TIMEOUT_MS. Kept in localStorage because every page is a full
@@ -100,6 +100,14 @@ async function backendUp(base, ms) {
   }
 }
 
+// Leaving the page cancels its in-flight requests. That is not AWS failing,
+// so it must not mark AWS down (sending the next page to Render) or replay
+// the request on Render.
+let leavingPage = false;
+globalThis.addEventListener?.("beforeunload", () => (leavingPage = true));
+globalThis.addEventListener?.("pagehide", () => (leavingPage = true));
+globalThis.addEventListener?.("pageshow", () => (leavingPage = false));
+
 // fetch() against AWS first, falling back to Render once:
 // - no response headers within PRIMARY_TIMEOUT_MS, or a network/TLS/CORS
 //   failure: retry-safe requests abort AWS and go to Render. Other POSTs
@@ -145,6 +153,7 @@ async function apiFetch(path, init = {}) {
 
   if (!response) {
     controller.abort();
+    if (leavingPage) throw new DOMException("Page is unloading", "AbortError");
     markPrimaryDown(true);
     return fetch(fallback + path, init);
   }
