@@ -1,7 +1,7 @@
 import json
 import os
 
-from . import repo_cache
+from . import repo_cache, repo_store
 
 
 def build_structure(tree_items):
@@ -61,3 +61,6 @@ def save_json(data, filename):
 
     # Shared copy for other instances (AWS only; no-op elsewhere).
     repo_cache.upload(filename)
+
+    # Copy that survives restarts (Neon).
+    repo_store.save(filename, data)
