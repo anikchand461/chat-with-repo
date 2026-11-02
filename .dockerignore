@@ -1,0 +1,11 @@
+# Only requirements-aws.txt and backend/ go into the image (see Dockerfile).
+# Everything else - .env files with secrets, .venv, frontend/, mobile/ -
+# stays out of the build context.
+*
+!requirements-aws.txt
+!backend
+backend/**/.env
+backend/**/.env.*
+backend/.venv
+backend/tests
+backend/**/__pycache__

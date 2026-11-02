@@ -1,0 +1,370 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ChatWithRepo FastAPI backend on AWS Lambda. FastAPIApp is the original
+  zip function (Mangum + HTTP API); ApiContainerFunction is the container
+  image (Lambda Web Adapter + streaming Function URL) with repository
+  indexing on Fargate. Both run side by side until the frontend switches.
+
+# Secrets are passed at deploy time (sam deploy --guided asks for them).
+# NoEcho keeps them out of the CloudFormation console and API output.
+Parameters:
+  DatabaseUrl:
+    Type: String
+    NoEcho: true
+  JwtSecret:
+    Type: String
+    NoEcho: true
+  GoogleApiKey:
+    Type: String
+    NoEcho: true
+  CohereApiKey:
+    Type: String
+    NoEcho: true
+  GroqApiKey:
+    Type: String
+    NoEcho: true
+  QdrantUrl:
+    Type: String
+  QdrantApiKey:
+    Type: String
+    NoEcho: true
+  DodoApiKey:
+    Type: String
+    NoEcho: true
+  DodoProductId:
+    Type: String
+  GithubToken:
+    Type: String
+    NoEcho: true
+    Default: ""
+  AppUrl:
+    Type: String
+    Default: https://chatwithrepo-nine.vercel.app
+  # Container image (ECR) shared by ApiContainerFunction and the indexing
+  # task, pushed by deploy-aws.sh. Empty = deploy only the zip function.
+  ApiImageUri:
+    Type: String
+    Default: ""
+  # Where indexing tasks run: the default VPC's public subnets (a public IP
+  # instead of a NAT gateway).
+  IndexVpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-0535d4101fcb4d910
+  IndexSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Default: subnet-0ad9e76faa5aae9a4,subnet-0efafb56c5577808a,subnet-0cec9662fa8970546
+
+Conditions:
+  HasApiImage: !Not [!Equals [!Ref ApiImageUri, ""]]
+
+Resources:
+  # ---------------------------------------------------------------------
+  # Original zip function - unchanged apart from its handler module.
+  # ---------------------------------------------------------------------
+  FastAPIApp:
+    Type: AWS::Serverless::Function
+    # Packages only backend/ plus requirements-aws.txt, see Makefile.
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: backend.lambda_handler.handler
+      Runtime: python3.12
+      Architectures:
+        - arm64
+      MemorySize: 1024
+      # API Gateway gives up after 30s, but the function keeps running, so
+      # repository indexing (a background task) can still finish.
+      Timeout: 900
+      Environment:
+        Variables:
+          # Lambda's filesystem is read-only except /tmp.
+          DATA_DIR: /tmp/data
+          CHROMA_DIR: /tmp/chroma_db
+          APP_URL: !Ref AppUrl
+          DATABASE_URL: !Ref DatabaseUrl
+          JWT_SECRET: !Ref JwtSecret
+          GOOGLE_API_KEY: !Ref GoogleApiKey
+          COHERE_API_KEY: !Ref CohereApiKey
+          GROQ_API_KEY: !Ref GroqApiKey
+          QDRANT_URL: !Ref QdrantUrl
+          QDRANT_API_KEY: !Ref QdrantApiKey
+          DODO_API_KEY: !Ref DodoApiKey
+          DODO_PRODUCT_ID: !Ref DodoProductId
+          GITHUB_TOKEN: !Ref GithubToken
+      Events:
+        Api:
+          Type: HttpApi
+
+  # ---------------------------------------------------------------------
+  # Container-based API
+  # ---------------------------------------------------------------------
+
+  # S3 copy of downloaded repository JSON (see backend/storage/repo_cache.py).
+  RepoCacheBucket:
+    Type: AWS::S3::Bucket
+    Condition: HasApiImage
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  ApiContainerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: HasApiImage
+    Properties:
+      LogGroupName: /aws/lambda/chatwithrepo-api-container
+      RetentionInDays: 30
+
+  ApiContainerFunction:
+    Type: AWS::Serverless::Function
+    Condition: HasApiImage
+    Properties:
+      FunctionName: chatwithrepo-api-container
+      PackageType: Image
+      ImageUri: !Ref ApiImageUri
+      Architectures:
+        - arm64
+      MemorySize: 2048
+      # Lambda's maximum - long streamed answers. Indexing runs on Fargate.
+      Timeout: 900
+      EphemeralStorage:
+        Size: 2048
+      LoggingConfig:
+        LogGroup: !Ref ApiContainerLogGroup
+      FunctionUrlConfig:
+        AuthType: NONE          # public API; users authenticate with JWT
+        InvokeMode: RESPONSE_STREAM
+        # No Cors block: FastAPI's CORSMiddleware already sets the headers.
+      Environment:
+        Variables:
+          # Lambda Web Adapter: proxy to uvicorn (Dockerfile CMD) and stream
+          # its responses back through the Function URL.
+          AWS_LWA_PORT: "8000"
+          AWS_LWA_READINESS_CHECK_PATH: /
+          AWS_LWA_INVOKE_MODE: response_stream
+          # App
+          DATA_DIR: /tmp/data
+          CHROMA_DIR: /tmp/chroma_db
+          REPO_CACHE_BUCKET: !Ref RepoCacheBucket
+          PROGRESS_STORE: db
+          INDEX_RUNNER: ecs
+          INDEX_CLUSTER: !Ref IndexCluster
+          INDEX_TASK_DEFINITION: !Ref IndexTaskDefinition
+          INDEX_SUBNETS: !Join [",", !Ref IndexSubnetIds]
+          INDEX_SECURITY_GROUP: !GetAtt IndexSecurityGroup.GroupId
+          APP_URL: !Ref AppUrl
+          DATABASE_URL: !Ref DatabaseUrl
+          JWT_SECRET: !Ref JwtSecret
+          GOOGLE_API_KEY: !Ref GoogleApiKey
+          COHERE_API_KEY: !Ref CohereApiKey
+          GROQ_API_KEY: !Ref GroqApiKey
+          QDRANT_URL: !Ref QdrantUrl
+          QDRANT_API_KEY: !Ref QdrantApiKey
+          DODO_API_KEY: !Ref DodoApiKey
+          DODO_PRODUCT_ID: !Ref DodoProductId
+          GITHUB_TOKEN: !Ref GithubToken
+      Policies:
+        # Repo cache (backend/storage/repo_cache.py: upload_file/download_file).
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+              Resource: !Sub "${RepoCacheBucket.Arn}/*"
+            - Effect: Allow
+              Action: s3:ListBucket
+              Resource: !GetAtt RepoCacheBucket.Arn
+            # Start indexing tasks (backend/services/index_jobs.py).
+            - Effect: Allow
+              Action: ecs:RunTask
+              Resource: !Ref IndexTaskDefinition
+              Condition:
+                ArnEquals:
+                  ecs:cluster: !GetAtt IndexCluster.Arn
+            - Effect: Allow
+              Action: iam:PassRole
+              Resource:
+                - !GetAtt IndexTaskRole.Arn
+                - !GetAtt IndexExecutionRole.Arn
+              Condition:
+                StringEquals:
+                  iam:PassedToService: ecs-tasks.amazonaws.com
+
+  # Public Function URLs need lambda:InvokeFunction (scoped to calls made
+  # through the URL) in addition to the lambda:InvokeFunctionUrl permission
+  # SAM adds for AuthType NONE.
+  ApiContainerUrlInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasApiImage
+    Properties:
+      FunctionName: !Ref ApiContainerFunction
+      Action: lambda:InvokeFunction
+      Principal: "*"
+      InvokedViaFunctionUrl: true
+
+  # ---------------------------------------------------------------------
+  # Repository indexing on Fargate (backend/jobs/index_chat.py)
+  # ---------------------------------------------------------------------
+  IndexCluster:
+    Type: AWS::ECS::Cluster
+    Condition: HasApiImage
+
+  IndexLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: HasApiImage
+    Properties:
+      LogGroupName: /ecs/chatwithrepo-index
+      RetentionInDays: 30
+
+  # Outbound only (GitHub, Cohere, Qdrant, Neon, S3); nothing connects in.
+  IndexSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: HasApiImage
+    Properties:
+      GroupDescription: ChatWithRepo indexing tasks - outbound only
+      VpcId: !Ref IndexVpcId
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+
+  # Used by ECS to pull the image and write logs.
+  IndexExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: HasApiImage
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      # Scoped version of AmazonECSTaskExecutionRolePolicy: only this
+      # repository (created by deploy-aws.sh) and this log group.
+      Policies:
+        - PolicyName: pull-image-write-logs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ecr:GetAuthorizationToken
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                Resource: !Sub arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/chatwithrepo-api
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "${IndexLogGroup.Arn}"
+
+  # Used by the indexing code itself.
+  IndexTaskRole:
+    Type: AWS::IAM::Role
+    Condition: HasApiImage
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: repo-cache
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:AbortMultipartUpload
+                Resource: !Sub "${RepoCacheBucket.Arn}/*"
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt RepoCacheBucket.Arn
+
+  IndexTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Condition: HasApiImage
+    Properties:
+      Family: chatwithrepo-index
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: "1024"
+      Memory: "2048"
+      RuntimePlatform:
+        CpuArchitecture: ARM64
+        OperatingSystemFamily: LINUX
+      ExecutionRoleArn: !GetAtt IndexExecutionRole.Arn
+      TaskRoleArn: !GetAtt IndexTaskRole.Arn
+      ContainerDefinitions:
+        - Name: indexer
+          Image: !Ref ApiImageUri
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref IndexLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: index
+          Environment:
+            - Name: DATA_DIR
+              Value: /tmp/data
+            - Name: CHROMA_DIR
+              Value: /tmp/chroma_db
+            - Name: REPO_CACHE_BUCKET
+              Value: !Ref RepoCacheBucket
+            - Name: PROGRESS_STORE
+              Value: db
+            - Name: APP_URL
+              Value: !Ref AppUrl
+            - Name: DATABASE_URL
+              Value: !Ref DatabaseUrl
+            - Name: JWT_SECRET
+              Value: !Ref JwtSecret
+            - Name: GOOGLE_API_KEY
+              Value: !Ref GoogleApiKey
+            - Name: COHERE_API_KEY
+              Value: !Ref CohereApiKey
+            - Name: GROQ_API_KEY
+              Value: !Ref GroqApiKey
+            - Name: QDRANT_URL
+              Value: !Ref QdrantUrl
+            - Name: QDRANT_API_KEY
+              Value: !Ref QdrantApiKey
+            - Name: DODO_API_KEY
+              Value: !Ref DodoApiKey
+            - Name: DODO_PRODUCT_ID
+              Value: !Ref DodoProductId
+            - Name: GITHUB_TOKEN
+              Value: !Ref GithubToken
+
+Outputs:
+  ApiUrl:
+    Description: Zip function (HTTP API) base URL - the current frontend primary
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  ContainerApiUrl:
+    Condition: HasApiImage
+    Description: Container function URL (streaming) - the new frontend primary
+    Value: !GetAtt ApiContainerFunctionUrl.FunctionUrl
+  RepoCacheBucketName:
+    Condition: HasApiImage
+    Value: !Ref RepoCacheBucket

@@ -16,3 +16,6 @@ mobile/*.apk
 mobile/*.idsig
 
 data/
+# AWS SAM (samconfig.toml can hold deploy parameters, i.e. secrets)
+.aws-sam/
+samconfig.toml

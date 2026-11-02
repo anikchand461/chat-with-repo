@@ -27,8 +27,7 @@ print("\nEnvironment Variables")
 print("-" * 60)
 
 if API_KEY:
-    print("API KEY PREFIX :", repr(API_KEY[:12]))
-    print("API KEY LENGTH :", len(API_KEY))
+    print("DODO_API_KEY   : set")
 else:
     print("❌ DODO_API_KEY not found")
 
@@ -77,7 +76,7 @@ class DodoClient:
         print("POST:", f"{BASE_URL}/checkout/sessions")
 
         if API_KEY:
-            print("Authorization: Bearer", API_KEY[:12] + "...")
+            print("Authorization: Bearer <DODO_API_KEY>")
         else:
             print("Authorization: No API Key")
 

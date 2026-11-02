@@ -98,6 +98,22 @@ class DailyUsage(Base):
     date = Column(Date, default=date.today, nullable=False)
     questions_used = Column(Integer, default=0)
 
+class IndexProgress(Base):
+    """
+    Indexing progress per chat, shared by every backend instance. Only used
+    with PROGRESS_STORE=db (AWS) - see backend/rag/progress_db.py.
+    """
+
+    __tablename__ = "index_progress"
+
+    chat_id = Column(Integer, primary_key=True)
+    status = Column(String, nullable=False)   # working / ready / error
+    stage = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    done = Column(Integer, nullable=True)
+    total = Column(Integer, nullable=True)
+    updated_at = Column(DateTime, nullable=False)
+
 Base.metadata.create_all(bind=engine)
 
 

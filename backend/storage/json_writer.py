@@ -1,6 +1,8 @@
 import json
 import os
 
+from . import repo_cache
+
 
 def build_structure(tree_items):
     structure = {}
@@ -56,3 +58,6 @@ def save_json(data, filename):
         f.write("\n")
 
     print(f"Saved: {os.path.abspath(filename)}")
+
+    # Shared copy for other instances (AWS only; no-op elsewhere).
+    repo_cache.upload(filename)
