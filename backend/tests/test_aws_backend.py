@@ -38,7 +38,7 @@ from backend.database import Chat, SessionLocal, User  # noqa: E402
 from backend.database.db import IndexProgress  # noqa: E402
 from backend.rag import progress, progress_db  # noqa: E402
 from backend.services import index_jobs  # noqa: E402
-from backend.storage import repo_cache  # noqa: E402
+from backend.storage import repo_cache, repo_store  # noqa: E402
 from backend.storage.json_writer import save_json  # noqa: E402
 
 AWS_ENV = {
@@ -254,6 +254,60 @@ class RepoCacheTest(unittest.TestCase):
             save_json({"name": "plain"}, str(path))
 
         self.assertEqual(s3.objects, {})
+
+
+class RepoStoreTest(unittest.TestCase):
+    """Database copy of the repo JSON: survives a restart (local disk wiped)."""
+
+    def setUp(self):
+        self.path = Path(os.environ["DATA_DIR"]) / f"octo_store{next(_next_id)}_main.json"
+
+    def test_saved_file_is_restored_after_restart(self):
+        save_json({"name": "hello", "files": [{"path": "a.py", "content": "x"}]}, str(self.path))
+        self.path.unlink()  # restart
+
+        self.assertTrue(repo_store.restore(self.path))
+        self.assertEqual(json.loads(self.path.read_text())["files"][0]["content"], "x")
+        self.assertFalse(repo_store.restore(self.path), "already on disk")
+
+    def test_resave_replaces_the_copy(self):
+        save_json({"v": 1}, str(self.path))
+        save_json({"v": 2}, str(self.path))
+        self.path.unlink()
+
+        repo_store.restore(self.path)
+        self.assertEqual(json.loads(self.path.read_text())["v"], 2)
+
+    def test_pipeline_restores_missing_json(self):
+        from backend.rag import pipeline
+
+        save_json({"v": 1}, str(self.path))
+        self.path.unlink()
+        pipeline._restore_json(str(self.path))
+        self.assertTrue(self.path.exists())
+
+    def test_unknown_file_is_not_restored(self):
+        self.assertFalse(repo_store.restore(self.path))
+        self.assertFalse(self.path.exists())
+
+    def test_nul_characters_are_dropped(self):
+        save_json({"files": [{"content": "a\x00b"}]}, str(self.path))
+        self.path.unlink()
+        repo_store.restore(self.path)
+        self.assertEqual(json.loads(self.path.read_text())["files"][0]["content"], "ab")
+
+    def test_database_failure_never_fails_saving(self):
+        with mock.patch("backend.database.db.SessionLocal", side_effect=RuntimeError("db down")):
+            save_json({"v": 1}, str(self.path))
+            self.assertTrue(self.path.exists())
+            self.path.unlink()
+            self.assertFalse(repo_store.restore(self.path))
+
+    def test_oversized_file_is_not_saved(self):
+        with mock.patch.object(repo_store, "MAX_BYTES", 5):
+            save_json({"v": "too big"}, str(self.path))
+        self.path.unlink()
+        self.assertFalse(repo_store.restore(self.path))
 
 
 class FargateJobEntryPointTest(unittest.TestCase):

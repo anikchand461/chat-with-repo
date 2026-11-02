@@ -75,7 +75,7 @@ Before any of this, ingestion turns a raw repo into searchable documents:
 - Synthetic repository-level summary documents are also generated to improve high-level "explain this codebase" queries.
 - Embedding runs in paced batches and waits out provider rate limits instead of failing.
 - Vectors live in Qdrant Cloud, one collection per chat, so an index survives backend restarts and redeploys — it isn't tied to local disk.
-- Indexing runs in the background: creating a chat (or reopening one whose index is missing) shows live progress on the dashboard — fetch stage, then a chunk-by-chunk progress bar — and only opens the chat once it's actually ready, instead of dropping you into an empty chat. A chat that failed to index (e.g. GitHub's rate limit) is retried automatically the next time you open it.
+- Indexing runs in the background (on AWS as a separate Fargate task, so it isn't bound by Lambda's 15-minute limit): creating a chat (or reopening one whose index is missing) shows live progress on the dashboard — fetch stage, then a chunk-by-chunk progress bar — and only opens the chat once it's actually ready, instead of dropping you into an empty chat. A chat that failed to index (e.g. GitHub's rate limit) is retried automatically the next time you open it.
 
 ### Streaming & response time
 
@@ -175,7 +175,7 @@ EMBED_TOKENS_PER_MINUTE=80000  # embedding pacing; set 0 with a production Coher
 >
 > **Vector storage:** vector indexes live in Qdrant Cloud (`QDRANT_URL` / `QDRANT_API_KEY`), one collection per chat, so they survive backend restarts and redeploys.
 >
-> **Hosting note:** the raw repo JSON (`DATA_DIR`) still lives on local disk. On hosts with a temporary disk (e.g. Render's free tier), that file is lost on every spin-down, which triggers a GitHub re-fetch (but *not* a re-embed — the existing Qdrant vectors are reused) on the next question. Point `DATA_DIR` at a persistent disk to avoid even that.
+> **Hosting note:** the raw repo JSON (`DATA_DIR`) lives on local disk. On hosts with a temporary disk (e.g. Render's free tier), that file is lost on every spin-down, which triggers a GitHub re-fetch (but *not* a re-embed — the existing Qdrant vectors are reused) on the next question. Point `DATA_DIR` at a persistent disk to avoid even that. On AWS the file is also kept in S3 (`REPO_CACHE_BUCKET`), so it survives Lambda and Fargate restarts.
 
 **Step 3 — Run the backend**
 
@@ -233,12 +233,14 @@ The Android APK is distributed through GitHub Releases rather than committed to 
 | Part | Hosted on | URL |
 |---|---|---|
 | Frontend | Vercel | [chatwithrepo-nine.vercel.app](https://chatwithrepo-nine.vercel.app/) |
-| Backend - **primary** | AWS EC2 (nginx + Let's Encrypt in front of uvicorn) | `https://chatwithrepo.duckdns.org` |
+| Backend - **primary** | AWS Lambda (container image) behind a Function URL with response streaming | `https://qettzfl73r7xhbres3oqvx3qt40mmqrp.lambda-url.ap-south-1.on.aws` |
+| Repository indexing | AWS ECS Fargate - one task per indexing job | started by the Lambda |
+| Repo cache | Amazon S3 | raw repo JSON, shared by the Lambda and Fargate |
 | Backend - **fallback** | Render | `https://chat-with-repo-4vwy.onrender.com` |
 | Database | Neon PostgreSQL | shared by both backends |
 | Vector store | Qdrant Cloud | shared by both backends |
 
-Both backends run the **same FastAPI code** with the **same environment variables**, and both read and write the same Neon database and Qdrant cluster. So it doesn't matter which one answers a request: a user, their login token, their chats and their message history are identical on both.
+Both backends run the **same FastAPI code** with the **same environment variables**, and both read and write the same Neon database and Qdrant cluster. So it doesn't matter which one answers a request: a user, their login token, their chats and their message history are identical on both. The AWS-only behaviour (Fargate indexing, S3 cache, progress in Postgres) is switched on by environment variables that only the AWS stack sets, so Render runs exactly as before.
 
 ### How a request reaches the backend
 
@@ -246,12 +248,13 @@ Both backends run the **same FastAPI code** with the **same environment variable
 Browser (Vercel frontend)
   │   apiFetch() in frontend/js/app.js
   │
-  ├─①─► AWS EC2   chatwithrepo.duckdns.org
-  │       nginx :443 (TLS) ──► uvicorn 127.0.0.1:8000 ──► FastAPI
+  ├─①─► AWS Lambda   *.lambda-url.ap-south-1.on.aws  (Function URL, RESPONSE_STREAM)
+  │       Lambda Web Adapter ──► uvicorn 127.0.0.1:8000 ──► FastAPI
+  │       new chat ──► ECS Fargate task (indexing) ──► S3 repo cache
   │
-  │     no response within 3s · connection/TLS error · 502 / 503 / 504
+  │     no response headers within 10s · connection/TLS error · 502 / 503 / 504
   │
-  └─②─► Render    chat-with-repo-4vwy.onrender.com ──► FastAPI (same code)
+  └─②─► Render       chat-with-repo-4vwy.onrender.com ──► FastAPI (same code)
 
            both ──► Neon Postgres · Qdrant Cloud · GitHub API · Cohere · Groq · Gemini
 ```
@@ -259,88 +262,46 @@ Browser (Vercel frontend)
 Every API call in the web app - including the streamed answers on `/chat/{id}/ask/stream` - goes through one function, `apiFetch()` in `frontend/js/app.js`:
 
 1. **AWS first.** The request goes to AWS. If AWS answers normally (including errors like 400, 401, 403, 404 or 409), that answer is used. When AWS is up there is no extra delay.
-2. **3-second failover.** If AWS sends no response within 3 seconds, can't be reached, or its proxy returns 502/503/504, the request is cancelled and sent to Render with the same method, body and `Authorization` header.
-3. **Remember for 5 minutes.** After a failover, the browser remembers (in `localStorage`) that AWS is down and sends everything straight to Render for 5 minutes, so only the first request pays the 3 seconds. Each page load also checks AWS once in the background, so traffic moves back to AWS as soon as it is up again.
+2. **10-second failover.** If AWS sends no response headers within 10 seconds, can't be reached, or returns 502/503/504, the request is cancelled and sent to Render with the same method, body and `Authorization` header. The limit only applies until the response starts, so long streamed answers are never cut off. 10 seconds leaves room for a Lambda cold start (~5 s).
+3. **Remember for 5 minutes.** After a failover, the browser remembers (in `localStorage`) that AWS is down and sends everything straight to Render for 5 minutes, so only the first request pays the wait. Each page load also checks AWS once in the background, so traffic moves back to AWS as soon as it is up again.
 4. **Never run a request twice.** Requests that change something - registering, creating a chat, asking a question, starting a checkout - check whether the AWS app itself is alive. If it is, it may already be working on the request, so the frontend waits for AWS instead of sending a second copy to Render. These requests also never move to Render on a 504 (the app may still be processing them).
 5. **Streams are never restarted.** Once AWS starts sending an answer, it stays on AWS. If the stream breaks part-way, the user sees the error instead of a second, duplicate answer from Render.
+6. **Leaving a page is not an outage.** Requests cancelled because the user navigated away (e.g. clicked Logout while the dashboard was still loading) don't mark AWS down and aren't replayed on Render.
 
-### AWS EC2 (primary)
+To try the failover locally, serve the frontend on port 5500 and block the `lambda-url` domain in the browser's DevTools (Network → request blocking): requests move to Render. Afterwards, unblock it and delete `devlens_api_primary_down_until` from Local Storage.
 
-The EC2 instance runs the API with uvicorn behind nginx. nginx terminates HTTPS (Let's Encrypt certificate for the DuckDNS domain) and proxies to uvicorn on localhost.
+### AWS (primary)
 
-**1. Instance and domain**
+Everything is defined in `template.yaml` (AWS SAM) and deployed by `deploy-aws.sh` as the CloudFormation stack `chatwithrepo` in `ap-south-1`.
 
-- Security group: allow inbound **22** (SSH), **80** (HTTP, needed for the certificate) and **443** (HTTPS).
-- Point `chatwithrepo.duckdns.org` at the instance's public IP on [duckdns.org](https://www.duckdns.org/). Attach an **Elastic IP** to the instance - otherwise the public IP changes every time the instance is stopped and started, and the DuckDNS record must be updated again.
+| Resource | What it does |
+|---|---|
+| `ApiContainerFunction` | The API: container image (`Dockerfile`) running uvicorn behind [Lambda Web Adapter](https://github.com/awslabs/aws-lambda-web-adapter), arm64, 2 GB, 15 min timeout. Its Function URL (`InvokeMode: RESPONSE_STREAM`) streams answers token by token, with no 30-second API Gateway limit. |
+| `IndexCluster` / `IndexTaskDefinition` | Fargate task that indexes one repository (`python -m backend.jobs.index_chat`). Same image as the API. Runs in the default VPC's public subnets with outbound-only access, so no NAT gateway is needed. A Lambda request can't run longer than 15 minutes, so indexing never runs inside one. |
+| `RepoCacheBucket` | Private, encrypted S3 bucket for the raw repo JSON (`repos/<owner>_<repo>_<branch>.json`). Fargate uploads it after indexing; the Lambda downloads it on demand, because Lambda's `/tmp` doesn't survive between instances. |
+| `index_progress` table | Indexing progress lives in Postgres (`PROGRESS_STORE=db`) so the Lambda can report the progress of a job running on Fargate. A job that stops updating for 10 minutes is reported as failed. |
+| `FastAPIApp` + HTTP API | The earlier zip-packaged Lambda behind API Gateway (`https://e77kyrzage.execute-api.ap-south-1.amazonaws.com`). Kept as a backup but not used by the frontend: API Gateway buffers responses (no streaming) and cuts them off at 30 seconds. |
 
-**2. App**
-
-```bash
-git clone https://github.com/anikchand461/chat-with-repo.git
-cd chat-with-repo
-uv sync
-cp .env.example .env    # fill in - same values as the Render service (see below)
-```
-
-**3. Keep it running with systemd** - `/etc/systemd/system/chatwithrepo.service`:
-
-```ini
-[Unit]
-Description=ChatWithRepo API
-After=network.target
-
-[Service]
-User=ubuntu
-WorkingDirectory=/home/ubuntu/chat-with-repo
-ExecStart=/home/ubuntu/.local/bin/uv run uvicorn backend.app:app --host 127.0.0.1 --port 8000
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
+**Deploying** (needs Docker, AWS CLI, AWS SAM CLI and `uv`):
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now chatwithrepo
+./deploy-aws.sh --no-execute-changeset   # build + push the image, create a changeset to review
+./deploy-aws.sh                          # build + push, deploy (asks before applying the changeset)
 ```
 
-Run a **single** uvicorn worker: indexing progress and the loaded RAG pipelines are kept in memory per process, so several workers would not see each other's indexing state. `.env` is loaded by the app itself (`backend/config.py`).
+The script builds the arm64 image, pushes it to the ECR repository `chatwithrepo-api` (last 3 images kept) with a unique tag, deploys the stack, and sends one warm-up request so the first user doesn't pay the slower first start of a new image. The same image is used by the Lambda and the Fargate task, so they always run the same code. AWS-only Python dependencies are in `requirements-aws.txt`; `requirements.txt` (Render) is unchanged.
 
-**4. nginx + HTTPS** - `/etc/nginx/sites-available/chatwithrepo`:
+**Configuration:** stack settings and non-secret parameters live in `samconfig.toml` (gitignored). Secrets (`DATABASE_URL`, `JWT_SECRET`, API keys) are `NoEcho` stack parameters: deploys keep their previous values, so they never pass through the script. To change one, update that parameter on the `chatwithrepo` stack in the CloudFormation console (*Update → Use current template*). The AWS-only variables (`INDEX_RUNNER=ecs`, `PROGRESS_STORE=db`, `REPO_CACHE_BUCKET`, `INDEX_*`) are set by the template.
 
-```nginx
-server {
-    listen 80;
-    server_name chatwithrepo.duckdns.org;
+**Logs:** CloudWatch `/aws/lambda/chatwithrepo-api-container` (API) and `/ecs/chatwithrepo-index` (indexing jobs). Check it: `curl https://qettzfl73r7xhbres3oqvx3qt40mmqrp.lambda-url.ap-south-1.on.aws/` should return `{"message": "✅ ChatWithRepo API is running!", ...}`.
 
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_buffering off;      # stream answers token by token
-        proxy_read_timeout 300s;  # long answers / slow first token
-    }
-}
-```
+**Tests** for the AWS pieces (progress store, Fargate launcher, S3 cache, job entry point) run against a throwaway SQLite database and fake AWS clients:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/chatwithrepo /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d chatwithrepo.duckdns.org   # adds the 443 / TLS config and auto-renewal
+.venv/bin/python -m unittest backend.tests.test_aws_backend
 ```
 
-**5. Deploying an update**
-
-```bash
-cd ~/chat-with-repo && git pull && uv sync && sudo systemctl restart chatwithrepo
-```
-
-Check it: `curl https://chatwithrepo.duckdns.org/` should return `{"message": "✅ ChatWithRepo API is running!", ...}`. Logs: `journalctl -u chatwithrepo -f`.
-
-Unlike Render's free tier, the EC2 disk is persistent, so the downloaded repo data in `DATA_DIR` survives restarts.
+**Cold starts:** a new Lambda instance starts in about 5 seconds; its first question takes longer (~20 s) while the RAG libraries load, later ones are fast. Indexing a small repository takes about 35 seconds including the Fargate task start.
 
 ### Render (fallback)
 
@@ -349,7 +310,7 @@ A Render web service running the same repository:
 - **Build command:** `pip install -r requirements.txt`
 - **Start command:** `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`
 
-On the free tier the service sleeps after about 15 minutes without traffic. Since AWS normally handles everything, Render is usually asleep, and the first request after a failover can take ~30 seconds while it wakes up. An external uptime monitor pinging `https://chat-with-repo-4vwy.onrender.com/` every 10 minutes keeps it awake.
+Render indexes in-process (FastAPI background task) and keeps indexing progress in memory, so run a **single** worker. On the free tier the service sleeps after about 15 minutes without traffic. Since AWS normally handles everything, Render is usually asleep, and the first request after a failover can take ~30 seconds while it wakes up. An external uptime monitor pinging `https://chat-with-repo-4vwy.onrender.com/` every 10 minutes keeps it awake.
 
 ### Keep both backends in sync
 
@@ -359,7 +320,7 @@ On the free tier the service sleeps after about 15 minutes without traffic. Sinc
 
 ### Known limitations
 
-- **Indexing during a failover.** Indexing progress lives in the memory of the server that started it. If the frontend switches servers while a repository is being indexed, the other server doesn't see that progress and starts indexing the same chat again.
+- **Indexing during a failover.** AWS keeps indexing progress in Postgres, Render keeps it in memory. If the frontend switches to Render while AWS is indexing a repository, Render doesn't see that progress and starts indexing the same chat again.
 - **The Android app** still uses Render only (see [Android](#android)).
 
 ---
@@ -391,8 +352,10 @@ On the free tier the service sleeps after about 15 minutes without traffic. Sinc
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
 
-![AWS EC2](https://img.shields.io/badge/AWS-EC2-FF9900?style=flat-square&logo=amazonec2&logoColor=white)
-![Nginx](https://img.shields.io/badge/Nginx-009639?style=flat-square&logo=nginx&logoColor=white)
+![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-FF9900?style=flat-square&logo=awslambda&logoColor=white)
+![AWS Fargate](https://img.shields.io/badge/AWS-Fargate-FF9900?style=flat-square&logo=amazonecs&logoColor=white)
+![Amazon S3](https://img.shields.io/badge/Amazon-S3-569A31?style=flat-square&logo=amazons3&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Render](https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
 

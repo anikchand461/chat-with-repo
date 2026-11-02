@@ -15,6 +15,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 load_dotenv()
@@ -113,6 +114,19 @@ class IndexProgress(Base):
     done = Column(Integer, nullable=True)
     total = Column(Integer, nullable=True)
     updated_at = Column(DateTime, nullable=False)
+
+class RepositoryJson(Base):
+    """
+    Copy of each downloaded repository JSON file (DATA_DIR), so it survives
+    Render restarts - see backend/storage/repo_store.py.
+    """
+
+    __tablename__ = "repository_json"
+
+    name = Column(String, primary_key=True)   # file name, e.g. octocat_Spoon-Knife_main.json
+    data = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
 
 Base.metadata.create_all(bind=engine)
 

@@ -24,16 +24,18 @@ from concurrent.futures import ThreadPoolExecutor
 
 def _restore_json(json_path):
     """
-    Fetch the repo JSON from the shared S3 cache if it isn't on this
-    instance's disk (AWS only; a no-op elsewhere - see storage/repo_cache.py).
+    Fetch the repo JSON if it isn't on this instance's disk: from the shared
+    S3 cache (AWS only - see storage/repo_cache.py), otherwise from the
+    database copy (storage/repo_store.py), e.g. after a Render restart.
     """
 
     try:
-        from backend.storage import repo_cache
+        from backend.storage import repo_cache, repo_store
     except ImportError:  # run as a standalone script with only backend/ on sys.path
         return
 
     repo_cache.download(json_path)
+    repo_store.restore(json_path)
 
 
 class RAGPipeline:
