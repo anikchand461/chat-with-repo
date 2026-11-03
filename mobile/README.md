@@ -94,16 +94,25 @@ to `""` (no fallback).
 ```bash
 cd mobile
 gogio -target android -arch arm64 -ldflags "-s -w" -name ChatWithRepo \
-  -appid com.chatwithrepo.mobile -o chatwithrepo.apk .
+  -appid com.chatwithrepo.app -version 1.5.0.5 -o ChatWithRepo.apk .
 ```
 
 `-arch arm64` (all current phones) and `-ldflags "-s -w"` keep the APK around
 7 MB; leaving them out builds every CPU architecture with debug info (60 MB+).
 Add `,arm` to `-arch` only if you must support old 32-bit phones.
 
-This produces `chatwithrepo.apk` in the current directory. `gogio`
+This produces `ChatWithRepo.apk` in the current directory. `gogio`
 cross-compiles the Go code for Android and packages it — no Java/Kotlin
 code required.
+
+- **Keep `-appid com.chatwithrepo.app`** — it's the released app's ID. Any
+  other ID installs as a second, separate app instead of an update.
+- **Raise the last number of `-version`** (`major.minor.patch.code`) for every
+  release: Android only installs an update with a higher version code.
+- Updates also need the same signing key: `gogio` uses
+  `~/.android/debug.keystore`, so build releases on the same machine.
+- If `gogio` says *please set ANDROID_HOME*, point it at the SDK, e.g.
+  `export ANDROID_HOME=$HOME/Library/Android/sdk` (macOS, Android Studio).
 
 ## 4. Install the APK on a device
 
