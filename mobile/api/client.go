@@ -5,7 +5,6 @@ package api
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -22,20 +21,29 @@ import (
 var ErrUnauthorized = errors.New("unauthorized")
 
 // Client is a small wrapper around net/http configured for the
-// ChatWithRepo API. BaseURL is the only thing you need to change to
-// point the app at a different backend (e.g. local dev).
+// ChatWithRepo API. Requests go to BaseURL (AWS) first and to Fallback
+// (Render) only when AWS is unreachable or reports the app as down - see
+// send in failover.go. An empty Fallback sends everything to BaseURL.
 type Client struct {
-	BaseURL string
-	http    *http.Client
+	BaseURL  string
+	Fallback string
+	http     *http.Client
 
 	tokenMu sync.RWMutex // token is read by request goroutines and swapped on login/logout
 	token   string
+
+	downMu      sync.Mutex // guards the fields below (see failover.go)
+	downUntil   time.Time
+	rechecking  bool
+	lastRecheck time.Time
 }
 
-// NewClient builds a Client pointed at baseURL (no trailing slash expected).
-func NewClient(baseURL string) *Client {
+// NewClient builds a Client for the primary backend and an optional
+// fallback ("" for none). No trailing slashes expected.
+func NewClient(baseURL, fallback string) *Client {
 	return &Client{
-		BaseURL: baseURL,
+		BaseURL:  baseURL,
+		Fallback: fallback,
 		http: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -213,28 +221,29 @@ type errorBody struct {
 
 // ---- internal request helper ----
 
+// headers returns the headers every API request carries.
+func (c *Client) headers() http.Header {
+	h := http.Header{}
+	h.Set("Content-Type", "application/json")
+	if token := c.Token(); token != "" {
+		h.Set("Authorization", "Bearer "+token)
+	}
+	return h
+}
+
 // do performs an HTTP request against path, optionally sending body as
 // JSON, and decodes a successful JSON response into out (if non-nil).
 func (c *Client) do(method, path string, body any, out any) error {
-	var reader io.Reader
+	var buf []byte
 	if body != nil {
-		buf, err := json.Marshal(body)
+		var err error
+		buf, err = json.Marshal(body)
 		if err != nil {
 			return fmt.Errorf("encode request: %w", err)
 		}
-		reader = bytes.NewReader(buf)
 	}
 
-	req, err := http.NewRequest(method, c.BaseURL+path, reader)
-	if err != nil {
-		return fmt.Errorf("build request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	if token := c.Token(); token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
-	}
-
-	resp, err := c.http.Do(req)
+	resp, err := c.send(context.Background(), c.http, method, path, buf, c.headers())
 	if err != nil {
 		return fmt.Errorf("network error: %w", err)
 	}
@@ -383,20 +392,15 @@ func (c *Client) AskStream(chatID, question string, onToken func(string), onSour
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		c.BaseURL+"/chat/"+chatID+"/ask/stream", bytes.NewReader(buf))
-	if err != nil {
-		return res, fmt.Errorf("build request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "text/event-stream")
-	if token := c.Token(); token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
-	}
+	header := c.headers()
+	header.Set("Accept", "text/event-stream")
 
 	start := time.Now()
 
-	resp, err := (&http.Client{Transport: c.http.Transport}).Do(req)
+	// Once the answer starts, it stays on that backend: a stream that
+	// breaks part-way is never restarted on the other one.
+	resp, err := c.send(ctx, &http.Client{Transport: c.http.Transport},
+		http.MethodPost, "/chat/"+chatID+"/ask/stream", buf, header)
 	if err != nil {
 		return res, fmt.Errorf("network error: %w", err)
 	}

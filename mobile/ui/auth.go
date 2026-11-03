@@ -331,7 +331,7 @@ func AuthField(th *material.Theme, editor *widget.Editor, label, hint string) la
 								ed.Color = authTitle
 								ed.HintColor = authHint
 								ed.SelectionColor = color.NRGBA{R: 0x10, G: 0xa3, B: 0x72, A: 0x66}
-								dims := ed.Layout(gtx)
+								dims := layoutEditor(gtx, th, ed)
 								dims.Size.Y = h
 								return dims
 							})

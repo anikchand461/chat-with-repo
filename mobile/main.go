@@ -23,12 +23,18 @@ import (
 //go:embed assets/*
 var assets embed.FS
 
-// baseURL is the only thing you need to change to point this client
-// at a different backend (e.g. a local dev server on 10.0.2.2 for the
-// Android emulator, or 127.0.0.1 when running as a desktop binary).
+// AWS is the primary backend. Render is only used when AWS is unreachable
+// or reports the app as down - same rules as the web app (see
+// api/failover.go).
+const (
+	apiPrimary  = "https://qettzfl73r7xhbres3oqvx3qt40mmqrp.lambda-url.ap-south-1.on.aws"
+	apiFallback = "https://chat-with-repo-4vwy.onrender.com"
+)
 
-const baseURL = "https://chat-with-repo-4vwy.onrender.com"
-// const baseURL = "http://127.0.0.1:8000"; // local testing only
+// Local testing only (no fallback): use these instead - 127.0.0.1 for the
+// desktop binary, 10.0.2.2 for the Android emulator.
+// const apiPrimary = "http://127.0.0.1:8000"
+// const apiFallback = ""
 
 func main() {
 	go func() {
@@ -70,7 +76,7 @@ func run(w *app.Window) error {
 	if b, err := assets.ReadFile("assets/web.png"); err == nil {
 		ui.SetWebIcon(b)
 	}
-	a := ui.NewApp(w, baseURL)
+	a := ui.NewApp(w, apiPrimary, apiFallback)
 	a.Bootstrap()
 
 	var ops op.Ops

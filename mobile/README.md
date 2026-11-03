@@ -36,8 +36,14 @@ mobile/
 - Any `401` response anywhere in the app clears the stored session and
   drops the user back on the Login screen.
 
-The backend URL lives in one place — the `baseURL` constant at the top
-of `main.go` — so pointing this at a local dev server is a one-line change.
+The backend URLs live in one place — `apiPrimary` (AWS) and `apiFallback`
+(Render) at the top of `main.go`. Like the web app, every request goes to
+AWS first and moves to Render if AWS doesn't start answering within 10
+seconds, can't be reached, or returns 502/503/504 (504 only for requests
+that are safe to repeat). After a failover AWS is skipped for 5 minutes and
+re-checked in the background. Requests that change something (register,
+create chat, ask, checkout) are never sent twice, and a streamed answer is
+never restarted on Render. The rules are in `api/failover.go`.
 
 ## Prerequisites
 
@@ -78,25 +84,35 @@ go run .
 This opens a normal desktop window running the exact same UI code that
 ships to Android — useful for iterating on layout without a
 build/install cycle. To test against a local FastAPI instance instead
-of the hosted one, temporarily change `baseURL` in `main.go` to
+of the hosted ones, temporarily set `apiPrimary` in `main.go` to
 `http://127.0.0.1:8000` (or `http://10.0.2.2:8000` if you later run
-against the Android *emulator* instead of a real device).
+against the Android *emulator* instead of a real device) and `apiFallback`
+to `""` (no fallback).
 
 ## 3. Build the Android APK
 
 ```bash
 cd mobile
 gogio -target android -arch arm64 -ldflags "-s -w" -name ChatWithRepo \
-  -appid com.chatwithrepo.mobile -o chatwithrepo.apk .
+  -appid com.chatwithrepo.app -version 1.5.0.5 -o ChatWithRepo.apk .
 ```
 
 `-arch arm64` (all current phones) and `-ldflags "-s -w"` keep the APK around
 7 MB; leaving them out builds every CPU architecture with debug info (60 MB+).
 Add `,arm` to `-arch` only if you must support old 32-bit phones.
 
-This produces `chatwithrepo.apk` in the current directory. `gogio`
+This produces `ChatWithRepo.apk` in the current directory. `gogio`
 cross-compiles the Go code for Android and packages it — no Java/Kotlin
 code required.
+
+- **Keep `-appid com.chatwithrepo.app`** — it's the released app's ID. Any
+  other ID installs as a second, separate app instead of an update.
+- **Raise the last number of `-version`** (`major.minor.patch.code`) for every
+  release: Android only installs an update with a higher version code.
+- Updates also need the same signing key: `gogio` uses
+  `~/.android/debug.keystore`, so build releases on the same machine.
+- If `gogio` says *please set ANDROID_HOME*, point it at the SDK, e.g.
+  `export ANDROID_HOME=$HOME/Library/Android/sdk` (macOS, Android Studio).
 
 ## 4. Install the APK on a device
 

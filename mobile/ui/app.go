@@ -62,11 +62,12 @@ type App struct {
 }
 
 // NewApp wires up an App ready to run, starting on the Login screen.
-func NewApp(w *app.Window, baseURL string) *App {
+// Requests go to baseURL first and to fallback ("" for none) when it's down.
+func NewApp(w *app.Window, baseURL, fallback string) *App {
 	a := &App{
 		Window: w,
 		Theme:  NewTheme(),
-		Client: api.NewClient(baseURL),
+		Client: api.NewClient(baseURL, fallback),
 		screen: ScreenLogin,
 	}
 	a.LoginScreen = newLoginScreen(a)

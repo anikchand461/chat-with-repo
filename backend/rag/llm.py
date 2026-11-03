@@ -4,6 +4,7 @@ class LLM:
 
     def __init__(self):
         self.model = ModelFactory.answer()
+        self.fallback = ModelFactory.answer_fallback()
 
     HISTORY_MESSAGES = 6
     HISTORY_CHARS = 1500
@@ -107,9 +108,14 @@ class LLM:
 
         prompt = self._build_prompt(question, documents, repo_name, history, overview)
 
-        response = self.model.invoke(prompt)
+        try:
+            text = self._extract_text(self.model.invoke(prompt).content)
+            if text:
+                return text
+        except Exception as e:
+            self._log_fallback(e)
 
-        return self._extract_text(response.content)
+        return self._extract_text(self.fallback.invoke(prompt).content)
 
     def stream(self, question: str, documents, repo_name: str, history=None, overview: str = ""):
         """
@@ -118,8 +124,32 @@ class LLM:
 
         prompt = self._build_prompt(question, documents, repo_name, history, overview)
 
-        for chunk in self.model.stream(prompt):
+        # Groq first. If it fails before the first word (e.g. its per-minute
+        # token limit), Gemini answers instead. Once words have been sent,
+        # a failure is passed on: the answer is never restarted.
+        started = False
+        try:
+            for chunk in self.model.stream(prompt):
+                text = self._extract_text(chunk.content)
+
+                if text:
+                    started = True
+                    yield text
+        except Exception as e:
+            if started:
+                raise
+            self._log_fallback(e)
+
+        if started:
+            return
+
+        for chunk in self.fallback.stream(prompt):
             text = self._extract_text(chunk.content)
 
             if text:
                 yield text
+
+    @staticmethod
+    def _log_fallback(error):
+        reason = str(error).splitlines()[0][:200] if str(error) else ""
+        print(f"Groq unavailable ({type(error).__name__}: {reason}) - answering with Gemini")

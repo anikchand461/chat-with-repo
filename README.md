@@ -45,7 +45,7 @@ New repo, no map. The usual tools don't get you unstuck:
 | 📎 **Shows its sources** | Every answer lists the files it used, one click away on GitHub. |
 | 📄 **Ask for a file, get the file** | Exact file contents straight from the repo, no paraphrasing. |
 | 🔗 **Just paste a URL** | No cloning, uploading or picking files. |
-| 📱 **Web and Android** | Both use the same backend and show the same answers. |
+| 📱 **Web and Android** | Same backend, same answers, same automatic AWS → Render failover. |
 | ⚡ **Live progress, live answers** | Watch indexing happen in real time; answers stream in word by word. |
 
 **Try it now → [chatwithrepo-nine.vercel.app](https://chatwithrepo-nine.vercel.app/)**
@@ -66,7 +66,7 @@ A multi-stage retrieval pipeline, not a single embed-and-search step:
 | Fusion | Reciprocal Rank Fusion | Merges the results of all queries into one ranking |
 | Reranking | Cohere `rerank-v3.5` | Re-scores the fused results against the original question |
 | Repository overview | Built from the repo data | Name, description, file tree and README sent with **every** question |
-| Answer generation | Gemini `3.1-flash-lite` | Streams the answer from the overview plus the top chunks |
+| Answer generation | Groq `openai/gpt-oss-120b` · Gemini `3.1-flash-lite` as backup | Streams the answer from the overview plus the top chunks (~1 s to the first word) |
 
 ### Indexing
 
@@ -77,6 +77,10 @@ A multi-stage retrieval pipeline, not a single embed-and-search step:
 - Embedding runs in paced batches and waits out rate limits instead of failing.
 - One Qdrant collection per chat, so an index survives restarts and redeploys.
 - Indexing runs in the background with live progress (fetching, then a chunk-by-chunk progress bar). The chat opens only once it's ready, and a failed chat is retried the next time you open it.
+
+### Answer model
+
+Answers come from **Groq** (`openai/gpt-oss-120b`), which usually starts answering in about a second. If Groq can't answer **before the first word** — most often its tokens-per-minute limit on the free plan — the same question goes to **Gemini** (`gemini-3.1-flash-lite`, 1 retry, 60 s limit). An answer that has already started is never restarted. See `backend/rag/llm.py`.
 
 ### Streaming & response time
 
@@ -117,14 +121,14 @@ Upgrades go through a Dodo Payments checkout and webhook.
 
 A native Android client built with **Go + Gio**, talking to the same FastAPI backend.
 
-- Login and registration with bearer-token authentication
+- **AWS first, Render fallback** — the same failover rules as the web app (`mobile/api/failover.go`)
 - Repository chats with live, token-by-token answers
+- **Android-style text selection** — long-press a word, drag the handles, then Cut / Copy / Paste / Select all; long-press a message to copy it or select part of it
+- Holding backspace keeps deleting, like other apps
 - Live indexing progress with automatic retry, same as the web dashboard
-- Response times synced with the web
-- Profile screen to check and save a personal GitHub token
-- Links to the web manual and site
+- Login and registration, response times synced with the web, GitHub token on the Profile screen
 
-**[Download ChatWithRepo Android v1.3.0](https://github.com/shreyaghorui222004/chat-with-repo/releases/tag/v1.3.0)** — the release contains `ChatWithRepo.apk`.
+**[Download the latest Android release](https://github.com/shreyaghorui222004/chat-with-repo/releases/latest)** — the release contains `ChatWithRepo.apk`.
 
 > Android may ask you to allow installation from unknown sources.
 
@@ -189,13 +193,14 @@ Visit `http://127.0.0.1:5500/index.html`. It uses the deployed backends by defau
 ### Tests
 
 ```bash
-node --test frontend/tests/                              # AWS → Render failover (Node 18+)
-.venv/bin/python -m unittest backend.tests.test_aws_backend   # backend: SQLite + fake AWS, no network
+node --test frontend/tests/                                              # web failover (Node 18+)
+.venv/bin/python -m unittest backend.tests.test_aws_backend backend.tests.test_llm   # backend, no network
+cd mobile && go test ./...                                               # Android client
 ```
 
 ### Android development
 
-The app uses the Render backend (`baseURL` in `mobile/main.go`). For a local backend use `127.0.0.1:8000` (desktop) or `10.0.2.2:8000` (emulator). `manualURL` / `webURL` in `mobile/ui/auth.go` point at the web frontend. Switch all of them back before releasing.
+The backend URLs are `apiPrimary` (AWS) and `apiFallback` (Render) in `mobile/main.go`. For a local backend set `apiPrimary` to `127.0.0.1:8000` (desktop) or `10.0.2.2:8000` (emulator) and `apiFallback` to `""`; switch them back before releasing. Build steps are in [`mobile/README.md`](mobile/README.md).
 
 ---
 
@@ -216,8 +221,8 @@ Both backends run the **same code** against the **same database and Qdrant clust
 ### Request flow
 
 ```text
-Browser (Vercel)
-  │  apiFetch() — frontend/js/app.js
+Browser (Vercel) · Android app
+  │  apiFetch() — frontend/js/app.js · send() — mobile/api/failover.go
   │
   ├─①─► AWS Lambda  (Function URL, RESPONSE_STREAM)
   │       Lambda Web Adapter → uvicorn → FastAPI
@@ -232,9 +237,11 @@ Browser (Vercel)
 
 ### Failover rules
 
+The web app and the Android app follow the same rules.
+
 1. **AWS first.** Normal answers, including 4xx errors, are used as they are. No extra delay while AWS is up.
 2. **10-second failover.** No response headers within 10 s, a connection error, or 502/503/504 → the same request goes to Render. The limit applies only until the response starts, so long streams are never cut off.
-3. **Remembered for 5 minutes.** After a failover, requests go straight to Render for 5 minutes (`localStorage`); each page load re-checks AWS in the background.
+3. **Remembered for 5 minutes.** After a failover, requests go straight to Render for 5 minutes, while AWS is re-checked in the background (web: per page load; Android: at most every 30 s).
 4. **Never run twice.** Requests that change something (register, create chat, ask, checkout) first check whether AWS is alive and wait for it rather than sending a second copy. They never fail over on a 504.
 5. **Streams are never restarted.** A stream that breaks part-way shows an error instead of a duplicate answer from Render.
 6. **Leaving a page isn't an outage.** Requests cancelled by navigation don't mark AWS down.
@@ -286,7 +293,7 @@ Render indexes in-process and keeps progress in memory, so run a **single** work
 ### Known limitations
 
 - **Indexing during a failover.** Progress lives in Postgres on AWS but in memory on Render, so Render may start indexing a chat AWS is already indexing.
-- **Android** uses Render only, without the failover.
+- **Groq free plan.** About 8,000 tokens per minute — roughly one full-size question per minute. Beyond that, answers come from Gemini (slower).
 
 ---
 
@@ -299,9 +306,9 @@ Render indexes in-process and keeps progress in memory, so run a **single** work
 ![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=flat-square&logo=langchain&logoColor=white)
 
-![Groq](https://img.shields.io/badge/Groq-GPT--OSS%2020B-F55036?style=flat-square)
+![Groq](https://img.shields.io/badge/Groq-GPT--OSS%20120B%20%7C%2020B-F55036?style=flat-square)
 ![Cohere](https://img.shields.io/badge/Cohere-Embed%20v4%20%7C%20Rerank%20v3.5-39594D?style=flat-square)
-![Gemini](https://img.shields.io/badge/Gemini-Flash--Lite-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini-Flash--Lite%20(backup)-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
 
 ![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20Store-DC244C?style=flat-square)
 ![Neon](https://img.shields.io/badge/Neon-Postgres%20%2B%20JSONB-00E699?style=flat-square&logo=neondatabase&logoColor=white)
