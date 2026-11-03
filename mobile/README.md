@@ -36,8 +36,14 @@ mobile/
 - Any `401` response anywhere in the app clears the stored session and
   drops the user back on the Login screen.
 
-The backend URL lives in one place — the `baseURL` constant at the top
-of `main.go` — so pointing this at a local dev server is a one-line change.
+The backend URLs live in one place — `apiPrimary` (AWS) and `apiFallback`
+(Render) at the top of `main.go`. Like the web app, every request goes to
+AWS first and moves to Render if AWS doesn't start answering within 10
+seconds, can't be reached, or returns 502/503/504 (504 only for requests
+that are safe to repeat). After a failover AWS is skipped for 5 minutes and
+re-checked in the background. Requests that change something (register,
+create chat, ask, checkout) are never sent twice, and a streamed answer is
+never restarted on Render. The rules are in `api/failover.go`.
 
 ## Prerequisites
 
@@ -78,9 +84,10 @@ go run .
 This opens a normal desktop window running the exact same UI code that
 ships to Android — useful for iterating on layout without a
 build/install cycle. To test against a local FastAPI instance instead
-of the hosted one, temporarily change `baseURL` in `main.go` to
+of the hosted ones, temporarily set `apiPrimary` in `main.go` to
 `http://127.0.0.1:8000` (or `http://10.0.2.2:8000` if you later run
-against the Android *emulator* instead of a real device).
+against the Android *emulator* instead of a real device) and `apiFallback`
+to `""` (no fallback).
 
 ## 3. Build the Android APK
 

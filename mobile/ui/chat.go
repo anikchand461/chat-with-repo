@@ -13,7 +13,9 @@ import (
 	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/io/clipboard"
+	"gioui.org/io/event"
 	"gioui.org/io/key"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -57,6 +59,21 @@ type ChatScreen struct {
 	// was last tapped (zero if never), driving the brief "Copied" swap.
 	copyBtns []widget.Clickable
 	copiedAt []time.Time
+
+	// msgPress[i] opens a Copy / Select text menu for messages[i] on a
+	// long press (any message, also the user's own, which have no Copy
+	// button). msgMenu is that message's index+1 while the menu is open.
+	msgPress   []longPress
+	msgMenu    int
+	msgCopy    widget.Clickable
+	msgSelect  widget.Clickable
+	msgDismiss int
+
+	// The "Select text" panel: the message in a read-only field, so any
+	// part of it can be selected and copied.
+	selectOpen bool
+	selectEd   widget.Editor
+	selectDone widget.Clickable
 
 	list     widget.List
 	question widget.Editor
@@ -111,6 +128,9 @@ func (s *ChatScreen) Open(chatID, title, branch string) {
 	s.searchStart = time.Time{}
 	s.copyBtns = nil
 	s.copiedAt = nil
+	s.msgPress = nil
+	s.msgMenu = 0
+	s.selectOpen = false
 	s.streaming = false
 	s.errMsg = ""
 	s.loadingHist = true
@@ -465,6 +485,7 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 	for len(s.copyBtns) < len(snap.messages) {
 		s.copyBtns = append(s.copyBtns, widget.Clickable{})
 		s.copiedAt = append(s.copiedAt, time.Time{})
+		s.msgPress = append(s.msgPress, longPress{})
 	}
 	for i, m := range snap.messages {
 		if len(s.sourceBtns[i]) != len(m.Sources) {
@@ -499,6 +520,8 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 		}
 		if e, ok := ev.(key.Event); ok && e.State == key.Press {
 			switch {
+			case s.selectOpen:
+				s.selectOpen = false
 			case snap.showUpgrade:
 				s.closeUpgradeModal()
 			case s.showMenu:
@@ -527,6 +550,13 @@ func (s *ChatScreen) Layout(gtx layout.Context, th *material.Theme) layout.Dimen
 			layout.Rigid(s.inputRow(th, asking)),
 		)
 	})
+
+	if s.selectOpen {
+		return layout.Stack{}.Layout(gtx,
+			layout.Expanded(func(gtx layout.Context) layout.Dimensions { return content }),
+			layout.Expanded(s.selectTextPanel(th)),
+		)
+	}
 
 	s.overlay.step(gtx, snap.showUpgrade)
 	if s.overlay.visible() {
@@ -619,16 +649,172 @@ func (s *ChatScreen) messageList(th *material.Theme, messages []api.Message, sou
 				}
 				var copyBtn *widget.Clickable
 				var copied bool
+				if i < len(copiedAt) && !copiedAt[i].IsZero() && gtx.Now.Sub(copiedAt[i]) < 1200*time.Millisecond {
+					copied = true
+					gtx.Execute(op.InvalidateCmd{}) // keep repainting until the "Copied" state expires
+				}
 				if m.Role == "assistant" && i < len(copyBtns) {
 					copyBtn = &copyBtns[i]
-					if !copiedAt[i].IsZero() && gtx.Now.Sub(copiedAt[i]) < 1200*time.Millisecond {
-						copied = true
-						gtx.Execute(op.InvalidateCmd{}) // keep repainting until the "Copied" state expires
-					}
 				}
-				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, Bubble(th, m.Role, m.Content, m.Meta, m.Sources, chips, copyBtn, copied))
+				bubble := Bubble(th, m.Role, m.Content, m.Meta, m.Sources, chips, copyBtn, copied)
+				if i < len(s.msgPress) {
+					bubble = s.messageMenu(th, i, m.Role, m.Content, copiedAt, bubble)
+				}
+				if m.Role == "user" && copied {
+					bubble = withCopiedNote(th, bubble)
+				}
+				return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, bubble)
 			})
 		})
+	}
+}
+
+// messageMenu adds a long-press Copy / Select text menu to message i.
+func (s *ChatScreen) messageMenu(th *material.Theme, i int, role, content string, copiedAt []time.Time, w layout.Widget) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		dims := w(gtx)
+		if _, ok := s.msgPress[i].update(gtx, dims.Size); ok && content != "" {
+			s.msgMenu = i + 1
+		}
+		if s.msgMenu != i+1 {
+			return dims
+		}
+
+		switch {
+		case s.msgCopy.Clicked(gtx):
+			writeClipboard(gtx, content)
+			copiedAt[i] = gtx.Now
+			s.msgMenu = 0
+		case s.msgSelect.Clicked(gtx):
+			s.selectEd.ReadOnly = true
+			s.selectEd.SetText(content)
+			s.selectEd.SetCaret(s.selectEd.Len(), 0)
+			s.selectOpen = true
+			s.msgMenu = 0
+		}
+		for {
+			ev, ok := gtx.Event(pointer.Filter{Target: &s.msgDismiss, Kinds: pointer.Press})
+			if !ok {
+				break
+			}
+			if _, ok := ev.(pointer.Event); ok {
+				s.msgMenu = 0
+			}
+		}
+		if s.msgMenu != i+1 {
+			gtx.Execute(op.InvalidateCmd{})
+			return dims
+		}
+
+		rec := op.Record(gtx.Ops)
+		outside := clip.Rect{Min: image.Pt(-1<<15, -1<<15), Max: image.Pt(1<<15, 1<<15)}.Push(gtx.Ops)
+		event.Op(gtx.Ops, &s.msgDismiss)
+		outside.Pop()
+		mgtx := gtx
+		mgtx.Constraints.Min = image.Point{}
+		mrec := op.Record(gtx.Ops)
+		menuDims := menuBar(mgtx, th, menuItem{&s.msgCopy, "Copy"}, menuItem{&s.msgSelect, "Select text"})
+		menu := mrec.Stop()
+		x := 0
+		if role == "user" {
+			x = dims.Size.X - menuDims.Size.X
+		}
+		off := op.Offset(image.Pt(x, -menuDims.Size.Y/2)).Push(gtx.Ops)
+		menu.Add(gtx.Ops)
+		off.Pop()
+		op.Defer(gtx.Ops, rec.Stop())
+		return dims
+	}
+}
+
+// selectTextPanel shows a message in a read-only field where any part of
+// it can be selected (long-press a word, drag the handles) and copied.
+func (s *ChatScreen) selectTextPanel(th *material.Theme) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		if s.selectDone.Clicked(gtx) {
+			s.selectOpen = false
+			gtx.Execute(op.InvalidateCmd{})
+		}
+		paint.FillShape(gtx.Ops, color.NRGBA{A: 0xb0}, clip.Rect{Max: gtx.Constraints.Max}.Op())
+		// Swallow taps on the dimmed background.
+		bg := clip.Rect{Max: gtx.Constraints.Max}.Push(gtx.Ops)
+		event.Op(gtx.Ops, &s.selectOpen)
+		bg.Pop()
+		for {
+			if _, ok := gtx.Event(pointer.Filter{Target: &s.selectOpen, Kinds: pointer.Press}); !ok {
+				break
+			}
+		}
+
+		return layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min = gtx.Constraints.Max
+			return layout.Stack{}.Layout(gtx,
+				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+					borderedRRect(gtx, gtx.Constraints.Min, unit.Dp(20), authCard, authCardBorder)
+					return layout.Dimensions{Size: gtx.Constraints.Min}
+				}),
+				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+					return layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
+									layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+										l := material.Label(th, authSp(16), "Select text")
+										l.Color = authTitle
+										l.Font.Weight = font.Bold
+										return l.Layout(gtx)
+									}),
+									layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+										return s.selectDone.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+											return layout.UniformInset(unit.Dp(6)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+												l := material.Label(th, authSp(15), "Done")
+												l.Color = authLink
+												l.Font.Weight = font.Bold
+												return l.Layout(gtx)
+											})
+										})
+									}),
+								)
+							}),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								return layout.Inset{Top: unit.Dp(4), Bottom: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+									l := material.Label(th, authSp(12), "Long-press a word, then drag the handles.")
+									l.Color = authHint
+									return l.Layout(gtx)
+								})
+							}),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								ed := material.Editor(th, &s.selectEd, "")
+								ed.TextSize = authSp(15)
+								ed.Color = authTitle
+								ed.SelectionColor = color.NRGBA{R: 0x10, G: 0xa3, B: 0x72, A: 0x66}
+								// Room above the first line for the menu.
+								return layout.Inset{Top: unit.Dp(48)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+									return layoutEditor(gtx, th, ed)
+								})
+							}),
+						)
+					})
+				}),
+			)
+		})
+	}
+}
+
+// withCopiedNote adds a small "Copied" line under a user message (answers
+// show it in their own Copy button instead).
+func withCopiedNote(th *material.Theme, w layout.Widget) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical, Alignment: layout.End}.Layout(gtx,
+			layout.Rigid(w),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{Top: unit.Dp(4), Right: unit.Dp(6)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					l := material.Label(th, authSp(12), "Copied")
+					l.Color = authLink
+					return l.Layout(gtx)
+				})
+			}),
+		)
 	}
 }
 
@@ -672,7 +858,7 @@ func (s *ChatScreen) composerField(th *material.Theme) layout.Widget {
 		ed.Color = authTitle
 		ed.HintColor = authHint
 		ed.SelectionColor = color.NRGBA{R: 0x10, G: 0xa3, B: 0x72, A: 0x66}
-		edDims := ed.Layout(inner)
+		edDims := layoutEditor(inner, th, ed)
 		call := rec.Stop()
 
 		h := edDims.Size.Y + 2*gtx.Dp(unit.Dp(12))
@@ -1038,6 +1224,9 @@ func (s *ChatScreen) reset() {
 	s.searchStart = time.Time{}
 	s.copyBtns = nil
 	s.copiedAt = nil
+	s.msgPress = nil
+	s.msgMenu = 0
+	s.selectOpen = false
 	s.loadingHist = false
 	s.asking = false
 	s.streaming = false

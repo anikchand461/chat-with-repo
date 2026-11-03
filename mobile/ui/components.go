@@ -149,7 +149,7 @@ func TextField(th *material.Theme, editor *widget.Editor, hint string) layout.Wi
 					ed := material.Editor(th, editor, hint)
 					ed.Color = colorText
 					ed.HintColor = colorSubtleText
-					return ed.Layout(gtx)
+					return layoutEditor(gtx, th, ed)
 				})
 			}),
 		)

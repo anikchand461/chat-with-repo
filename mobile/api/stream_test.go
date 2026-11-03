@@ -28,7 +28,7 @@ func TestAskStreamDeliversTokensAndTiming(t *testing.T) {
 
 	var got []string
 	var gotSources []string
-	res, err := NewClient(srv.URL).AskStream("7", "hi",
+	res, err := NewClient(srv.URL, "").AskStream("7", "hi",
 		func(s string) { got = append(got, s) },
 		func(sr []string) { gotSources = sr },
 	)
@@ -56,7 +56,7 @@ func TestMessagesCarryStoredTiming(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	msgs, err := NewClient(srv.URL).Messages("1")
+	msgs, err := NewClient(srv.URL, "").Messages("1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func TestAskStreamUpgradeRequiredAndErrors(t *testing.T) {
 		fmt.Fprint(w, `{"detail":"boom"}`)
 	}))
 	defer srv.Close()
-	c := NewClient(srv.URL)
+	c := NewClient(srv.URL, "")
 
 	res, err := c.AskStream("1", "q", func(string) { t.Error("no tokens expected") }, nil)
 	if err != nil || !res.UpgradeRequired || res.Reason != "daily_questions" {
@@ -97,7 +97,7 @@ func TestAskStreamMidStreamError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	res, err := NewClient(srv.URL).AskStream("1", "q", func(string) {}, nil)
+	res, err := NewClient(srv.URL, "").AskStream("1", "q", func(string) {}, nil)
 	if err != nil || !res.Meta.Interrupted {
 		t.Fatalf("want interrupted partial answer, got res=%+v err=%v", res, err)
 	}

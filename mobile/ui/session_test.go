@@ -39,7 +39,7 @@ func TestNoCrossAccountLeak(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	a := NewApp(new(app.Window), srv.URL)
+	a := NewApp(new(app.Window), srv.URL, "")
 
 	for round := 0; round < 5; round++ {
 		a.BeginSession("tokA") // Account A logs in, dashboard starts loading
