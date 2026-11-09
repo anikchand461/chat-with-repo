@@ -43,7 +43,7 @@ var (
 	authIconFg      = color.NRGBA{R: 0xd5, G: 0xe6, B: 0xdf, A: 0xff}
 )
 
-var logoOp, githubOp, profileOp, logoutOp, manualOp, webOp *paint.ImageOp
+var logoOp, githubOp, profileOp, logoutOp, manualOp, webOp, googleOp *paint.ImageOp
 
 // SetLogo decodes the ChatWithRepo logo (PNG bytes, supplied by main so
 // the asset stays in the mobile/ folder). A bad image just hides the logo.
@@ -555,6 +555,117 @@ func AuthGitHubButton(btn *widget.Clickable) layout.Widget {
 				return layout.Dimensions{Size: sz}
 			})
 		})
+	}
+}
+
+// SetGoogleIcon decodes the Google "G" logo (assets/google.png). A bad
+// image just leaves the white circle empty.
+func SetGoogleIcon(pngData []byte) {
+	img, _, err := image.Decode(bytes.NewReader(pngData))
+	if err != nil {
+		return
+	}
+	op := paint.NewImageOp(img)
+	googleOp = &op
+}
+
+// authGoogleSection is "Continue with Google" plus the "or continue with
+// email" divider, shown above the email form (same order as the website).
+// Nothing at all when the build can't do Google sign-in.
+func authGoogleSection(th *material.Theme, btn *widget.Clickable, busy bool) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		if !googleSignInAvailable {
+			return layout.Dimensions{}
+		}
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(AuthGoogleButton(th, btn, busy)),
+			layout.Rigid(authGap(18)),
+			layout.Rigid(authDivider(th, "or continue with email")),
+			layout.Rigid(authGap(18)),
+		)
+	}
+}
+
+// AuthGoogleButton is the outlined "Continue with Google" button with the
+// Google "G" in a white circle.
+func AuthGoogleButton(th *material.Theme, btn *widget.Clickable, busy bool) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		label := "Continue with Google"
+		if busy {
+			gtx = gtx.Disabled()
+			label = "Signing in with Google…"
+		}
+		gtx.Constraints.Min.X = gtx.Constraints.Max.X
+		return btn.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Stack{Alignment: layout.Center}.Layout(gtx,
+				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+					sz := gtx.Constraints.Min
+					borderedRRect(gtx, sz, unit.Dp(16), authField, authFieldBorder)
+					pressOverlay(gtx, btn, sz, gtx.Dp(unit.Dp(16)), pressLight)
+					return layout.Dimensions{Size: sz}
+				}),
+				layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Min.X = gtx.Constraints.Max.X
+					return layout.Inset{Top: authDp(11), Bottom: authDp(11)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Alignment: layout.Middle, Spacing: layout.SpaceSides}.Layout(gtx,
+							layout.Rigid(googleBadge),
+							layout.Rigid(layout.Spacer{Width: authDp(12)}.Layout),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								l := material.Label(th, authSp(16), label)
+								l.Color = authTitle
+								if busy {
+									l.Color = authBody
+								}
+								l.Font.Weight = font.Bold
+								l.MaxLines = 1
+								return l.Layout(gtx)
+							}),
+						)
+					})
+				}),
+			)
+		})
+	}
+}
+
+// googleBadge draws the Google "G" centered in a white circle.
+func googleBadge(gtx layout.Context) layout.Dimensions {
+	d := gtx.Dp(authDp(28))
+	sz := image.Pt(d, d)
+	paint.FillShape(gtx.Ops, color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, clip.Ellipse{Max: sz}.Op(gtx.Ops))
+	if googleOp != nil {
+		g := d * 16 / 28
+		pad := (d - g) / 2
+		in := gtx
+		in.Constraints.Min = image.Pt(g, g)
+		in.Constraints.Max = in.Constraints.Min
+		off := op.Offset(image.Pt(pad, pad)).Push(gtx.Ops)
+		widget.Image{Src: *googleOp, Fit: widget.Contain, Position: layout.Center}.Layout(in)
+		off.Pop()
+	}
+	return layout.Dimensions{Size: sz}
+}
+
+// authDivider is a centered caption between two thin lines.
+func authDivider(th *material.Theme, caption string) layout.Widget {
+	line := func(gtx layout.Context) layout.Dimensions {
+		sz := image.Pt(gtx.Constraints.Min.X, gtx.Dp(unit.Dp(1)))
+		paint.FillShape(gtx.Ops, authFieldBorder, clip.Rect{Max: sz}.Op())
+		return layout.Dimensions{Size: sz}
+	}
+	return func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+			layout.Flexed(1, line),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{Left: authDp(12), Right: authDp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					l := material.Label(th, authSp(13), caption)
+					l.Color = authHint
+					l.MaxLines = 1
+					return l.Layout(gtx)
+				})
+			}),
+			layout.Flexed(1, line),
+		)
 	}
 }
 

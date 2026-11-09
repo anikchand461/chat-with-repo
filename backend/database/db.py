@@ -41,8 +41,13 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    hashed_password = Column(String, nullable=True)  # None for Google-only accounts
     github_token = Column(String, nullable=True)
+
+    # Google sign-in (web). google_sub is Google's stable account id.
+    google_sub = Column(String, unique=True, index=True, nullable=True)
+    google_name = Column(String, nullable=True)
+    google_picture = Column(String, nullable=True)
 
     # Subscription
     plan = Column(String, default="FREE")
@@ -134,21 +139,57 @@ Base.metadata.create_all(bind=engine)
 def _add_missing_columns():
     """
     create_all() never alters existing tables, so add columns introduced
-    after a database already existed here.
+    after a database already existed here. Safe to run any number of times,
+    including from several backends at once (AWS + Render), and it never
+    drops or rewrites data. Returns the statements it ran.
     """
 
-    existing = {c["name"] for c in inspect(engine).get_columns("messages")}
+    postgres = engine.dialect.name == "postgresql"
+    if_not_exists = "IF NOT EXISTS " if postgres else ""
 
     columns_to_add = {
-        "response_seconds": "DOUBLE PRECISION",
-        "first_word_seconds": "DOUBLE PRECISION",
-        "sources": "JSON",
+        "messages": {
+            "response_seconds": "DOUBLE PRECISION",
+            "first_word_seconds": "DOUBLE PRECISION",
+            "sources": "JSON",
+        },
+        "users": {
+            "google_sub": "VARCHAR",
+            "google_name": "VARCHAR",
+            "google_picture": "VARCHAR",
+        },
     }
 
+    applied = []
     with engine.begin() as conn:
-        for name, sql_type in columns_to_add.items():
-            if name not in existing:
-                conn.execute(text(f"ALTER TABLE messages ADD COLUMN {name} {sql_type}"))
+        for table, columns in columns_to_add.items():
+            existing = {c["name"] for c in inspect(conn).get_columns(table)}
+            for name, sql_type in columns.items():
+                if name not in existing:
+                    statement = f"ALTER TABLE {table} ADD COLUMN {if_not_exists}{name} {sql_type}"
+                    conn.execute(text(statement))
+                    applied.append(statement)
+
+        # Unique, so one Google account can only ever sign in to one user.
+        # Same name create_all() gives a fresh database; NULLs don't collide.
+        indexes = {i["name"] for i in inspect(conn).get_indexes("users")}
+        if "ix_users_google_sub" not in indexes:
+            statement = "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_sub ON users (google_sub)"
+            conn.execute(text(statement))
+            applied.append(statement)
+
+        # Google-only users have no password. Older databases may have made
+        # the column NOT NULL; relaxing it keeps every existing value.
+        if postgres:
+            password = next(
+                c for c in inspect(conn).get_columns("users") if c["name"] == "hashed_password"
+            )
+            if not password["nullable"]:
+                statement = "ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL"
+                conn.execute(text(statement))
+                applied.append(statement)
+
+    return applied
 
 
-_add_missing_columns()
+MIGRATIONS_APPLIED = _add_missing_columns()

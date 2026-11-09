@@ -14,3 +14,4 @@ langchain-cohere
 langchain_core
 psycopg[binary]
 psycopg2
+google-auth

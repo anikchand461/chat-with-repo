@@ -37,7 +37,9 @@ function token() {
 // POSTs that are safe to send twice (same result if AWS already handled
 // them). Every other POST - register, chat create, ask, checkout - is only
 // re-sent to Render when AWS definitely never processed it.
-const IDEMPOTENT_POSTS = new Set(["/auth/login", "/auth/github-token"]);
+// /auth/google is safe too: the same Google token always signs in the
+// same user, even if AWS already created the account.
+const IDEMPOTENT_POSTS = new Set(["/auth/login", "/auth/github-token", "/auth/google"]);
 
 function isRetrySafe(method, path) {
   const m = (method || "GET").toUpperCase();
@@ -254,10 +256,12 @@ document.addEventListener("DOMContentLoaded", setupNav);
 /* ==================== auth ==================== */
 
 function setupAuth(kind) {
+  setupGoogleAuth(kind);
+
   document.querySelector("#auth-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const button = e.target.querySelector("button");
+    const button = e.target.querySelector('button[type="submit"]');
     const original = button ? button.textContent : "";
     if (button) {
       button.disabled = true;
@@ -287,6 +291,104 @@ function setupAuth(kind) {
         button.textContent = original;
       }
     }
+  });
+}
+
+/* ==================== Google sign-in ==================== */
+
+// Google Identity Services handles the sign-in. Its ID token is exchanged
+// at /auth/google for our usual JWT, so everything after login is the same
+// as email/password.
+function loadGoogleScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.id) return resolve();
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = () => reject(Error("Could not load Google sign-in"));
+    document.head.appendChild(script);
+  });
+}
+
+async function setupGoogleAuth(kind) {
+  const box = document.querySelector("#google-auth");
+  const slot = document.querySelector("#google-button");
+  if (!box || !slot) return;
+
+  const errorEl = document.querySelector("#error");
+  const submit = document.querySelector('#auth-form button[type="submit"]');
+  let busy = false;
+
+  function setBusy(on) {
+    busy = on;
+    box.classList.toggle("loading", on);
+    box.setAttribute("aria-busy", String(on));
+    if (submit) submit.disabled = on;
+  }
+
+  async function onCredential(response) {
+    if (busy || !response?.credential) return;
+    setBusy(true);
+    errorEl.textContent = "";
+
+    try {
+      const data = await request("/auth/google", {
+        method: "POST",
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      localStorage.setItem("devlens_token", data.access_token);
+      // The profile page fills the email in from /auth/me.
+      localStorage.removeItem("devlens_email");
+      location.href = "dashboard.html"; // stays busy until the page changes
+    } catch (error) {
+      setBusy(false);
+      errorEl.textContent = error.message || "Google sign-in failed. Please try again.";
+    }
+  }
+
+  let clientId;
+  try {
+    // The Web Client ID comes from the backend (GOOGLE_WEB_CLIENT_ID), so the
+    // button and the token check always use the same one.
+    const [config] = await Promise.all([request("/auth/google/config"), loadGoogleScript()]);
+    clientId = config.client_id;
+  } catch (error) {
+    // Not configured, or the script is blocked: email/password still works.
+    console.warn("Google sign-in unavailable:", error.message);
+    box.hidden = true;
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: onCredential,
+    ux_mode: "popup",
+    context: kind === "register" ? "signup" : "signin",
+  });
+
+  // Google's button is invisible (opacity) over our own .google-face, so
+  // its theme doesn't matter; it only needs to cover the face's width.
+  function render() {
+    slot.replaceChildren();
+    google.accounts.id.renderButton(slot, {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "continue_with",
+      shape: "rectangular",
+      // Google allows 200-400px.
+      width: Math.min(400, Math.max(200, Math.floor(slot.clientWidth))),
+    });
+  }
+
+  render();
+  box.classList.add("ready");
+
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(render, 200);
   });
 }
 

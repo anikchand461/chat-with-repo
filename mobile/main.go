@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"gioui.org/app"
+	"gioui.org/io/event"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
@@ -27,6 +28,7 @@ var assets embed.FS
 // or reports the app as down - same rules as the web app (see
 // api/failover.go).
 const (
+	// apiPrimary  = "http://127.0.0.1:8000"
 	apiPrimary  = "https://qettzfl73r7xhbres3oqvx3qt40mmqrp.lambda-url.ap-south-1.on.aws"
 	apiFallback = "https://chat-with-repo-4vwy.onrender.com"
 )
@@ -51,7 +53,15 @@ func main() {
 		}
 		os.Exit(0)
 	}()
-	app.Main()
+	// Replaces app.Main: also delivers links that open the app - the
+	// browser returning from Google sign-in (chatwithrepo://auth, the
+	// APK is built with `gogio -schemes chatwithrepo`).
+	app.Events(func(e event.Event) bool {
+		if e, ok := e.(app.URLEvent); ok {
+			ui.DeliverURL(e.URL)
+		}
+		return true
+	})
 }
 
 func run(w *app.Window) error {
@@ -75,6 +85,9 @@ func run(w *app.Window) error {
 	}
 	if b, err := assets.ReadFile("assets/web.png"); err == nil {
 		ui.SetWebIcon(b)
+	}
+	if b, err := assets.ReadFile("assets/google.png"); err == nil {
+		ui.SetGoogleIcon(b)
 	}
 	a := ui.NewApp(w, apiPrimary, apiFallback)
 	a.Bootstrap()

@@ -176,6 +176,16 @@ test("login falls back with identical method, headers and body", async () => {
   assert.equal(Object.keys(render.headers).filter((k) => /^authorization$/i.test(k)).length, 1);
 });
 
+test("Google sign-in is retry-safe: AWS 504 or hang -> same credential to Render", async () => {
+  for (const AWS_BEHAVIOUR of [504, "hang"]) {
+    const s = setup({ "AWS /auth/google": AWS_BEHAVIOUR, RENDER: 200 });
+    const init = POST({ credential: "google-id-token" });
+    assert.equal((await s.apiFetch("/auth/google", init)).status, 200);
+    assert.deepEqual(s.calls(), ["POST AWS/auth/google", "POST RENDER/auth/google"]);
+    assert.equal(s.raw().at(-1).body, init.body);
+  }
+});
+
 test("stream: AWS down (hang + probe fails) -> Render within timeout", async () => {
   const s = setup({ AWS: "hang", RENDER: 200 });
   const t0 = Date.now();

@@ -13,3 +13,4 @@ beautifulsoup4
 langchain-cohere
 langchain_core
 psycopg[binary]
+google-auth

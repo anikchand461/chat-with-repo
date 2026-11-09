@@ -36,8 +36,9 @@ var (
 // them). Every other POST - register, chat create, ask, checkout - is only
 // re-sent to Render when AWS definitely never processed it.
 var idempotentPosts = map[string]bool{
-	"/auth/login":        true,
-	"/auth/github-token": true,
+	"/auth/login":                  true,
+	"/auth/github-token":           true,
+	"/auth/google/mobile/exchange": true,
 }
 
 func retrySafe(method, path string) bool {
@@ -138,6 +139,20 @@ func (c *Client) send(ctx context.Context, hc *http.Client, method, path string,
 
 	r.resp.Body = cancelOnClose{r.resp.Body, cancel}
 	return r.resp, nil
+}
+
+// BrowserBaseURL picks the backend for a flow that runs in the system
+// browser (Google sign-in), where the browser can't fail over by itself:
+// AWS if it's up, otherwise Render. It may wait up to primaryTimeout.
+func (c *Client) BrowserBaseURL() string {
+	if c.Fallback == "" {
+		return c.BaseURL
+	}
+	if !c.primaryDown() && c.backendUp(c.BaseURL) {
+		return c.BaseURL
+	}
+	c.markPrimaryDown(true)
+	return c.Fallback
 }
 
 // fallbackClient is hc with room for Render to wake up (streams have no

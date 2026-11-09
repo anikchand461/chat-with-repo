@@ -41,6 +41,16 @@ Parameters:
   AppUrl:
     Type: String
     Default: https://chatwithrepo-nine.vercel.app
+  # Google sign-in Web Client ID (public, not a secret). Empty = Google
+  # sign-in is turned off and the button stays hidden.
+  GoogleWebClientId:
+    Type: String
+    Default: ""
+  # Its secret - only for the Android app's Google sign-in.
+  GoogleWebClientSecret:
+    Type: String
+    NoEcho: true
+    Default: ""
   # Container image (ECR) shared by ApiContainerFunction and the indexing
   # task, pushed by deploy-aws.sh. Empty = deploy only the zip function.
   ApiImageUri:
@@ -85,6 +95,8 @@ Resources:
           APP_URL: !Ref AppUrl
           DATABASE_URL: !Ref DatabaseUrl
           JWT_SECRET: !Ref JwtSecret
+          GOOGLE_WEB_CLIENT_ID: !Ref GoogleWebClientId
+          GOOGLE_WEB_CLIENT_SECRET: !Ref GoogleWebClientSecret
           GOOGLE_API_KEY: !Ref GoogleApiKey
           COHERE_API_KEY: !Ref CohereApiKey
           GROQ_API_KEY: !Ref GroqApiKey
@@ -166,6 +178,8 @@ Resources:
           APP_URL: !Ref AppUrl
           DATABASE_URL: !Ref DatabaseUrl
           JWT_SECRET: !Ref JwtSecret
+          GOOGLE_WEB_CLIENT_ID: !Ref GoogleWebClientId
+          GOOGLE_WEB_CLIENT_SECRET: !Ref GoogleWebClientSecret
           GOOGLE_API_KEY: !Ref GoogleApiKey
           COHERE_API_KEY: !Ref CohereApiKey
           GROQ_API_KEY: !Ref GroqApiKey

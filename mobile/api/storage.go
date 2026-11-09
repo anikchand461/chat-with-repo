@@ -56,6 +56,40 @@ func LoadToken() (string, error) {
 	return string(data), nil
 }
 
+// googleVerifierFile holds the PKCE verifier of a Google sign-in that is
+// waiting in the browser, so it survives Android stopping the app meanwhile.
+func googleVerifierFile() (string, error) {
+	dir, err := appDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "google_verifier"), nil
+}
+
+// SaveGoogleVerifier remembers the verifier until the browser returns.
+func SaveGoogleVerifier(verifier string) error {
+	path, err := googleVerifierFile()
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, []byte(verifier), 0o600)
+}
+
+// TakeGoogleVerifier returns the pending verifier ("" if none) and forgets it,
+// so a code can be redeemed by this app only once.
+func TakeGoogleVerifier() string {
+	path, err := googleVerifierFile()
+	if err != nil {
+		return ""
+	}
+	data, err := os.ReadFile(path)
+	_ = os.Remove(path)
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
 // ClearToken removes the saved token, e.g. on logout or 401.
 func ClearToken() error {
 	path, err := tokenFile()
