@@ -240,7 +240,7 @@ Browser (Vercel) · Android app
 The web app and the Android app follow the same rules.
 
 1. **AWS first.** Normal answers, including 4xx errors, are used as they are. No extra delay while AWS is up.
-2. **10-second failover.** No response headers within 10 s, a connection error, or 502/503/504 → the same request goes to Render. The limit applies only until the response starts, so long streams are never cut off.
+2. **10-second failover.** No response headers within 10 s, a connection error, or 502/503/504 → the same request goes to Render. A 429 means AWS refused the request before the app ran (e.g. the Lambda is paused with *Throttle*), so every request, even create/ask, goes to Render. The limit applies only until the response starts, so long streams are never cut off.
 3. **Remembered for 5 minutes.** After a failover, requests go straight to Render for 5 minutes, while AWS is re-checked in the background (web: per page load; Android: at most every 30 s).
 4. **Never run twice.** Requests that change something (register, create chat, ask, checkout) first check whether AWS is alive and wait for it rather than sending a second copy. They never fail over on a 504.
 5. **Streams are never restarted.** A stream that breaks part-way shows an error instead of a duplicate answer from Render.

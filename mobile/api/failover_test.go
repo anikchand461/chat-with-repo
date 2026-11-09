@@ -138,6 +138,39 @@ func TestPrimaryDownStatusesFailOver(t *testing.T) {
 	}
 }
 
+// throttled is AWS with the Lambda paused (concurrency 0): every request,
+// the health check included, gets 429 before reaching the app.
+func throttled(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusTooManyRequests)
+}
+
+func TestThrottledPrimaryFailsOverAndIsSkipped(t *testing.T) {
+	fastTimers(t)
+	aws := newBackend(t, throttled)
+	render := newBackend(t, ok(`[]`))
+	c := NewClient(aws.URL, render.URL)
+
+	if _, err := c.ListChats(); err != nil {
+		t.Fatal(err)
+	}
+	if render.calls.Load() != 1 || !c.primaryDown() {
+		t.Fatalf("render calls %d, AWS down %v", render.calls.Load(), c.primaryDown())
+	}
+}
+
+func TestThrottledCreateIsSentToRender(t *testing.T) {
+	fastTimers(t)
+	aws := newBackend(t, throttled)
+	render := newBackend(t, ok(`{"chat_id": 1}`))
+
+	if _, err := NewClient(aws.URL, render.URL).CreateChat("o", "r", "main"); err != nil {
+		t.Fatal(err)
+	}
+	if aws.calls.Load() != 1 || render.calls.Load() != 1 {
+		t.Fatalf("aws %d, render %d", aws.calls.Load(), render.calls.Load())
+	}
+}
+
 func Test504OnACreateIsNotRepeatedOnRender(t *testing.T) {
 	fastTimers(t)
 	aws := newBackend(t, status(504))

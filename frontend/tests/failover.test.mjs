@@ -147,6 +147,16 @@ for (const status of [502, 503, 504]) {
   });
 }
 
+test("AWS throttled (Lambda paused, 429 everywhere): reads and creates go to Render", async () => {
+  const s = setup({ AWS: 429, RENDER: 200 });
+  assert.equal((await s.apiFetch("/chat/list", {})).status, 200);
+  assert.equal(s.store.size, 1, "AWS should be marked down");
+
+  const t = setup({ AWS: 429, RENDER: 201 });
+  assert.equal((await t.apiFetch("/chat/create", POST({ owner: "o", repo: "r" }))).status, 201);
+  assert.deepEqual(t.calls(), ["POST AWS/chat/create", "POST RENDER/chat/create"]);
+});
+
 test("504 on non-idempotent POST: no fallback (AWS may still be working)", async () => {
   const s = setup({ "AWS /chat/create": 504 });
   assert.equal((await s.apiFetch("/chat/create", POST({}))).status, 504);
