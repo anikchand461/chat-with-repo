@@ -54,6 +54,9 @@ func retrySafe(method, path string) bool {
 //     be processing the request, so we keep waiting on AWS (or return its
 //     error) instead of running it twice.
 //   - 502/503 (the app is down behind AWS's front end): fall back.
+//   - 429 (AWS throttled the request - e.g. the Lambda is paused with
+//     concurrency 0 - so the app never ran it; our API never sends 429
+//     itself): fall back, for every request.
 //   - 504 (timeout - the app may still be working): retry-safe only.
 //
 // Any other status (incl. 4xx) is returned as-is. The response is returned
@@ -126,7 +129,7 @@ func (c *Client) send(ctx context.Context, hc *http.Client, method, path string,
 
 	status := r.resp.StatusCode
 	if status == http.StatusBadGateway || status == http.StatusServiceUnavailable ||
-		(status == http.StatusGatewayTimeout && safe) {
+		status == http.StatusTooManyRequests || (status == http.StatusGatewayTimeout && safe) {
 		r.resp.Body.Close()
 		cancel()
 		c.markPrimaryDown(true)

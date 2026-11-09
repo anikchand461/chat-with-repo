@@ -115,6 +115,9 @@ globalThis.addEventListener?.("pageshow", () => (leavingPage = false));
 //   already be processing the request, so we keep waiting on AWS (or
 //   throw its error) instead of running it twice.
 // - 502/503 (proxy can't reach the app): fall back.
+// - 429 (AWS throttled the request - e.g. the Lambda is paused with
+//   concurrency 0 - so the app never ran it; our API never sends 429
+//   itself): fall back, for every request.
 // - 504 (gateway timeout - the app may still be working): retry-safe only.
 // Any other status (incl. 4xx) is returned as-is. The Response is returned
 // as soon as headers arrive, so a stream that fails part-way is never
@@ -158,7 +161,7 @@ async function apiFetch(path, init = {}) {
     return fetch(fallback + path, init);
   }
 
-  const fallbackStatuses = retrySafe ? [502, 503, 504] : [502, 503];
+  const fallbackStatuses = retrySafe ? [429, 502, 503, 504] : [429, 502, 503];
   if (!fallbackStatuses.includes(response.status)) return response;
 
   response.body?.cancel().catch(() => {});
