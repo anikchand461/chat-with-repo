@@ -256,6 +256,70 @@
       @media (max-width: 420px) {
         .card { padding: 28px 20px; border-radius: var(--radius-md); }
       }
+      /* Google sign-in. Our own button face (round G logo + text) with
+         Google's real button laid invisibly on top, so the click still
+         goes through Google Identity Services (see js/app.js). */
+      .google-auth { display: flex; flex-direction: column; gap: 16px; margin-bottom: 10px; }
+      .google-auth[hidden] { display: none; }
+      .google-btn { position: relative; height: 48px; border-radius: var(--radius-sm); }
+      .google-face {
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        height: 100%; padding: 0 16px;
+        border: 1.5px solid var(--line); border-radius: inherit;
+        background: var(--paper);
+        transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease,
+          background-color 0.4s ease, opacity 0.2s ease;
+      }
+      .google-text { color: var(--ink); font-weight: 600; font-size: 15px; letter-spacing: 0.01em; }
+      .google-logo {
+        display: grid; place-items: center; flex: none;
+        width: 28px; height: 28px; border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      }
+      .google-logo svg { width: 16px; height: 16px; }
+      .google-btn:hover .google-face {
+        transform: translateY(-2px);
+        border-color: var(--brand-400);
+        box-shadow: 0 14px 26px -16px color-mix(in srgb, var(--brand-600) 70%, transparent);
+      }
+      .google-btn:focus-within .google-face {
+        border-color: var(--brand-500);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 20%, transparent);
+      }
+      .google-slot {
+        position: absolute; inset: 0; overflow: hidden;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0.01;
+      }
+      /* Google's button is 40px tall; stretch it over the whole 48px face. */
+      .google-slot > div { transform: scaleY(1.2); }
+      .google-auth:not(.ready) .google-face { opacity: 0.6; }
+      .google-auth:not(.ready) .google-btn,
+      .google-auth.loading .google-btn { pointer-events: none; }
+      .google-auth.loading .google-face { opacity: 0.55; }
+      .google-status {
+        display: none; align-items: center; justify-content: center; gap: 8px;
+        margin: -6px 0 0; font-size: 13px; color: var(--ink-soft);
+      }
+      .google-auth.loading .google-status { display: flex; }
+      .google-status::before {
+        content: ""; width: 14px; height: 14px; border-radius: 50%;
+        border: 2px solid color-mix(in srgb, var(--brand-600) 30%, transparent);
+        border-top-color: var(--brand-600);
+        animation: spin 0.7s linear infinite;
+      }
+      .auth-divider {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 12.5px; color: var(--ink-soft);
+      }
+      .auth-divider::before, .auth-divider::after {
+        content: ""; flex: 1; height: 1px; background: var(--line);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .google-status::before { animation: none; }
+        .google-btn:hover .google-face { transform: none; }
+      }
     </style>
   </head>
   <body>
@@ -269,6 +333,20 @@
         <form id="auth-form" class="card" novalidate>
           <h1>Welcome back</h1>
           <p>Log in to continue to your repository chats.</p>
+
+          <div id="google-auth" class="google-auth">
+            <div class="google-btn">
+              <div class="google-face" aria-hidden="true">
+                <span class="google-logo">
+                  <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                </span>
+                <span class="google-text">Continue with Google</span>
+              </div>
+              <div id="google-button" class="google-slot"></div>
+            </div>
+            <p class="google-status" role="status">Signing you in with Google…</p>
+            <div class="auth-divider">or continue with email</div>
+          </div>
 
           <div class="field">
             <label for="email">Email</label>
@@ -338,6 +416,6 @@
         }
       }).observe(errorEl, { childList: true, characterData: true, subtree: true });
     </script>
-    <script src="js/app.js?v=15"></script>
+    <script src="js/app.js?v=16"></script>
   </body>
 </html>

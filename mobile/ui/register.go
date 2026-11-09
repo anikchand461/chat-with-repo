@@ -20,6 +20,7 @@ type RegisterScreen struct {
 	password widget.Editor
 
 	registerBtn widget.Clickable
+	googleBtn   widget.Clickable
 	backBtn     widget.Clickable
 
 	mu      sync.Mutex
@@ -87,6 +88,9 @@ func (s *RegisterScreen) Layout(gtx layout.Context, th *material.Theme) layout.D
 	for s.registerBtn.Clicked(gtx) {
 		s.submit()
 	}
+	for s.googleBtn.Clicked(gtx) {
+		s.app.StartGoogleSignIn()
+	}
 	for s.backBtn.Clicked(gtx) {
 		s.setError("")
 		s.app.ShowLogin()
@@ -120,6 +124,7 @@ func (s *RegisterScreen) Layout(gtx layout.Context, th *material.Theme) layout.D
 	return authScreen(gtx, th, true, "Create account", "Index your first repository in under a minute.",
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(authGoogleSection(th, &s.googleBtn, loading || s.app.GoogleBusy())),
 				layout.Rigid(AuthField(th, &s.email, "Email", "you@example.com")),
 				layout.Rigid(authGap(20)),
 				layout.Rigid(AuthField(th, &s.password, "Password", "Atleast 8 characters")),

@@ -94,8 +94,15 @@ to `""` (no fallback).
 ```bash
 cd mobile
 gogio -target android -arch arm64 -ldflags "-s -w" -name ChatWithRepo \
-  -appid com.chatwithrepo.app -version 1.5.0.5 -o ChatWithRepo.apk .
+  -appid com.chatwithrepo.app -version 1.5.0.5 -schemes chatwithrepo \
+  -o ChatWithRepo.apk .
 ```
+
+- **Keep `-schemes chatwithrepo`** - Google sign-in opens the system browser,
+  and the backend sends it back to the app with a `chatwithrepo://auth` link.
+  Without the flag Android doesn't know that link belongs to this app, so the
+  browser can't return. (A desktop `go run .` build can't receive it either,
+  so the Google button only appears in the APK.)
 
 `-arch arm64` (all current phones) and `-ldflags "-s -w"` keep the APK around
 7 MB; leaving them out builds every CPU architecture with debug info (60 MB+).

@@ -164,6 +164,8 @@ DODO_BASE_URL=https://test.dodopayments.com
 APP_URL=http://127.0.0.1:5500/
 
 # Optional
+# GOOGLE_WEB_CLIENT_ID=xxx.apps.googleusercontent.com  # "Continue with Google"; same on AWS + Render, unset = button hidden
+# GOOGLE_WEB_CLIENT_SECRET=xxx   # same OAuth client's secret; needed only for Google sign-in in the Android app
 # GITHUB_TOKEN=github_token      # server-wide fallback for users without their own token
 # DATA_DIR=/path/to/data         # local repo JSON cache (default: <project>/data)
 # REPO_JSON_DB_MAX_MB=25         # largest repo JSON saved to Neon

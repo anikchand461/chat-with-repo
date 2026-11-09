@@ -49,6 +49,8 @@ type App struct {
 	// response from a previous account can never touch the current one.
 	gen uint64
 
+	googleBusy bool // a Google sign-in is starting or finishing (see google.go)
+
 	// Page-transition state (UI goroutine only).
 	shownSeq   int
 	transStart time.Time
@@ -83,6 +85,8 @@ func NewApp(w *app.Window, baseURL, fallback string) *App {
 // the dashboard; otherwise it clears any stale token and stays on
 // Login.
 func (a *App) Bootstrap() {
+	go a.watchURLs()
+
 	token, err := api.LoadToken()
 	if err != nil || token == "" {
 		return
