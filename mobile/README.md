@@ -94,7 +94,7 @@ to `""` (no fallback).
 ```bash
 cd mobile
 gogio -target android -arch arm64 -ldflags "-s -w" -name ChatWithRepo \
-  -appid com.chatwithrepo.app -version 1.5.0.5 -schemes chatwithrepo \
+  -appid com.chatwithrepo.app -version 1.6.0.6 -schemes chatwithrepo \
   -o ChatWithRepo.apk .
 ```
 
