@@ -136,6 +136,9 @@ func (s *DashboardScreen) Reload() {
 		email := ""
 		if me, meErr := s.app.Client.Me(); meErr == nil {
 			email = me.Email
+			// The drawer's picture: off the critical path, so the chat
+			// list never waits on it.
+			go s.app.loadAvatar(gen, me.Avatar, me.GooglePicture)
 		}
 
 		s.mu.Lock()
@@ -870,8 +873,19 @@ func (s *DashboardScreen) drawer(th *material.Theme) layout.Widget {
 			paint.FillShape(gtx.Ops, authCard, clip.RRect{Rect: image.Rect(gtx.Dp(unit.Dp(1)), 0, dw, size.Y), NW: r, SW: r}.Op(gtx.Ops))
 			layout.Inset{Left: unit.Dp(20), Right: unit.Dp(20), Top: unit.Dp(72) + sysInsets.Top}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+					// The picture replaces the old "Profile" row: tap it to
+					// open the profile.
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						d := gtx.Dp(unit.Dp(64))
+						return layout.Inset{Bottom: unit.Dp(12)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return s.menuProfile.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+								dims := avatarCircle(gtx, s.app.Avatar(), d)
+								pressOverlay(gtx, &s.menuProfile, dims.Size, d/2, pressLight)
+								return dims
+							})
+						})
+					}),
 					layout.Rigid(greeting(th, s.snapshot().email)),
-					layout.Rigid(row(&s.menuProfile, profileOp, "Profile", authTitle)),
 					layout.Rigid(row(&s.menuManual, manualOp, "Manual", authTitle)),
 					layout.Rigid(row(&s.menuWeb, webOp, "Web", authTitle)),
 					layout.Rigid(row(&s.menuGithub, githubOp, "GitHub", authTitle)),

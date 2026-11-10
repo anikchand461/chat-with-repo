@@ -21,7 +21,7 @@ def main():
         print("database already up to date")
 
     columns = {c["name"] for c in inspect(engine).get_columns("users")}
-    missing = {"google_sub", "google_name", "google_picture"} - columns
+    missing = {"google_sub", "google_name", "google_picture", "avatar_data", "avatar_type"} - columns
     if missing:
         raise SystemExit(f"users is still missing: {', '.join(sorted(missing))}")
     print("users columns ok:", ", ".join(sorted(columns)))

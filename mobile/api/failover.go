@@ -39,6 +39,7 @@ var idempotentPosts = map[string]bool{
 	"/auth/login":                  true,
 	"/auth/github-token":           true,
 	"/auth/google/mobile/exchange": true,
+	"/auth/avatar":                 true, // just replaces the picture
 }
 
 func retrySafe(method, path string) bool {

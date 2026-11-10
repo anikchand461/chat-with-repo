@@ -94,7 +94,9 @@ func run(w *app.Window) error {
 
 	var ops op.Ops
 	for {
-		switch e := w.Event().(type) {
+		ev := w.Event()
+		a.ListenEvents(ev)
+		switch e := ev.(type) {
 		case app.DestroyEvent:
 			return e.Err
 		case app.FrameEvent:
