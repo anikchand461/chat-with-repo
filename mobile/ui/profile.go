@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"errors"
 	"image/color"
 	"strings"
 	"sync"
@@ -8,9 +9,11 @@ import (
 	"gioui.org/font"
 	"gioui.org/io/key"
 	"gioui.org/layout"
+	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/explorer"
 
 	"chatwithrepo/mobile/api"
 )
@@ -54,10 +57,19 @@ type ProfileScreen struct {
 	checkingOut bool
 	checkoutErr string
 
+	// Profile picture, same rules as the web profile: the uploaded photo,
+	// else the Google one, else the default silhouette (avatarOp nil).
+	avatar     string // "custom" / "google" / "default" from /auth/me
+	avatarBusy bool
+	avatarMsg  string
+	avatarErr  bool
+
 	token      widget.Editor
 	saveBtn    widget.Clickable
 	backBtn    widget.Clickable
 	upgradeBtn widget.Clickable
+	changePic  widget.Clickable
+	removePic  widget.Clickable
 }
 
 func newProfileScreen(app *App) *ProfileScreen {
@@ -105,7 +117,175 @@ func (s *ProfileScreen) Load() {
 		s.isPro = statusErr == nil && status.IsPro
 		s.mu.Unlock()
 		s.app.Window.Invalidate()
+
+		if err == nil {
+			s.loadAvatar(gen, me.Avatar, me.GooglePicture)
+		}
 	}()
+}
+
+// loadAvatar fetches the picture for source and remembers which source is
+// showing (so "Remove" only appears for an uploaded photo).
+func (s *ProfileScreen) loadAvatar(gen uint64, source, googlePicture string) {
+	s.app.loadAvatar(gen, source, googlePicture)
+	s.mu.Lock()
+	if s.app.IsCurrent(gen) {
+		s.avatar = source
+	}
+	s.mu.Unlock()
+}
+
+func (s *ProfileScreen) setAvatarStatus(gen uint64, msg string, isErr bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.app.IsCurrent(gen) {
+		return
+	}
+	s.avatarBusy = false
+	s.avatarMsg = msg
+	s.avatarErr = isErr
+	s.app.Window.Invalidate()
+}
+
+// changeAvatar opens the system picker, shrinks the chosen photo to a
+// 256 px JPEG and uploads it (POST /auth/avatar).
+func (s *ProfileScreen) changeAvatar() {
+	gen := s.app.Generation()
+	s.mu.Lock()
+	if s.avatarBusy {
+		s.mu.Unlock()
+		return
+	}
+	s.avatarBusy = true
+	s.avatarMsg = ""
+	s.mu.Unlock()
+	s.app.Window.Invalidate()
+
+	go func() {
+		file, err := s.app.Explorer.ChooseFile(".jpg", ".jpeg", ".png")
+		if errors.Is(err, explorer.ErrUserDecline) {
+			s.setAvatarStatus(gen, "", false)
+			return
+		}
+		if err != nil {
+			s.setAvatarStatus(gen, "Couldn't open the photo picker.", true)
+			return
+		}
+		data, img, err := avatarJPEG(file)
+		file.Close()
+		if err != nil {
+			s.setAvatarStatus(gen, err.Error(), true)
+			return
+		}
+
+		source, err := s.app.Client.UploadAvatar(data)
+		if !s.app.IsCurrent(gen) {
+			return
+		}
+		if err == api.ErrUnauthorized {
+			s.app.HandleUnauthorized()
+			return
+		}
+		if err != nil {
+			s.setAvatarStatus(gen, err.Error(), true)
+			return
+		}
+		pic := paint.NewImageOp(img)
+		s.app.setAvatar(gen, &pic)
+		s.mu.Lock()
+		s.avatar = source
+		s.mu.Unlock()
+		s.setAvatarStatus(gen, "Photo updated.", false)
+	}()
+}
+
+// removeAvatar drops the uploaded photo (DELETE /auth/avatar) and shows
+// the Google photo or the default instead.
+func (s *ProfileScreen) removeAvatar() {
+	gen := s.app.Generation()
+	s.mu.Lock()
+	if s.avatarBusy {
+		s.mu.Unlock()
+		return
+	}
+	s.avatarBusy = true
+	s.avatarMsg = ""
+	s.mu.Unlock()
+	s.app.Window.Invalidate()
+
+	go func() {
+		source, err := s.app.Client.DeleteAvatar()
+		if !s.app.IsCurrent(gen) {
+			return
+		}
+		if err == api.ErrUnauthorized {
+			s.app.HandleUnauthorized()
+			return
+		}
+		if err != nil {
+			s.setAvatarStatus(gen, err.Error(), true)
+			return
+		}
+		googlePicture := ""
+		if source == "google" {
+			if me, err := s.app.Client.Me(); err == nil {
+				googlePicture = me.GooglePicture
+			}
+		}
+		s.loadAvatar(gen, source, googlePicture)
+		s.setAvatarStatus(gen, "Photo removed.", false)
+	}()
+}
+
+// avatarSection is the round picture with "Change photo" (and "Remove"
+// when a photo was uploaded) under it, plus the last result.
+func (s *ProfileScreen) avatarSection(th *material.Theme) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		s.mu.Lock()
+		source, busy, msg, isErr := s.avatar, s.avatarBusy, s.avatarMsg, s.avatarErr
+		s.mu.Unlock()
+		pic := s.app.Avatar()
+
+		changeLabel := "Change photo"
+		if busy {
+			changeLabel = "Working…"
+		}
+		buttons := []layout.FlexChild{
+			layout.Flexed(1, AuthSecondaryButton(th, &s.changePic, changeLabel)),
+		}
+		if source == "custom" {
+			buttons = append(buttons,
+				layout.Rigid(spacerX(10)),
+				layout.Flexed(1, AuthSecondaryButton(th, &s.removePic, "Remove")),
+			)
+		}
+
+		rows := []layout.FlexChild{
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return avatarCircle(gtx, pic, gtx.Dp(authDp(96)))
+				})
+			}),
+			layout.Rigid(authGap(14)),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if busy {
+					gtx = gtx.Disabled()
+				}
+				return layout.Flex{}.Layout(gtx, buttons...)
+			}),
+		}
+		if msg != "" {
+			rows = append(rows, layout.Rigid(authGap(6)), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if isErr {
+					return ErrorText(th, msg)(gtx)
+				}
+				l := material.Body2(th, msg)
+				l.Color = profileOkText
+				return l.Layout(gtx)
+			}))
+		}
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx, rows...)
+	}
 }
 
 // startCheckout mirrors DashboardScreen/ChatScreen.startCheckout: fetch a
@@ -214,6 +394,12 @@ func (s *ProfileScreen) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	for s.upgradeBtn.Clicked(gtx) {
 		s.startCheckout()
 	}
+	for s.changePic.Clicked(gtx) {
+		s.changeAvatar()
+	}
+	for s.removePic.Clicked(gtx) {
+		s.removeAvatar()
+	}
 
 	// Android Back returns to the Dashboard (Profile is only ever reached
 	// from there - ShowProfile). Without this, an unhandled Back here
@@ -248,6 +434,8 @@ func (s *ProfileScreen) Layout(gtx layout.Context, th *material.Theme) layout.Di
 	return authScreen(gtx, th, false, title, email,
 		func(gtx layout.Context) layout.Dimensions {
 			rows := []layout.FlexChild{
+				layout.Rigid(s.avatarSection(th)),
+				layout.Rigid(authGap(20)),
 				layout.Rigid(planBanner(th, loading, isPro)),
 			}
 			if !loading && !isPro {
@@ -403,6 +591,10 @@ func (s *ProfileScreen) reset() {
 	s.checkoutErr = ""
 	s.errMsg = ""
 	s.statusMsg = ""
+	s.avatar = ""
+	s.avatarBusy = false
+	s.avatarMsg = ""
+	s.avatarErr = false
 	s.uiReset = true
 	s.mu.Unlock()
 }

@@ -10,11 +10,13 @@ import (
 	"time"
 
 	"gioui.org/app"
+	"gioui.org/io/event"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"gioui.org/x/explorer"
 
 	"chatwithrepo/mobile/api"
 )
@@ -38,6 +40,9 @@ type App struct {
 	Theme  *material.Theme
 	Client *api.Client
 
+	// Explorer opens the system file/photo picker (profile picture).
+	Explorer *explorer.Explorer
+
 	mu     sync.Mutex
 	screen Screen
 	prev   Screen // screen shown before the latest navigation
@@ -50,6 +55,10 @@ type App struct {
 	gen uint64
 
 	googleBusy bool // a Google sign-in is starting or finishing (see google.go)
+
+	// avatar is the signed-in user's picture (nil = default silhouette),
+	// shared by the Dashboard drawer and the Profile screen. Guarded by mu.
+	avatar *paint.ImageOp
 
 	// Page-transition state (UI goroutine only).
 	shownSeq   int
@@ -67,10 +76,11 @@ type App struct {
 // Requests go to baseURL first and to fallback ("" for none) when it's down.
 func NewApp(w *app.Window, baseURL, fallback string) *App {
 	a := &App{
-		Window: w,
-		Theme:  NewTheme(),
-		Client: api.NewClient(baseURL, fallback),
-		screen: ScreenLogin,
+		Window:   w,
+		Theme:    NewTheme(),
+		Client:   api.NewClient(baseURL, fallback),
+		Explorer: explorer.NewExplorer(w),
+		screen:   ScreenLogin,
 	}
 	a.LoginScreen = newLoginScreen(a)
 	a.RegisterScreen = newRegisterScreen(a)
@@ -78,6 +88,12 @@ func NewApp(w *app.Window, baseURL, fallback string) *App {
 	a.Chat = newChatScreen(a)
 	a.Profile = newProfileScreen(a)
 	return a
+}
+
+// ListenEvents must see every window event (the picker needs the
+// Android view).
+func (a *App) ListenEvents(e event.Event) {
+	a.Explorer.ListenEvents(e)
 }
 
 // Bootstrap tries to resume a saved session before the first frame
@@ -107,6 +123,41 @@ func (a *App) Bootstrap() {
 	}()
 }
 
+// Avatar returns the current user's picture, or nil for the default.
+func (a *App) Avatar() *paint.ImageOp {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.avatar
+}
+
+// setAvatar stores pic for session gen (dropped if the account changed).
+func (a *App) setAvatar(gen uint64, pic *paint.ImageOp) {
+	a.mu.Lock()
+	if a.gen == gen {
+		a.avatar = pic
+	}
+	a.mu.Unlock()
+	a.Window.Invalidate()
+}
+
+// loadAvatar downloads the picture /auth/me points at (source "custom" or
+// "google") and stores it; any failure leaves the default. Blocking.
+func (a *App) loadAvatar(gen uint64, source, googlePicture string) {
+	var data []byte
+	var err error
+	switch {
+	case source == "custom":
+		data, err = a.Client.Avatar()
+	case googlePicture != "":
+		data, err = a.Client.GooglePicture(googlePicture)
+	}
+	var pic *paint.ImageOp
+	if err == nil && data != nil {
+		pic = decodeAvatar(data)
+	}
+	a.setAvatar(gen, pic)
+}
+
 // Generation returns the current session generation.
 func (a *App) Generation() uint64 {
 	a.mu.Lock()
@@ -127,6 +178,7 @@ func (a *App) IsCurrent(gen uint64) bool {
 func (a *App) resetSession() {
 	a.mu.Lock()
 	a.gen++
+	a.avatar = nil
 	a.mu.Unlock()
 
 	a.Dashboard.reset()

@@ -43,6 +43,11 @@ class GoogleCredential(BaseModel):
     credential: str = Field(min_length=1, max_length=4096)
 
 
+class AvatarUpload(BaseModel):
+    # Base64 JPEG or PNG. The apps shrink photos to 256x256 before sending.
+    image: str = Field(min_length=1, max_length=700_000)
+
+
 class GoogleMobileExchange(BaseModel):
     code: str = Field(min_length=1, max_length=1024)
     verifier: str = Field(min_length=43, max_length=128)
@@ -76,7 +81,85 @@ def me(user: User = Depends(get_current_user)):
         "email": user.email,
         "has_github_token": bool(user.github_token),
         "google_linked": bool(user.google_sub),
+        **_avatar_info(user),
     }
+
+
+# ---------------------------------------------------------------------------
+# Profile picture. An uploaded photo wins; otherwise the Google one (if the
+# account is linked), otherwise the apps draw a default avatar. The photo
+# itself is stored in the users row and served as base64 JSON, so it works
+# the same through the Lambda URL and Render.
+# ---------------------------------------------------------------------------
+
+AVATAR_MAX_BYTES = 512 * 1024
+
+
+def _avatar_info(user: User) -> dict:
+    if user.avatar_type:
+        source = "custom"
+    elif user.google_picture:
+        source = "google"
+    else:
+        source = "default"
+    return {"avatar": source, "google_picture": user.google_picture}
+
+
+def _image_type(data: bytes) -> str | None:
+    if data.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    return None
+
+
+@router.get("/avatar")
+def get_avatar(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if user is None or not user.avatar_type or not user.avatar_data:
+        raise HTTPException(status_code=404, detail="No profile picture uploaded")
+    return {
+        "content_type": user.avatar_type,
+        "data": base64.b64encode(user.avatar_data).decode(),
+    }
+
+
+@router.post("/avatar")
+def upload_avatar(
+    request: AvatarUpload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Replace the profile picture. Safe to repeat (failover): same image, same result."""
+    try:
+        data = base64.b64decode(request.image, validate=True)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="The picture could not be read.")
+    if len(data) > AVATAR_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="The picture is too large (max 512 KB).")
+    content_type = _image_type(data)
+    if content_type is None:
+        raise HTTPException(status_code=400, detail="Use a JPEG or PNG picture.")
+
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    user.avatar_data = data
+    user.avatar_type = content_type
+    db.commit()
+    return _avatar_info(user)
+
+
+@router.delete("/avatar")
+def delete_avatar(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Drop the uploaded picture, going back to the Google one or the default."""
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    user.avatar_data = None
+    user.avatar_type = None
+    db.commit()
+    return _avatar_info(user)
 
 
 @router.get("/google/config")

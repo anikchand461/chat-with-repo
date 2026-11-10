@@ -78,6 +78,11 @@ type AuthResponse struct {
 type MeResponse struct {
 	Email          string `json:"email"`
 	HasGithubToken bool   `json:"has_github_token"`
+
+	// Avatar is which profile picture to show: "custom" (GET /auth/avatar),
+	// "google" (GooglePicture) or "default" (drawn by the app).
+	Avatar        string `json:"avatar"`
+	GooglePicture string `json:"google_picture"`
 }
 
 type Chat struct {

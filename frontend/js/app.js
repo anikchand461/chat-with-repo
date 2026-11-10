@@ -39,7 +39,8 @@ function token() {
 // re-sent to Render when AWS definitely never processed it.
 // /auth/google is safe too: the same Google token always signs in the
 // same user, even if AWS already created the account.
-const IDEMPOTENT_POSTS = new Set(["/auth/login", "/auth/github-token", "/auth/google"]);
+// /auth/avatar just replaces the picture, so sending it twice is harmless.
+const IDEMPOTENT_POSTS = new Set(["/auth/login", "/auth/github-token", "/auth/google", "/auth/avatar"]);
 
 function isRetrySafe(method, path) {
   const m = (method || "GET").toUpperCase();
@@ -280,6 +281,7 @@ function setupAuth(kind) {
       });
 
       localStorage.setItem("devlens_token", data.access_token);
+      localStorage.removeItem(AVATAR_CACHE_KEY); // never show the previous account's picture
       // Remember the email so the profile page can greet the user right away
       localStorage.setItem("devlens_email", email.trim());
       location.href = "dashboard.html";
@@ -338,6 +340,7 @@ async function setupGoogleAuth(kind) {
         body: JSON.stringify({ credential: response.credential }),
       });
       localStorage.setItem("devlens_token", data.access_token);
+      localStorage.removeItem(AVATAR_CACHE_KEY); // never show the previous account's picture
       // The profile page fills the email in from /auth/me.
       localStorage.removeItem("devlens_email");
       location.href = "dashboard.html"; // stays busy until the page changes
@@ -1421,6 +1424,183 @@ function greetingName(email) {
   return first ? first.charAt(0).toUpperCase() + first.slice(1) : "";
 }
 
+// Profile picture: the uploaded photo (GET /auth/avatar), else the Google
+// photo, else the default silhouette already in profile.html.
+const AVATAR_SIZE = 256;
+
+// The last picture shown (data: URL, Google URL, or "" for the default),
+// so the navbar avatar appears instantly on every page load.
+const AVATAR_CACHE_KEY = "devlens_avatar";
+
+function cachedAvatar() {
+  try {
+    return localStorage.getItem(AVATAR_CACHE_KEY);
+  } catch (_) {
+    return null;
+  }
+}
+
+function cacheAvatar(src) {
+  try {
+    localStorage.setItem(AVATAR_CACHE_KEY, src || "");
+  } catch (_) {} // quota full: the navbar just loads it next time
+}
+
+// The picture to show for /auth/me's answer: "" means the default.
+async function avatarSrc(me) {
+  if (me.avatar === "custom") {
+    try {
+      const pic = await request("/auth/avatar");
+      return `data:${pic.content_type};base64,${pic.data}`;
+    } catch (err) {
+      console.error("auth/avatar failed:", err);
+    }
+  }
+  return me.google_picture || "";
+}
+
+// Navbar avatar linking to the profile (dashboard.html, manual.html).
+// Hidden when logged out.
+function setupNavAvatar() {
+  const link = document.querySelector(".nav-avatar");
+  if (!link || !token()) return;
+
+  const img = link.querySelector("img");
+  const fallback = link.querySelector(".nav-avatar-default");
+  function show(src) {
+    img.hidden = !src;
+    fallback.style.display = src ? "none" : "";
+    if (src) img.src = src;
+    else img.removeAttribute("src");
+  }
+  img.addEventListener("error", () => show(""));
+
+  show(cachedAvatar() || "");
+  link.hidden = false;
+
+  request("/auth/me")
+    .then(avatarSrc)
+    .then((src) => {
+      cacheAvatar(src);
+      show(src);
+    })
+    .catch((err) => console.error("nav avatar failed:", err));
+}
+
+function setupAvatar() {
+  const box = document.querySelector("#avatar");
+  if (!box) return { show() {} };
+
+  const img = document.querySelector("#avatar-img");
+  const fallback = document.querySelector("#avatar-default");
+  const changeBtn = document.querySelector("#avatar-change");
+  const removeBtn = document.querySelector("#avatar-remove");
+  const fileInput = document.querySelector("#avatar-file");
+  const status = document.querySelector("#avatar-status");
+
+  function setStatus(message, kind) {
+    status.textContent = message || "";
+    status.className = kind || "";
+  }
+
+  function setPicture(src) {
+    img.hidden = !src;
+    fallback.style.display = src ? "none" : "";
+    if (src) img.src = src;
+    else img.removeAttribute("src");
+  }
+
+  // A Google photo that fails to load falls back to the default.
+  img.addEventListener("error", () => setPicture(null));
+
+  async function show(info) {
+    removeBtn.hidden = info.avatar !== "custom";
+    const src = await avatarSrc(info);
+    cacheAvatar(src);
+    setPicture(src);
+  }
+
+  function setBusy(busy) {
+    box.classList.toggle("busy", busy);
+    changeBtn.disabled = busy;
+    removeBtn.disabled = busy;
+  }
+
+  // Center-crop to a square and shrink to AVATAR_SIZE, as JPEG base64.
+  function shrink(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const image = new Image();
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        const side = Math.min(image.naturalWidth, image.naturalHeight);
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = AVATAR_SIZE;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#fff"; // transparent PNGs get a white background
+        ctx.fillRect(0, 0, AVATAR_SIZE, AVATAR_SIZE);
+        ctx.drawImage(
+          image,
+          (image.naturalWidth - side) / 2,
+          (image.naturalHeight - side) / 2,
+          side,
+          side,
+          0,
+          0,
+          AVATAR_SIZE,
+          AVATAR_SIZE
+        );
+        resolve(canvas.toDataURL("image/jpeg", 0.88).split(",")[1]);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(Error("That file isn't a picture we can read."));
+      };
+      image.src = url;
+    });
+  }
+
+  changeBtn.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    fileInput.value = "";
+    if (!file) return;
+    setStatus("");
+    setBusy(true);
+    try {
+      const image = await shrink(file);
+      const info = await request("/auth/avatar", {
+        method: "POST",
+        body: JSON.stringify({ image }),
+      });
+      setPicture(`data:image/jpeg;base64,${image}`);
+      cacheAvatar(`data:image/jpeg;base64,${image}`);
+      removeBtn.hidden = info.avatar !== "custom";
+      setStatus("Photo updated.");
+    } catch (err) {
+      setStatus(err.message || "Couldn't upload the photo.", "err");
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  removeBtn.addEventListener("click", async () => {
+    setStatus("");
+    setBusy(true);
+    try {
+      await show(await request("/auth/avatar", { method: "DELETE" }));
+      setStatus("Photo removed.");
+    } catch (err) {
+      setStatus(err.message || "Couldn't remove the photo.", "err");
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  return { show };
+}
+
 function setupProfile() {
   const form = document.querySelector("#token-form");
   if (!form) return;
@@ -1442,6 +1622,7 @@ function setupProfile() {
     '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
 
   let hasToken = false;
+  const avatar = setupAvatar();
 
   function setStatus(message, kind) {
     if (!status) return;
@@ -1522,6 +1703,7 @@ function setupProfile() {
         localStorage.setItem("devlens_email", me.email);
         showUser(me.email);
       }
+      if (me) avatar.show(me);
       showTokenState(Boolean(me && me.has_github_token));
     })
     .catch((err) => {
@@ -1627,9 +1809,12 @@ if (document.querySelector("#token-form")) {
   setupProfile();
 }
 
+setupNavAvatar();
+
 function logout() {
   localStorage.removeItem("devlens_token");
   localStorage.removeItem("devlens_email");
+  localStorage.removeItem(AVATAR_CACHE_KEY);
   window.location.replace("login.html");
 }
 

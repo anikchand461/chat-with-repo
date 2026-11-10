@@ -12,11 +12,12 @@ from sqlalchemy import (
     Date,
     Float,
     JSON,
+    LargeBinary,
     inspect,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+from sqlalchemy.orm import declarative_base, deferred, sessionmaker, relationship
 
 load_dotenv()
 
@@ -48,6 +49,12 @@ class User(Base):
     google_sub = Column(String, unique=True, index=True, nullable=True)
     google_name = Column(String, nullable=True)
     google_picture = Column(String, nullable=True)
+
+    # Profile picture the user uploaded (JPEG/PNG bytes). When empty the apps
+    # show google_picture, else a default avatar. Deferred so the bytes are
+    # only read by GET /auth/avatar, not on every authenticated request.
+    avatar_data = deferred(Column(LargeBinary, nullable=True))
+    avatar_type = Column(String, nullable=True)  # image/jpeg or image/png
 
     # Subscription
     plan = Column(String, default="FREE")
@@ -157,6 +164,8 @@ def _add_missing_columns():
             "google_sub": "VARCHAR",
             "google_name": "VARCHAR",
             "google_picture": "VARCHAR",
+            "avatar_data": "BYTEA" if postgres else "BLOB",
+            "avatar_type": "VARCHAR",
         },
     }
 
